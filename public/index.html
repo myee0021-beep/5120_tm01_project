@@ -740,9 +740,15 @@
     </div>
 
     <div class="px-7 md:px-9 py-8">
-      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
-        <span data-en>Right now, do this</span><span data-bm>Sekarang, buat ini</span>
-      </h4>
+      <div class="flex items-center gap-2 mb-4">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-rose-600 shrink-0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <h4 class="text-xs font-bold uppercase tracking-wider text-rose-700">
+          <span data-en>Right now, do this</span><span data-bm>Sekarang, buat ini</span>
+        </h4>
+        <span class="rounded-full bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wide px-2 py-0.5">
+          <span data-en>Priority</span><span data-bm>Keutamaan</span>
+        </span>
+      </div>
       <div id="wtd_safetyList" class="space-y-2.5"></div>
 
       <!-- AC 2.2.1 — fixed "do not" list, identical for every species, does not vary -->
@@ -1119,35 +1125,31 @@
       <!-- AC 3.3.1 — Lost sight path. Moved up here (right after the
            observation guidance) per feedback — it's a more urgent, more
            likely-to-be-needed scenario than the location-prompt/tips
-           content below it, so it shouldn't be buried at the bottom. -->
-      <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5">
+           content below it, so it shouldn't be buried at the bottom.
+           Restyled to a plain white card (was amber/yellow) and dropped the
+           "Secure this in the meantime" list, which just duplicated the
+           what-to-do page's safety steps verbatim. -->
+      <div class="rounded-xl border border-slate-200 bg-white px-4 py-3.5">
         <button id="kif_lostSightToggle" type="button" class="w-full flex items-center justify-between gap-3 text-left">
-          <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800">
+          <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-600">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <span data-en>It's no longer visible</span><span data-bm>Ia sudah tidak kelihatan</span>
           </span>
-          <svg id="kif_lostSightChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-700 shrink-0 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+          <svg id="kif_lostSightChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 shrink-0 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
         </button>
 
-        <div id="kif_lostSightContent" class="hidden mt-3.5 pt-3.5 border-t border-amber-200 space-y-4">
-          <p class="text-xs text-amber-900 font-semibold leading-relaxed">
+        <div id="kif_lostSightContent" class="hidden mt-3.5 pt-3.5 border-t border-slate-200 space-y-4">
+          <p class="text-xs text-slate-600 font-medium leading-relaxed">
             <span data-en>Responders may be unable to locate it when they arrive. That does not mean the visit is wasted.</span>
             <span data-bm>Responden mungkin tidak dapat mengesannya semasa ketibaan. Ini tidak bermakna lawatan itu sia-sia.</span>
           </p>
 
-          <div>
-            <p class="text-[11px] font-bold uppercase tracking-wide text-amber-700 mb-2">
-              <span data-en>Secure this in the meantime</span><span data-bm>Amankan ini semasa menunggu</span>
-            </p>
-            <div id="kif_lostSightSecureList" class="space-y-2"></div>
-          </div>
-
           <div id="kif_lostSightPreventionWrap" class="hidden">
-            <p class="text-[11px] font-bold uppercase tracking-wide text-amber-700 mb-2">
+            <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-2">
               <span data-en>Prevention plan for next time</span><span data-bm>Pelan pencegahan untuk lain kali</span>
             </p>
             <div id="kif_lostSightPreventionList" class="space-y-2"></div>
-            <p id="kif_lostSightPreventionSource" class="mt-2 text-[11px] text-amber-700/80"></p>
+            <p id="kif_lostSightPreventionSource" class="mt-2 text-[11px] text-slate-400"></p>
           </div>
         </div>
       </div>
@@ -2977,9 +2979,13 @@ function render_whattodo() {
     var src = s.safetySource
       ? '<p class="mt-1 text-[11px] text-slate-400"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></p>'
       : '';
-    return '<div class="flex gap-3 rounded-xl bg-slate-50 border border-slate-200/60 px-4 py-3">' +
-      '<span class="shrink-0 w-5 h-5 rounded-full bg-forest-700 text-white text-[11px] font-bold flex items-center justify-center mt-0.5">' + (i + 1) + '</span>' +
-      '<div><p class="text-sm text-slate-700 leading-relaxed"><span data-en>' + line.en + '</span><span data-bm>' + line.bm + '</span></p>' + src + '</div>' +
+    // AC 2.1.1 content is the single highest-priority thing on the page.
+    // A thick red left-border accent (news-site "important story" pattern)
+    // marks that without tinting the whole card — keeps it readable and
+    // consistent with the site's white-card look instead of a loud red block.
+    return '<div class="flex gap-3 rounded-xl bg-white border border-slate-200 border-l-4 border-l-rose-600 px-4 py-3">' +
+      '<span class="shrink-0 w-5 h-5 rounded-full bg-rose-600 text-white text-[11px] font-bold flex items-center justify-center mt-0.5">' + (i + 1) + '</span>' +
+      '<div><p class="text-sm text-slate-800 font-medium leading-relaxed"><span data-en>' + line.en + '</span><span data-bm>' + line.bm + '</span></p>' + src + '</div>' +
     '</div>';
   }).join('');
 
@@ -3148,20 +3154,16 @@ function render_findable() {
     '</div>';
   }).join('');
 
-  // AC 3.3.1 — lost sight path: secure list reuses epic 2 safety content,
-  // prevention plan reuses epic 6 style checklist content where one exists.
-  document.getElementById('kif_lostSightSecureList').innerHTML = s.safetySteps.map(function (step, i) {
-    return '<div class="flex gap-3 rounded-xl bg-white/70 border border-amber-200/70 px-4 py-2.5">' +
-      '<span class="shrink-0 w-5 h-5 rounded-full bg-amber-700 text-white text-[11px] font-bold flex items-center justify-center mt-0.5">' + (i + 1) + '</span>' +
-      '<p class="text-sm text-amber-900/90 leading-relaxed"><span data-en>' + step.en + '</span><span data-bm>' + step.bm + '</span></p>' +
-    '</div>';
-  }).join('');
-
+  // AC 3.3.1 — lost sight path: prevention plan reuses epic 6 style
+  // checklist content where one exists. The old "Secure this in the
+  // meantime" list (duplicating epic 2's safety steps verbatim) was
+  // dropped — the amber theme is gone too, restyled as a plain white/grey
+  // list matching the site's standard list style everywhere else.
   if (s.checklist && s.checklist.length) {
     document.getElementById('kif_lostSightPreventionList').innerHTML = s.checklist.map(function (item) {
-      return '<div class="flex gap-3 rounded-xl bg-white/70 border border-amber-200/70 px-4 py-2.5">' +
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-700 shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>' +
-        '<p class="text-sm text-amber-900/90 leading-relaxed"><span data-en>' + item.en + '</span><span data-bm>' + item.bm + '</span></p>' +
+      return '<div class="flex gap-3 rounded-xl bg-slate-50 border border-slate-200/60 px-4 py-2.5">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-forest-700 shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>' +
+        '<p class="text-sm text-slate-700 leading-relaxed"><span data-en>' + item.en + '</span><span data-bm>' + item.bm + '</span></p>' +
       '</div>';
     }).join('');
     if (s.checklistSource && s.checklistSource.en) {
