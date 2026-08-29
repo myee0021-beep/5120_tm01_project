@@ -1,54 +1,36 @@
 # Room for Both backend setup
 
-This branch adds a Cloudflare Worker in front of the existing static frontend and connects `/api/*` routes to Neon PostgreSQL.
+This branch adds a read-only Cloudflare Worker in front of the existing static frontend and connects `/api/*` routes to Neon PostgreSQL.
 
 ## Architecture
 
 - Static frontend: `public/index.html`
 - Worker entry: `src/worker.js`
-- Frontend bridge: `public/backend.js`
 - Database: Neon PostgreSQL through `@neondatabase/serverless`
 
-The Worker serves static assets through the `ASSETS` binding and injects `backend.js` into HTML responses. The existing frontend file does not need to be rewritten.
+The Worker serves the existing frontend through the `ASSETS` binding. No frontend event tracking or database write logic is included.
 
-## API
+## Read-only API
+
+The backend only accepts `GET` requests for API routes. `POST`, `PUT`, `PATCH`, and `DELETE` are rejected with HTTP 405.
 
 ### `GET /api/health`
 
-Checks whether the Worker can connect to Neon.
+Checks whether the Worker can connect to Neon using a `SELECT` query.
 
-Expected response:
+### `GET /api/tables`
 
-```json
-{
-  "ok": true,
-  "service": "room-for-both-worker",
-  "database": "connected"
-}
-```
+Lists the base tables in the PostgreSQL `public` schema.
 
-### `POST /api/events`
+### `GET /api/table?name=TABLE_NAME&limit=100`
 
-Stores frontend interaction events. The Worker creates the `app_event` table automatically the first time this endpoint is used.
+Reads rows from one existing table. The table name is validated and checked against `information_schema` before the query runs.
 
-Example request:
+The default limit is 100 rows and the maximum is 500.
 
-```json
-{
-  "eventType": "click",
-  "page": "identify",
-  "speciesId": "macaque",
-  "stateId": "selangor",
-  "language": "en",
-  "metadata": {
-    "element_id": "example-button"
-  }
-}
-```
+Example:
 
-### `GET /api/events?limit=20`
-
-Returns the newest saved events. The maximum limit is 100.
+`/api/table?name=species&limit=50`
 
 ## Cloudflare configuration
 
@@ -74,6 +56,10 @@ Deployment:
 ```bash
 npm run deploy
 ```
+
+## Recommended database permission
+
+For stronger protection, use a PostgreSQL role that has `SELECT` permission only for the tables the website needs. That way the database itself also prevents INSERT, UPDATE, DELETE, ALTER, DROP, and CREATE operations even if application code changes later.
 
 ## Security
 
