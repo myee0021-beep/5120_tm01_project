@@ -12,9 +12,7 @@ function json(data, status = 200, extraHeaders = {}) {
 }
 
 function getSql(env) {
-  if (!env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not configured');
-  }
+  if (!env.DATABASE_URL) throw new Error('DATABASE_URL is not configured');
   return neon(env.DATABASE_URL);
 }
 
@@ -35,13 +33,8 @@ function boolParam(value) {
 async function handleApi(request, env) {
   const url = new URL(request.url);
 
-  // Public database access is intentionally read-only.
   if (request.method !== 'GET') {
-    return json(
-      { ok: false, error: 'Read-only API. Only GET requests are allowed.' },
-      405,
-      { Allow: 'GET' }
-    );
+    return json({ ok: false, error: 'Read-only API. Only GET requests are allowed.' }, 405, { Allow: 'GET' });
   }
 
   try {
@@ -49,13 +42,7 @@ async function handleApi(request, env) {
 
     if (url.pathname === '/api/health') {
       const rows = await sql`SELECT NOW() AS database_time`;
-      return json({
-        ok: true,
-        service: 'room-for-both-worker',
-        mode: 'read-only',
-        database: 'connected',
-        database_time: rows[0]?.database_time,
-      });
+      return json({ ok: true, service: 'room-for-both-worker', mode: 'read-only', database: 'connected', database_time: rows[0]?.database_time });
     }
 
     if (url.pathname === '/api/categories') {
@@ -67,16 +54,10 @@ async function handleApi(request, env) {
       return json({ ok: true, count: rows.length, categories: rows });
     }
 
-    // state.state_code is an integer in the latest ERD.
-    // GET /api/states
-    // GET /api/states?state_code=1
     if (url.pathname === '/api/states') {
       const rawStateCode = url.searchParams.get('state_code');
       const stateCode = positiveInt(rawStateCode);
-
-      if (rawStateCode !== null && stateCode === null) {
-        return json({ ok: false, error: 'state_code must be a positive integer.' }, 400);
-      }
+      if (rawStateCode !== null && stateCode === null) return json({ ok: false, error: 'state_code must be a positive integer.' }, 400);
 
       if (stateCode !== null) {
         const rows = await sql`
@@ -109,43 +90,13 @@ async function handleApi(request, env) {
       if (rawCategoryId !== null && categoryId === null) return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
       if (rawIsSnake !== null && isSnake === undefined) return json({ ok: false, error: 'is_snake must be true or false.' }, 400);
 
-      const speciesSelect = sql`
-        SELECT
-          s.species_id,
-          s.order_family_species,
-          s.scientific_name,
-          s.malay_name,
-          s.english_name,
-          s.category_id,
-          s.protected_status,
-          s.introduced_status,
-          s.is_snake,
-          s.id_keywords,
-          s.taxonkey AS "taxonKey",
-          c.category_name,
-          c.description AS category_description,
-          c.responsible_body_type
-        FROM species s
-        LEFT JOIN animal_category c ON c.category_id = s.category_id
-      `;
-
       if (id !== null) {
         const rows = await sql`
           SELECT
-            s.species_id,
-            s.order_family_species,
-            s.scientific_name,
-            s.malay_name,
-            s.english_name,
-            s.category_id,
-            s.protected_status,
-            s.introduced_status,
-            s.is_snake,
-            s.id_keywords,
-            s.taxonkey AS "taxonKey",
-            c.category_name,
-            c.description AS category_description,
-            c.responsible_body_type
+            s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
+            s.english_name, s.category_id, s.protected_status, s.introduced_status,
+            s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
+            c.category_name, c.description AS category_description, c.responsible_body_type
           FROM species s
           LEFT JOIN animal_category c ON c.category_id = s.category_id
           WHERE s.species_id = ${id}
@@ -158,11 +109,10 @@ async function handleApi(request, env) {
       let rows;
       if (categoryId !== null && isSnake !== null) {
         rows = await sql`
-          SELECT
-            s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
-            s.english_name, s.category_id, s.protected_status, s.introduced_status,
-            s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
-            c.category_name, c.responsible_body_type
+          SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
+                 s.english_name, s.category_id, s.protected_status, s.introduced_status,
+                 s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
+                 c.category_name, c.responsible_body_type
           FROM species s
           LEFT JOIN animal_category c ON c.category_id = s.category_id
           WHERE s.category_id = ${categoryId} AND s.is_snake = ${isSnake}
@@ -170,11 +120,10 @@ async function handleApi(request, env) {
         `;
       } else if (categoryId !== null) {
         rows = await sql`
-          SELECT
-            s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
-            s.english_name, s.category_id, s.protected_status, s.introduced_status,
-            s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
-            c.category_name, c.responsible_body_type
+          SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
+                 s.english_name, s.category_id, s.protected_status, s.introduced_status,
+                 s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
+                 c.category_name, c.responsible_body_type
           FROM species s
           LEFT JOIN animal_category c ON c.category_id = s.category_id
           WHERE s.category_id = ${categoryId}
@@ -182,11 +131,10 @@ async function handleApi(request, env) {
         `;
       } else if (isSnake !== null) {
         rows = await sql`
-          SELECT
-            s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
-            s.english_name, s.category_id, s.protected_status, s.introduced_status,
-            s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
-            c.category_name, c.responsible_body_type
+          SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
+                 s.english_name, s.category_id, s.protected_status, s.introduced_status,
+                 s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
+                 c.category_name, c.responsible_body_type
           FROM species s
           LEFT JOIN animal_category c ON c.category_id = s.category_id
           WHERE s.is_snake = ${isSnake}
@@ -194,24 +142,21 @@ async function handleApi(request, env) {
         `;
       } else {
         rows = await sql`
-          SELECT
-            s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
-            s.english_name, s.category_id, s.protected_status, s.introduced_status,
-            s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
-            c.category_name, c.responsible_body_type
+          SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
+                 s.english_name, s.category_id, s.protected_status, s.introduced_status,
+                 s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
+                 c.category_name, c.responsible_body_type
           FROM species s
           LEFT JOIN animal_category c ON c.category_id = s.category_id
           ORDER BY s.english_name, s.species_id
         `;
       }
-
       return json({ ok: true, count: rows.length, species: rows });
     }
 
     if (url.pathname === '/api/species-media') {
       const speciesId = positiveInt(url.searchParams.get('species_id'));
       if (speciesId === null) return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
-
       const rows = await sql`
         SELECT media_id, species_id, image_url, photographer, licence, gbif_occurrence_id
         FROM species_media
@@ -224,7 +169,6 @@ async function handleApi(request, env) {
     if (url.pathname === '/api/species-behaviour') {
       const speciesId = positiveInt(url.searchParams.get('species_id'));
       if (speciesId === null) return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
-
       const rows = await sql`
         SELECT behaviour_id, species_id, likely_location, what_moves_it, safe_distance_note,
                lost_sight_note, source_person, source_institution, source_url, date_verified
@@ -240,7 +184,6 @@ async function handleApi(request, env) {
       const rawCategoryId = url.searchParams.get('category_id');
       const speciesId = positiveInt(rawSpeciesId);
       const categoryId = positiveInt(rawCategoryId);
-
       if (rawSpeciesId !== null && speciesId === null) return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
       if (rawCategoryId !== null && categoryId === null) return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
       if (speciesId === null && categoryId === null) return json({ ok: false, error: 'Provide species_id or category_id.' }, 400);
@@ -263,7 +206,6 @@ async function handleApi(request, env) {
       const categoryId = positiveInt(rawCategoryId);
       const housingType = String(url.searchParams.get('housing_type') || '').trim();
       const causeGroup = String(url.searchParams.get('cause_group') || '').trim();
-
       if (rawSpeciesId !== null && speciesId === null) return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
       if (rawCategoryId !== null && categoryId === null) return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
       if (speciesId === null && categoryId === null) return json({ ok: false, error: 'Provide species_id or category_id.' }, 400);
@@ -290,7 +232,6 @@ async function handleApi(request, env) {
       return json({ ok: true, count: rows.length, actions: rows });
     }
 
-    // authority.jurisdiction is a varchar field in the ERD; it is not a foreign key to state.
     if (url.pathname === '/api/authority') {
       const categoryId = positiveInt(url.searchParams.get('category_id'));
       const jurisdiction = String(url.searchParams.get('jurisdiction') || '').trim();
@@ -302,8 +243,7 @@ async function handleApi(request, env) {
           SELECT authority_id, jurisdiction, category_id, agency_name, contact_route,
                  contact_value, what_they_do, response_standard, source_url, last_verified
           FROM authority
-          WHERE category_id = ${categoryId}
-            AND LOWER(jurisdiction) = LOWER(${jurisdiction})
+          WHERE category_id = ${categoryId} AND LOWER(jurisdiction) = LOWER(${jurisdiction})
           ORDER BY authority_id
         `;
       } else {
@@ -344,10 +284,7 @@ class ApiDataInjector {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-
-    if (url.pathname.startsWith('/api/')) {
-      return handleApi(request, env);
-    }
+    if (url.pathname.startsWith('/api/')) return handleApi(request, env);
 
     const response = await env.ASSETS.fetch(request);
     const contentType = response.headers.get('content-type') || '';
