@@ -19,7 +19,7 @@ The project focuses on coexistence and harm reduction rather than encouraging us
 
 ## Current Species Coverage
 
-The current database includes seven example species commonly relevant to the project:
+The current database includes seven example species:
 
 - Long-tailed Macaque (*Macaca fascicularis*)
 - Wild Boar (*Sus scrofa*)
@@ -29,67 +29,33 @@ The current database includes seven example species commonly relevant to the pro
 - Common Water Monitor (*Varanus salvator*)
 - Equatorial Spitting Cobra (*Naja sumatrana*)
 
-Species are grouped into the following categories:
-
-- monkey
-- bird
-- snake
-- pig
-- lizard
+Species are grouped into five categories: monkey, bird, snake, pig, and lizard.
 
 ## Main Features
 
 ### Species information
 
-Displays structured information such as:
-
-- English, Malay, and scientific names;
-- taxonomic information;
-- protected status;
-- native or introduced status;
-- species identification keywords;
-- animal category.
+Stores and returns species information such as English, Malay and scientific names, taxonomy, protected status, introduced status, snake classification, identification keywords, category, and GBIF taxon key.
 
 ### Wildlife behaviour guidance
 
-Provides species-specific information such as:
-
-- likely locations;
-- what may cause the animal to move;
-- safe-distance guidance;
-- what to do if the animal is no longer visible;
-- supporting source information.
+Provides species-specific information such as likely locations, what may cause the animal to move, safe-distance guidance, what to do if the animal is no longer visible, and source metadata.
 
 ### Immediate actions
 
-Provides ordered safety actions for wildlife encounters, with support for English and Malay content.
+Provides ordered safety actions for wildlife encounters, including English and Malay action text and source verification fields.
 
 ### Prevention actions
 
-Provides practical recommendations for reducing future wildlife encounters. Advice can be associated with factors such as:
-
-- species;
-- animal category;
-- housing type;
-- cause group;
-- action type;
-- harm ranking;
-- whether the action requires spending money.
+Provides practical recommendations for reducing repeated wildlife encounters. Prevention records may be associated with species, animal category, cause group, action type, harm rank, housing type, and whether the action costs money.
 
 ### Authority information
 
-Stores relevant authority and contact information based on animal category and jurisdiction.
+Stores relevant agencies, jurisdictions, contact routes, contact values, response guidance, and source verification metadata.
 
 ### Species media
 
-The database stores **media URLs and attribution metadata rather than image binary files**. This keeps the database lightweight while allowing the frontend to display externally hosted wildlife images.
-
-Media records may include:
-
-- image URL;
-- photographer;
-- licence;
-- GBIF occurrence ID.
+The database stores **external image URLs and attribution metadata rather than image binary files**. A media record can contain the image URL, photographer, licence, and GBIF occurrence ID.
 
 ## Architecture
 
@@ -111,77 +77,65 @@ Read-only REST API
 Neon PostgreSQL
 ```
 
-The same Cloudflare Worker serves both the static frontend and `/api/*` routes.
+The Cloudflare Worker serves both the static frontend and `/api/*` routes.
 
 ## Technology Stack
 
-### Frontend
-
-- HTML
-- CSS
-- JavaScript
-- Static assets served through Cloudflare Workers Assets
-
-### Backend
-
-- Cloudflare Workers
-- JavaScript / ES Modules
-- `@neondatabase/serverless`
-
-### Database
-
-- Neon PostgreSQL
-
-### Deployment
-
-- Cloudflare Workers
-- GitHub-based source control
+- Frontend: HTML, CSS, JavaScript
+- Backend: Cloudflare Workers, JavaScript / ES Modules
+- Database client: `@neondatabase/serverless`
+- Database: Neon PostgreSQL
+- Deployment: Cloudflare Workers
+- Source control: GitHub
 
 ## Database Schema
 
-The PostgreSQL database currently contains the following tables:
+The current ERD contains eight tables.
 
-| Table | Purpose |
-|---|---|
-| `species` | Core species information |
-| `animal_category` | Wildlife category definitions |
-| `species_behaviour` | Behaviour and encounter guidance |
-| `species_media` | Image URLs and media attribution |
-| `immediate_action` | Immediate safety actions |
-| `prevention_action` | Long-term prevention guidance |
-| `authority` | Relevant agencies and contact routes |
-| `state` | Malaysian state and jurisdiction information |
+| Table | Primary key | Purpose |
+|---|---|---|
+| `species` | `species_id` | Core species information |
+| `animal_category` | `category_id` | Wildlife category definitions |
+| `species_media` | `media_id` | External image URLs and attribution |
+| `species_behaviour` | `behaviour_id` | Behaviour and encounter guidance |
+| `immediate_action` | `action_id` | Immediate safety actions |
+| `prevention_action` | `prevention_id` | Long-term prevention guidance |
+| `authority` | `authority_id` | Agencies and contact routes |
+| `state` | `state_code` | Malaysian state/jurisdiction reference data |
 
-### Main relationships
+### ERD relationships
 
 ```text
-animal_category
-      |
-      +---- species
-      |
-      +---- authority
+animal_category.category_id
+   |-- species.category_id
+   |-- immediate_action.category_id
+   |-- prevention_action.category_id
+   `-- authority.category_id
 
-species
-  |
-  +---- species_behaviour
-  +---- species_media
-  +---- immediate_action
-  +---- prevention_action
+species.species_id
+   |-- species_media.species_id
+   |-- species_behaviour.species_id
+   |-- immediate_action.species_id
+   `-- prevention_action.species_id
 ```
+
+Important implementation notes:
+
+- `state.state_code` is an integer primary key.
+- `authority.jurisdiction` is stored as a varchar field and is not currently modelled as a foreign key to `state`.
+- `species.category_id` and `authority.category_id` are required in the current schema.
+- `species_media.species_id` and `species_behaviour.species_id` are required in the current schema.
+- PostgreSQL exposes the unquoted `taxonKey` database column as lowercase `taxonkey`; the API aliases it back to `taxonKey`.
 
 ## Read-only API
 
-The production backend is intentionally designed as a **read-only API**.
-
-Only `GET` requests are accepted for API routes. Database write operations are not implemented.
+The production backend is intentionally **read only**. Only `GET` requests are accepted for API routes.
 
 ### Health check
 
 ```http
 GET /api/health
 ```
-
-Checks the Worker-to-Neon database connection using a `SELECT` query.
 
 ### Species
 
@@ -202,6 +156,7 @@ GET /api/categories
 
 ```http
 GET /api/states
+GET /api/states?state_code=1
 ```
 
 ### Species media
@@ -238,59 +193,43 @@ GET /api/authority?category_id=1
 GET /api/authority?category_id=1&jurisdiction=Selangor
 ```
 
-### Database table diagnostic
+### Table diagnostic
 
 ```http
 GET /api/tables
 ```
 
-This returns table names only and does not provide arbitrary SQL access.
+This returns table names only. There is no generic endpoint that allows a caller to choose and query arbitrary tables.
 
 ## Security Design
 
-The backend is intentionally limited to read operations.
-
 - API routes accept `GET` only.
 - `POST`, `PUT`, `PATCH`, and `DELETE` requests are rejected.
-- Application code contains no `INSERT`, `UPDATE`, `DELETE`, or `CREATE TABLE` workflow for the website.
-- The Neon database connection string is stored as a Cloudflare secret named `DATABASE_URL`.
-- Database credentials must never be committed to GitHub.
-
-For additional protection, a PostgreSQL role with `SELECT`-only permissions is recommended for production use.
+- The website backend does not implement `INSERT`, `UPDATE`, `DELETE`, or schema-changing operations.
+- The Neon connection string is stored as a Cloudflare secret named `DATABASE_URL`.
+- Database credentials must not be committed to GitHub.
+- A PostgreSQL role with `SELECT`-only permissions is recommended for production use.
 
 ## Environment Configuration
 
-The Cloudflare Worker requires the following runtime secret:
+The Cloudflare Worker requires:
 
 ```text
 DATABASE_URL
 ```
 
-Use a Neon pooled PostgreSQL connection string as its value.
+Use a Neon pooled PostgreSQL connection string as the value.
 
-For local development, create a `.dev.vars` file based on `.dev.vars.example`:
-
-```text
-DATABASE_URL=your_neon_connection_string
-```
-
-Do not commit `.dev.vars` or real database credentials.
+For local development, create `.dev.vars` from `.dev.vars.example` and add the real connection string. Do not commit `.dev.vars`.
 
 ## Local Development
 
-Install dependencies:
-
 ```bash
 npm install
-```
-
-Start the local Cloudflare Worker development server:
-
-```bash
 npm run dev
 ```
 
-Deploy manually with Wrangler:
+Deploy manually with:
 
 ```bash
 npm run deploy
@@ -302,6 +241,7 @@ npm run deploy
 5120_tm01_project/
 ├── public/
 │   ├── index.html
+│   ├── api-data.js
 │   └── ...static frontend assets
 ├── src/
 │   └── worker.js
@@ -312,37 +252,11 @@ npm run deploy
 └── README.md
 ```
 
-Some earlier standalone HTML versions remain in the repository as development snapshots. The deployed frontend is served from the `public` directory.
-
-## API Design Principles
-
-The API follows several simple principles:
-
-1. **Read only** — the public website does not modify database records.
-2. **Resource-based endpoints** — the frontend requests species, behaviours, actions, media, authorities, and states through dedicated routes.
-3. **Parameterized queries** — request parameters are passed safely to PostgreSQL queries.
-4. **Frontend resilience** — the frontend can retain embedded fallback information if database-backed content is temporarily unavailable.
-5. **Separation of content and media** — PostgreSQL stores image links and attribution metadata rather than image binary files.
-
-## Data Sources and Attribution
-
-Wildlife information should be supported by appropriate source URLs and verification metadata stored in the relevant database tables.
-
-Where external species media is used, the corresponding photographer, licence, and source information should be retained and displayed where required.
+Earlier standalone HTML files remain in the repository as development snapshots. The deployed frontend is served from the `public` directory.
 
 ## Project Status
 
-The current implementation includes:
-
-- static wildlife coexistence frontend;
-- Cloudflare Worker deployment;
-- Neon PostgreSQL connectivity;
-- structured wildlife database schema;
-- dedicated read-only REST endpoints;
-- database-backed species and category retrieval;
-- frontend API integration layer with fallback support.
-
-Further development can expand species coverage, improve frontend database integration, validate media availability, and extend state-specific authority information.
+The current implementation includes a static wildlife coexistence frontend, Cloudflare Worker deployment, Neon PostgreSQL connectivity, the eight-table ERD above, dedicated read-only REST endpoints, and a frontend API data layer with fallback support.
 
 ---
 
