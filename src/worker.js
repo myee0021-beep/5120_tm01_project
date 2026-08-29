@@ -18,14 +18,24 @@ function getSql(env) {
   return neon(env.DATABASE_URL);
 }
 
-function validIdentifier(value) {
-  return /^[A-Za-z_][A-Za-z0-9_]*$/.test(value);
+function positiveInt(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+function boolParam(value) {
+  if (value === null) return null;
+  const normalized = String(value).toLowerCase();
+  if (normalized === 'true' || normalized === '1') return true;
+  if (normalized === 'false' || normalized === '0') return false;
+  return undefined;
 }
 
 async function handleApi(request, env) {
   const url = new URL(request.url);
 
-  // This backend is intentionally read-only.
+  // The database API is intentionally read-only.
   if (request.method !== 'GET') {
     return json(
       { ok: false, error: 'Read-only API. Only GET requests are allowed.' },
@@ -37,7 +47,7 @@ async function handleApi(request, env) {
   try {
     const sql = getSql(env);
 
-    // Simple database connectivity check. SELECT only.
+    // GET /api/health
     if (url.pathname === '/api/health') {
       const rows = await sql`SELECT NOW() AS database_time`;
       return json({
@@ -49,7 +59,271 @@ async function handleApi(request, env) {
       });
     }
 
-    // Returns the list of user tables in the public schema.
+    // GET /api/categories
+    if (url.pathname === '/api/categories') {
+      const rows = await sql`
+        SELECT *
+        FROM animal_category
+        ORDER BY category_id
+      `;
+      return json({ ok: true, count: rows.length, categories: rows });
+    }
+
+    // GET /api/states
+    if (url.pathname === '/api/states') {
+      const rows = await sql`
+        SELECT *
+        FROM state
+        ORDER BY state_name, state_code
+      `;
+      return json({ ok: true, count: rows.length, states: rows });
+    }
+
+    // GET /api/species
+    // GET /api/species?id=1
+    // GET /api/species?category_id=2
+    // GET /api/species?is_snake=true
+    if (url.pathname === '/api/species') {
+      const rawId = url.searchParams.get('id');
+      const rawCategoryId = url.searchParams.get('category_id');
+      const rawIsSnake = url.searchParams.get('is_snake');
+
+      const id = positiveInt(rawId);
+      const categoryId = positiveInt(rawCategoryId);
+      const isSnake = boolParam(rawIsSnake);
+
+      if (rawId !== null && id === null) {
+        return json({ ok: false, error: 'id must be a positive integer.' }, 400);
+      }
+      if (rawCategoryId !== null && categoryId === null) {
+        return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
+      }
+      if (rawIsSnake !== null && isSnake === undefined) {
+        return json({ ok: false, error: 'is_snake must be true or false.' }, 400);
+      }
+
+      if (id !== null) {
+        const rows = await sql`
+          SELECT
+            s.*,
+            c.category_name,
+            c.description AS category_description,
+            c.responsible_body_type
+          FROM species s
+          LEFT JOIN animal_category c ON c.category_id = s.category_id
+          WHERE s.species_id = ${id}
+          LIMIT 1
+        `;
+        if (!rows.length) return json({ ok: false, error: 'Species not found.' }, 404);
+        return json({ ok: true, species: rows[0] });
+      }
+
+      let rows;
+      if (categoryId !== null && isSnake !== null) {
+        rows = await sql`
+          SELECT
+            s.*,
+            c.category_name,
+            c.responsible_body_type
+          FROM species s
+          LEFT JOIN animal_category c ON c.category_id = s.category_id
+          WHERE s.category_id = ${categoryId}
+            AND s.is_snake = ${isSnake}
+          ORDER BY s.english_name, s.species_id
+        `;
+      } else if (categoryId !== null) {
+        rows = await sql`
+          SELECT
+            s.*,
+            c.category_name,
+            c.responsible_body_type
+          FROM species s
+          LEFT JOIN animal_category c ON c.category_id = s.category_id
+          WHERE s.category_id = ${categoryId}
+          ORDER BY s.english_name, s.species_id
+        `;
+      } else if (isSnake !== null) {
+        rows = await sql`
+          SELECT
+            s.*,
+            c.category_name,
+            c.responsible_body_type
+          FROM species s
+          LEFT JOIN animal_category c ON c.category_id = s.category_id
+          WHERE s.is_snake = ${isSnake}
+          ORDER BY s.english_name, s.species_id
+        `;
+      } else {
+        rows = await sql`
+          SELECT
+            s.*,
+            c.category_name,
+            c.responsible_body_type
+          FROM species s
+          LEFT JOIN animal_category c ON c.category_id = s.category_id
+          ORDER BY s.english_name, s.species_id
+        `;
+      }
+
+      return json({ ok: true, count: rows.length, species: rows });
+    }
+
+    // GET /api/species-media?species_id=1
+    if (url.pathname === '/api/species-media') {
+      const rawSpeciesId = url.searchParams.get('species_id');
+      const speciesId = positiveInt(rawSpeciesId);
+      if (speciesId === null) {
+        return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
+      }
+
+      const rows = await sql`
+        SELECT *
+        FROM species_media
+        WHERE species_id = ${speciesId}
+        ORDER BY media_id
+      `;
+      return json({ ok: true, species_id: speciesId, count: rows.length, media: rows });
+    }
+
+    // GET /api/species-behaviour?species_id=1
+    if (url.pathname === '/api/species-behaviour') {
+      const speciesId = positiveInt(url.searchParams.get('species_id'));
+      if (speciesId === null) {
+        return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
+      }
+
+      const rows = await sql`
+        SELECT *
+        FROM species_behaviour
+        WHERE species_id = ${speciesId}
+        ORDER BY behaviour_id
+      `;
+      return json({ ok: true, species_id: speciesId, count: rows.length, behaviour: rows });
+    }
+
+    // GET /api/immediate-actions?species_id=1
+    // GET /api/immediate-actions?category_id=2
+    if (url.pathname === '/api/immediate-actions') {
+      const rawSpeciesId = url.searchParams.get('species_id');
+      const rawCategoryId = url.searchParams.get('category_id');
+      const speciesId = positiveInt(rawSpeciesId);
+      const categoryId = positiveInt(rawCategoryId);
+
+      if (rawSpeciesId !== null && speciesId === null) {
+        return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
+      }
+      if (rawCategoryId !== null && categoryId === null) {
+        return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
+      }
+      if (speciesId === null && categoryId === null) {
+        return json({ ok: false, error: 'Provide species_id or category_id.' }, 400);
+      }
+
+      let rows;
+      if (speciesId !== null && categoryId !== null) {
+        rows = await sql`
+          SELECT *
+          FROM immediate_action
+          WHERE species_id = ${speciesId}
+            AND category_id = ${categoryId}
+          ORDER BY step_order NULLS LAST, action_id
+        `;
+      } else if (speciesId !== null) {
+        rows = await sql`
+          SELECT *
+          FROM immediate_action
+          WHERE species_id = ${speciesId}
+          ORDER BY step_order NULLS LAST, action_id
+        `;
+      } else {
+        rows = await sql`
+          SELECT *
+          FROM immediate_action
+          WHERE category_id = ${categoryId}
+          ORDER BY step_order NULLS LAST, action_id
+        `;
+      }
+
+      return json({ ok: true, count: rows.length, actions: rows });
+    }
+
+    // GET /api/prevention-actions?species_id=1
+    // Optional filters: category_id, housing_type, cause_group
+    if (url.pathname === '/api/prevention-actions') {
+      const rawSpeciesId = url.searchParams.get('species_id');
+      const rawCategoryId = url.searchParams.get('category_id');
+      const speciesId = positiveInt(rawSpeciesId);
+      const categoryId = positiveInt(rawCategoryId);
+      const housingType = String(url.searchParams.get('housing_type') || '').trim();
+      const causeGroup = String(url.searchParams.get('cause_group') || '').trim();
+
+      if (rawSpeciesId !== null && speciesId === null) {
+        return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
+      }
+      if (rawCategoryId !== null && categoryId === null) {
+        return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
+      }
+      if (speciesId === null && categoryId === null) {
+        return json({ ok: false, error: 'Provide species_id or category_id.' }, 400);
+      }
+
+      let rows;
+      if (speciesId !== null) {
+        rows = await sql`
+          SELECT *
+          FROM prevention_action
+          WHERE species_id = ${speciesId}
+            AND (${categoryId}::int IS NULL OR category_id = ${categoryId})
+            AND (${housingType || null}::text IS NULL OR LOWER(housing_type) = LOWER(${housingType || null}))
+            AND (${causeGroup || null}::text IS NULL OR LOWER(cause_group) = LOWER(${causeGroup || null}))
+          ORDER BY harm_rank NULLS LAST, prevention_id
+        `;
+      } else {
+        rows = await sql`
+          SELECT *
+          FROM prevention_action
+          WHERE category_id = ${categoryId}
+            AND (${housingType || null}::text IS NULL OR LOWER(housing_type) = LOWER(${housingType || null}))
+            AND (${causeGroup || null}::text IS NULL OR LOWER(cause_group) = LOWER(${causeGroup || null}))
+          ORDER BY harm_rank NULLS LAST, prevention_id
+        `;
+      }
+
+      return json({ ok: true, count: rows.length, actions: rows });
+    }
+
+    // GET /api/authority?category_id=1&jurisdiction=Selangor
+    // jurisdiction is optional so category-wide authorities can also be listed.
+    if (url.pathname === '/api/authority') {
+      const categoryId = positiveInt(url.searchParams.get('category_id'));
+      const jurisdiction = String(url.searchParams.get('jurisdiction') || '').trim();
+
+      if (categoryId === null) {
+        return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
+      }
+
+      let rows;
+      if (jurisdiction) {
+        rows = await sql`
+          SELECT *
+          FROM authority
+          WHERE category_id = ${categoryId}
+            AND LOWER(jurisdiction) = LOWER(${jurisdiction})
+          ORDER BY authority_id
+        `;
+      } else {
+        rows = await sql`
+          SELECT *
+          FROM authority
+          WHERE category_id = ${categoryId}
+          ORDER BY jurisdiction, authority_id
+        `;
+      }
+
+      return json({ ok: true, count: rows.length, authorities: rows });
+    }
+
+    // A lightweight diagnostic route. It exposes table names only, not arbitrary SQL access.
     if (url.pathname === '/api/tables') {
       const rows = await sql`
         SELECT table_name
@@ -59,37 +333,6 @@ async function handleApi(request, env) {
         ORDER BY table_name
       `;
       return json({ ok: true, tables: rows.map((row) => row.table_name) });
-    }
-
-    // Generic read-only table endpoint:
-    // GET /api/table?name=species&limit=100
-    if (url.pathname === '/api/table') {
-      const tableName = String(url.searchParams.get('name') || '').trim();
-      const limitRaw = Number(url.searchParams.get('limit') || 100);
-      const limit = Math.max(1, Math.min(Number.isFinite(limitRaw) ? Math.trunc(limitRaw) : 100, 500));
-
-      if (!validIdentifier(tableName)) {
-        return json({ ok: false, error: 'A valid table name is required.' }, 400);
-      }
-
-      // Do not trust the URL parameter by itself. First verify that the table
-      // actually exists in the public schema, then quote the identifier.
-      const found = await sql`
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = 'public'
-          AND table_type = 'BASE TABLE'
-          AND table_name = ${tableName}
-        LIMIT 1
-      `;
-
-      if (!found.length) {
-        return json({ ok: false, error: 'Table not found.' }, 404);
-      }
-
-      const quotedTable = '"' + tableName.replace(/"/g, '""') + '"';
-      const rows = await sql.query(`SELECT * FROM ${quotedTable} LIMIT $1`, [limit]);
-      return json({ ok: true, table: tableName, count: rows.length, rows });
     }
 
     return json({ ok: false, error: 'API route not found.' }, 404);
@@ -107,7 +350,6 @@ export default {
       return handleApi(request, env);
     }
 
-    // All non-API requests continue to serve the existing static frontend.
     return env.ASSETS.fetch(request);
   },
 };
