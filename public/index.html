@@ -176,7 +176,10 @@
     <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
       <a href="#" data-nav="home" onclick="goTo('home');return false;" class="nav-link transition-colors"><span data-en>Home</span><span data-bm>Laman Utama</span></a>
       <a href="#" data-nav="identify" onclick="goTo('identify');return false;" class="nav-link transition-colors"><span data-en>Identify</span><span data-bm>Kenal Pasti</span></a>
-      <a href="#" data-nav="states" onclick="goTo('states');return false;" class="nav-link transition-colors"><span data-en>States</span><span data-bm>Negeri</span></a>
+      <!-- States is Epic 5/6 content (per-state stats + prevention), not part
+           of iteration 1's linked build — nav entry hidden, page kept intact
+           for when it's back in scope. Same pattern as the hidden
+           "Stop it coming back" link. -->
       <a href="#" data-nav="about" onclick="goTo('about');return false;" class="nav-link transition-colors"><span data-en>About the Data</span><span data-bm>Tentang Data</span></a>
     </nav>
     <div class="flex items-center gap-3">
@@ -197,7 +200,6 @@
   <nav id="mobileNavPanel" class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300">
     <a href="#" data-nav="home" onclick="goTo('home');closeMobileNav();return false;" class="nav-link transition-colors py-2.5"><span data-en>Home</span><span data-bm>Laman Utama</span></a>
     <a href="#" data-nav="identify" onclick="goTo('identify');closeMobileNav();return false;" class="nav-link transition-colors py-2.5"><span data-en>Identify</span><span data-bm>Kenal Pasti</span></a>
-    <a href="#" data-nav="states" onclick="goTo('states');closeMobileNav();return false;" class="nav-link transition-colors py-2.5"><span data-en>States</span><span data-bm>Negeri</span></a>
     <a href="#" data-nav="about" onclick="goTo('about');closeMobileNav();return false;" class="nav-link transition-colors py-2.5"><span data-en>About the Data</span><span data-bm>Tentang Data</span></a>
   </nav>
 </header>
@@ -439,7 +441,7 @@
       <button data-route="describe" class="route-tab active flex flex-col items-center gap-1.5 py-5 px-2 text-sm font-bold text-slate-500 transition-colors border-r border-slate-100">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
         <span><span data-en>Describe it</span><span data-bm>Terangkan</span></span>
-        <span class="route-tab-sub text-[11px] font-medium text-slate-400">Keyword</span>
+        <span class="route-tab-sub text-[11px] font-medium text-slate-400">Free text</span>
       </button>
       <button data-route="keyword" class="route-tab flex flex-col items-center gap-1.5 py-5 px-2 text-sm font-bold text-slate-500 transition-colors border-r border-slate-100">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
@@ -801,6 +803,7 @@
       </a>
       <a id="wtd_findableLink" href="#" onclick="goTo('findable');return false;" class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-full bg-white/70 border border-forest-600/30 hover:bg-white transition-colors text-forest-700 font-semibold px-7 py-4">
         <span data-en>Keep it findable while you wait</span><span data-bm>Kekal Mudah Dijumpai Semasa Menunggu</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
     </div>
   </div>
@@ -1027,7 +1030,7 @@
   <div class="no-print mt-4 flex items-center justify-between gap-4 flex-wrap">
     <a id="auth_backToWhatToDo" href="#" onclick="goTo('whattodo');return false;" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-forest-700 transition-colors">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-      <span data-en>Back to immediate safety</span><span data-bm>Kembali ke keselamatan segera</span>
+      <span data-en>Back to what to do now</span><span data-bm>Kembali ke apa perlu dibuat</span>
     </a>
     <a id="auth_findableLink" href="#" onclick="goTo('findable');return false;" class="inline-flex items-center gap-1.5 rounded-full bg-forest-950 hover:bg-black transition-colors text-white text-xs font-bold px-5 py-2.5">
       <span data-en>Next: Keep it findable</span><span data-bm>Seterusnya: Kekal Mudah Dijumpai</span>
@@ -1113,6 +1116,42 @@
         </div>
       </div>
 
+      <!-- AC 3.3.1 — Lost sight path. Moved up here (right after the
+           observation guidance) per feedback — it's a more urgent, more
+           likely-to-be-needed scenario than the location-prompt/tips
+           content below it, so it shouldn't be buried at the bottom. -->
+      <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5">
+        <button id="kif_lostSightToggle" type="button" class="w-full flex items-center justify-between gap-3 text-left">
+          <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span data-en>It's no longer visible</span><span data-bm>Ia sudah tidak kelihatan</span>
+          </span>
+          <svg id="kif_lostSightChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-700 shrink-0 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+
+        <div id="kif_lostSightContent" class="hidden mt-3.5 pt-3.5 border-t border-amber-200 space-y-4">
+          <p class="text-xs text-amber-900 font-semibold leading-relaxed">
+            <span data-en>Responders may be unable to locate it when they arrive. That does not mean the visit is wasted.</span>
+            <span data-bm>Responden mungkin tidak dapat mengesannya semasa ketibaan. Ini tidak bermakna lawatan itu sia-sia.</span>
+          </p>
+
+          <div>
+            <p class="text-[11px] font-bold uppercase tracking-wide text-amber-700 mb-2">
+              <span data-en>Secure this in the meantime</span><span data-bm>Amankan ini semasa menunggu</span>
+            </p>
+            <div id="kif_lostSightSecureList" class="space-y-2"></div>
+          </div>
+
+          <div id="kif_lostSightPreventionWrap" class="hidden">
+            <p class="text-[11px] font-bold uppercase tracking-wide text-amber-700 mb-2">
+              <span data-en>Prevention plan for next time</span><span data-bm>Pelan pencegahan untuk lain kali</span>
+            </p>
+            <div id="kif_lostSightPreventionList" class="space-y-2"></div>
+            <p id="kif_lostSightPreventionSource" class="mt-2 text-[11px] text-amber-700/80"></p>
+          </div>
+        </div>
+      </div>
+
       <div>
         <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
           <span data-en>Where it's likely to go</span><span data-bm>Ke mana ia mungkin pergi</span>
@@ -1152,39 +1191,6 @@
         <div id="kif_tipsList" class="space-y-2.5"></div>
       </div>
 
-      <!-- AC 3.3.1 — Lost sight path -->
-      <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5">
-        <button id="kif_lostSightToggle" type="button" class="w-full flex items-center justify-between gap-3 text-left">
-          <span class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <span data-en>It's no longer visible</span><span data-bm>Ia sudah tidak kelihatan</span>
-          </span>
-          <svg id="kif_lostSightChevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-700 shrink-0 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
-
-        <div id="kif_lostSightContent" class="hidden mt-3.5 pt-3.5 border-t border-amber-200 space-y-4">
-          <p class="text-xs text-amber-900 font-semibold leading-relaxed">
-            <span data-en>Responders may be unable to locate it when they arrive. That does not mean the visit is wasted.</span>
-            <span data-bm>Responden mungkin tidak dapat mengesannya semasa ketibaan. Ini tidak bermakna lawatan itu sia-sia.</span>
-          </p>
-
-          <div>
-            <p class="text-[11px] font-bold uppercase tracking-wide text-amber-700 mb-2">
-              <span data-en>Secure this in the meantime</span><span data-bm>Amankan ini semasa menunggu</span>
-            </p>
-            <div id="kif_lostSightSecureList" class="space-y-2"></div>
-          </div>
-
-          <div id="kif_lostSightPreventionWrap" class="hidden">
-            <p class="text-[11px] font-bold uppercase tracking-wide text-amber-700 mb-2">
-              <span data-en>Prevention plan for next time</span><span data-bm>Pelan pencegahan untuk lain kali</span>
-            </p>
-            <div id="kif_lostSightPreventionList" class="space-y-2"></div>
-            <p id="kif_lostSightPreventionSource" class="mt-2 text-[11px] text-amber-700/80"></p>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 
@@ -1207,6 +1213,15 @@
          gets finished properly instead of retrofitted under deadline. -->
     <a id="kif_stopComingBackLink" href="#" onclick="goTo('stopback');return false;" class="hidden inline-flex items-center gap-1.5 rounded-full bg-forest-950 hover:bg-black transition-colors text-white text-xs font-bold px-5 py-2.5">
       <span data-en>Next: Stop it coming back</span><span data-bm>Seterusnya: Cegah Ia Kembali</span>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </a>
+    <!-- Symmetric counterpart to the "back" link on the left — this is the
+         last page in iteration 1's linked flow, so the sensible forward
+         action here is finishing up rather than a made-up "next" step.
+         Always visible (unlike kif_stopComingBackLink above, which stays
+         hidden per the iteration-1 scope decision noted above it). -->
+    <a id="kif_doneLink" href="#" onclick="goTo('home');return false;" class="inline-flex items-center gap-1.5 rounded-full bg-forest-950 hover:bg-black transition-colors text-white text-xs font-bold px-5 py-2.5">
+      <span data-en>Done — back to Home</span><span data-bm>Selesai — kembali ke Laman Utama</span>
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
     </a>
   </div>
@@ -2419,11 +2434,16 @@ function getTopSpeciesForState(stateName) {
   function renderCrumb(prefix, s, neutralEn, neutralBm) {
     var crumb = document.getElementById(prefix + '_crumbSpecies');
     if (s.id === 'snake') {
+      // Previously non-clickable (pointer-events-none) as a defensive
+      // measure — there's no species-detail page to send the snake path to.
+      // But a dead-looking breadcrumb crumb reads as broken, not as a
+      // safety feature. AC 1.1.2 only requires never naming/picturing the
+      // animal here, not that this crumb goes nowhere — linking back to
+      // Identify (the actual previous step in this flow) satisfies both.
       crumb.innerHTML = '<span data-en>' + neutralEn + '</span><span data-bm>' + neutralBm + '</span>';
-      crumb.removeAttribute('href');
-      crumb.onclick = null;
-      crumb.style.cursor = 'default';
-      crumb.classList.add('pointer-events-none');
+      crumb.classList.remove('pointer-events-none');
+      crumb.style.cursor = '';
+      linkTo(prefix + '_crumbSpecies', 'identify');
     } else {
       crumb.textContent = s.en;
       crumb.classList.remove('pointer-events-none');
@@ -2857,7 +2877,7 @@ function init_identify() {
   });
 
   // Back button on each step — return to the previous question to change that answer.
-  var GUIDED_STEP_IDS = ['guidedStep0', 'guidedStep1', 'guidedStep2'];
+  var GUIDED_STEP_IDS = ['id_guidedStep0', 'id_guidedStep1', 'id_guidedStep2'];
   document.querySelectorAll('.guided-back-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
       var targetIndex = parseInt(btn.dataset.guidedBack, 10);
