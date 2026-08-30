@@ -1,5 +1,5 @@
 {
-  "name": "roomforboth",
+  "name": "5120-tm01-project",
   "main": "src/worker.js",
   "compatibility_date": "2026-08-27",
   "compatibility_flags": ["nodejs_compat"],
