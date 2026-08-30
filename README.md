@@ -206,8 +206,10 @@ This returns table names only. There is no generic endpoint that allows a caller
 - API routes accept `GET` only.
 - `POST`, `PUT`, `PATCH`, and `DELETE` requests are rejected.
 - The website backend does not implement `INSERT`, `UPDATE`, `DELETE`, or schema-changing operations.
-- The Neon connection string is stored as a Cloudflare secret named `DATABASE_URL`.
-- Database credentials must not be committed to GitHub.
+- The Worker reads the database connection from the runtime environment variable `DATABASE_URL`.
+- Real database credentials must not be committed to GitHub.
+- `.gitignore` excludes local secret files including `.dev.vars` and `.env*`.
+- Repository-side credential review evidence is recorded in `SECURITY_CONFIRMATION.md`.
 - A PostgreSQL role with `SELECT`-only permissions is recommended for production use.
 
 ## Environment Configuration
@@ -218,7 +220,7 @@ The Cloudflare Worker requires:
 DATABASE_URL
 ```
 
-Use a Neon pooled PostgreSQL connection string as the value.
+Use a Neon pooled PostgreSQL connection string as the value in the platform secret store.
 
 For local development, create `.dev.vars` from `.dev.vars.example` and add the real connection string. Do not commit `.dev.vars`.
 
@@ -235,24 +237,42 @@ Deploy manually with:
 npm run deploy
 ```
 
-## Project Structure
+## Repository Structure and Naming
+
+The graded system code is separated from legacy development snapshots.
 
 ```text
 5120_tm01_project/
 ├── public/
-│   ├── index.html
-│   ├── api-data.js
-│   └── ...static frontend assets
+│   ├── index.html             # deployed frontend entry
+│   ├── api-data.js            # frontend read-only API data layer
+│   └── ...static assets
 ├── src/
-│   └── worker.js
-├── .dev.vars.example
+│   └── worker.js              # Cloudflare Worker and API routes
+├── archive/
+│   └── legacy-html/           # superseded standalone snapshots
+│       ├── room_for_both_v08.html
+│       ├── room_for_both_v09.html
+│       ├── room_for_both_v12.html
+│       ├── room_for_both_v16.html
+│       └── room_for_both_v17.html
+├── .dev.vars.example          # placeholder only; no real secret
+├── .gitignore
 ├── BACKEND_SETUP.md
+├── SECURITY_CONFIRMATION.md
 ├── package.json
 ├── wrangler.jsonc
 └── README.md
 ```
 
-Earlier standalone HTML files remain in the repository as development snapshots. The deployed frontend is served from the `public` directory.
+### File naming convention
+
+- Production source uses descriptive lowercase names such as `index.html`, `api-data.js`, and `worker.js`.
+- Superseded standalone prototypes are kept only under `archive/legacy-html/`.
+- Archived HTML snapshots use the consistent pattern `room_for_both_vNN.html`.
+- Files named `final_8`, `final_9`, etc. are not used as production entry points.
+
+The deployed frontend is always `public/index.html`.
 
 ## Project Status
 
