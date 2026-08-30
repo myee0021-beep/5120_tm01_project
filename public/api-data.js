@@ -9,6 +9,31 @@
     error: null
   };
 
+  // Frontend route IDs are human-friendly strings, while Neon uses integer species_id values.
+  // Keep the mapping in one place so every database-backed component uses the same identity.
+  var ROUTE_TO_SPECIES_ID = {
+    macaque: 1,
+    monkey: 1,
+    boar: 2,
+    wildboar: 2,
+    'wild-boar': 2,
+    myna: 3,
+    commonmyna: 3,
+    'common-myna': 3,
+    python: 4,
+    reticulatedpython: 4,
+    'reticulated-python': 4,
+    crow: 5,
+    housecrow: 5,
+    'house-crow': 5,
+    monitor: 6,
+    watermonitor: 6,
+    'water-monitor': 6,
+    cobra: 7,
+    spittingcobra: 7,
+    'spitting-cobra': 7
+  };
+
   function getJson(url) {
     return fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } })
       .then(function (res) {
@@ -34,6 +59,10 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  function normalizeKey(value) {
+    return String(value || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
   }
 
   function loadBaseData() {
@@ -71,44 +100,86 @@
     }) || null;
   }
 
+  function resolveSpeciesId(value) {
+    var numeric = Number(value);
+    if (Number.isInteger(numeric) && numeric > 0) return numeric;
+
+    var key = normalizeKey(value);
+    if (ROUTE_TO_SPECIES_ID[key]) return ROUTE_TO_SPECIES_ID[key];
+
+    // A generic "snake" route deliberately does not resolve to a specific snake species.
+    if (key === 'snake') return null;
+
+    var row = speciesByName(value);
+    return row ? Number(row.species_id) : null;
+  }
+
+  function currentDbSpecies() {
+    var routeId = '';
+    try { routeId = (window.APP && window.APP.speciesId) || ''; } catch (e) {}
+
+    var mappedId = resolveSpeciesId(routeId);
+    if (mappedId) {
+      var mapped = speciesById(mappedId);
+      if (mapped) return mapped;
+    }
+
+    try {
+      var front = typeof window.getSpecies === 'function' ? window.getSpecies(routeId || 'macaque') : null;
+      if (front) {
+        var found = speciesByName(front.en) || speciesByName(front.bm) || speciesByName(front.scientific);
+        if (found) return found;
+      }
+    } catch (e) {}
+
+    return null;
+  }
+
+  function requireSpeciesId(value) {
+    var id = resolveSpeciesId(value);
+    if (!id) return Promise.reject(new Error('No database species_id mapping for ' + value));
+    return Promise.resolve(id);
+  }
+
   function getSpeciesDetail(speciesId) {
-    return getJson('/api/species?id=' + encodeURIComponent(speciesId));
+    return requireSpeciesId(speciesId).then(function (id) {
+      return getJson('/api/species?id=' + encodeURIComponent(id));
+    });
   }
 
   function getSpeciesMedia(speciesId) {
-    return getJson('/api/species-media?species_id=' + encodeURIComponent(speciesId));
+    return requireSpeciesId(speciesId).then(function (id) {
+      return getJson('/api/species-media?species_id=' + encodeURIComponent(id));
+    });
   }
 
   function getSpeciesBehaviour(speciesId) {
-    return getJson('/api/species-behaviour?species_id=' + encodeURIComponent(speciesId));
+    return requireSpeciesId(speciesId).then(function (id) {
+      return getJson('/api/species-behaviour?species_id=' + encodeURIComponent(id));
+    });
   }
 
   function getImmediateActions(speciesId) {
-    return getJson('/api/immediate-actions?species_id=' + encodeURIComponent(speciesId));
+    return requireSpeciesId(speciesId).then(function (id) {
+      return getJson('/api/immediate-actions?species_id=' + encodeURIComponent(id));
+    });
   }
 
   function getPreventionActions(speciesId, options) {
     options = options || {};
-    var params = new URLSearchParams({ species_id: String(speciesId) });
-    if (options.category_id) params.set('category_id', options.category_id);
-    if (options.housing_type) params.set('housing_type', options.housing_type);
-    if (options.cause_group) params.set('cause_group', options.cause_group);
-    return getJson('/api/prevention-actions?' + params.toString());
+    return requireSpeciesId(speciesId).then(function (id) {
+      var params = new URLSearchParams({ species_id: String(id) });
+      if (options.category_id) params.set('category_id', options.category_id);
+      if (options.housing_type) params.set('housing_type', options.housing_type);
+      if (options.cause_group) params.set('cause_group', options.cause_group);
+      return getJson('/api/prevention-actions?' + params.toString());
+    });
   }
 
   function getAuthorities(categoryId, jurisdiction) {
     var params = new URLSearchParams({ category_id: String(categoryId) });
     if (jurisdiction) params.set('jurisdiction', jurisdiction);
     return getJson('/api/authority?' + params.toString());
-  }
-
-  function currentDbSpecies() {
-    var current = null;
-    try {
-      var front = typeof window.getSpecies === 'function' ? window.getSpecies((window.APP && APP.speciesId) || 'macaque') : null;
-      if (front) current = speciesByName(front.en) || speciesByName(front.bm) || speciesByName(front.scientific);
-    } catch (e) {}
-    return current;
   }
 
   function sourceLabel(row) {
@@ -133,13 +204,15 @@
       });
       if (!rows.length) return false;
 
+      // Database rows are ordered by step_order in the API. Use step_order for the visible number where present.
       list.innerHTML = rows.map(function (row, index) {
         var en = visibleText(row.action_text_en);
         var bm = visibleText(row.action_text_ms);
         var source = sourceLabel(row);
+        var step = Number(row.step_order) > 0 ? Number(row.step_order) : (index + 1);
         return '<div class="rounded-xl border border-rose-200 bg-white px-4 py-3.5 border-l-4 border-l-rose-500">' +
           '<div class="flex gap-3">' +
-          '<span class="shrink-0 w-6 h-6 rounded-full bg-rose-600 text-white text-xs font-bold flex items-center justify-center">' + (index + 1) + '</span>' +
+          '<span class="shrink-0 w-6 h-6 rounded-full bg-rose-600 text-white text-xs font-bold flex items-center justify-center">' + step + '</span>' +
           '<div class="min-w-0">' +
           '<p class="text-sm font-semibold text-slate-700 leading-relaxed">' +
           (en ? '<span data-en>' + escapeHtml(en) + '</span>' : '') +
@@ -148,6 +221,7 @@
           (source ? '<p class="mt-1 text-[11px] text-slate-400">' + escapeHtml(source) + '</p>' : '') +
           '</div></div></div>';
       }).join('');
+      list.setAttribute('data-source', 'neon:immediate_action');
       return true;
     }).catch(function (err) {
       console.warn('[Room for Both] Immediate actions API unavailable; using embedded fallback.', err.message);
@@ -172,7 +246,6 @@
         var safeDistance = visibleText(behaviour.safe_distance_note);
         var lostSight = visibleText(behaviour.lost_sight_note);
         var movesIt = visibleText(behaviour.what_moves_it);
-
         var whereEl = document.getElementById('kif_whereText');
         var observeEl = document.getElementById('kif_observeDistanceText');
         var lostSightContent = document.getElementById('kif_lostSightContent');
@@ -181,14 +254,12 @@
         if (observeEl) {
           if (safeDistance) {
             observeEl.textContent = safeDistance;
-            observeEl.closest && observeEl.closest('div');
           } else {
             var observationBlock = observeEl.closest ? observeEl.closest('.rounded-2xl, .rounded-xl') : null;
             if (observationBlock) observationBlock.classList.add('hidden');
           }
         }
 
-        // If the database has no usable lost-sight text (including NA), do not print it.
         if (lostSightContent) {
           var paragraph = lostSightContent.querySelector('p.text-xs');
           if (paragraph) {
@@ -197,7 +268,6 @@
           }
         }
 
-        // Use what_moves_it as the first database-backed observation tip where available.
         if (movesIt) {
           var tips = document.getElementById('kif_tipsList');
           if (tips) {
@@ -226,6 +296,7 @@
             (bm ? '<span data-bm>' + escapeHtml(bm) + '</span>' : '') +
             '</p></div>';
         }).join('');
+        list.setAttribute('data-source', 'neon:prevention_action');
 
         var firstSource = usable.map(sourceLabel).filter(Boolean)[0] || '';
         if (source) {
@@ -278,6 +349,8 @@
     isEmptyValue: isEmptyValue,
     speciesById: speciesById,
     speciesByName: speciesByName,
+    resolveSpeciesId: resolveSpeciesId,
+    currentDbSpecies: currentDbSpecies,
     getSpeciesDetail: getSpeciesDetail,
     getSpeciesMedia: getSpeciesMedia,
     getSpeciesBehaviour: getSpeciesBehaviour,
