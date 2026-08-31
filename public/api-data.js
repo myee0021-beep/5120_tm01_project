@@ -337,6 +337,91 @@
     });
   }
 
+  // Same "Source: X, verified Y" text the other DB-backed sections already
+  // build via sourceLabel(), but as a full <a>/<span> element with the REAL
+  // source_url from the row — replacing the old About-page table's
+  // institutionSourceLink(), which guessed a URL by regex-matching the
+  // institution NAME ("PERHILITAN" -> wildlife.gov.my, "Bomba" ->
+  // bomba.gov.my) and silently produced no link at all for anything else
+  // (MBPJ's House Crow/Common Myna rows had no outbound link for exactly
+  // this reason — the regex simply didn't recognise "MBPJ").
+  function sourceLinkHtml(row) {
+    var label = sourceLabel(row);
+    if (!label) return '<span class="text-slate-300">—</span>';
+    var url = visibleText(row && row.source_url);
+    if (!url) return '<span class="text-slate-500">' + escapeHtml(label) + '</span>';
+    return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-start gap-1">' +
+      '<span>' + escapeHtml(label) + '</span>' +
+      '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>' +
+    '</a>';
+  }
+
+  // Populates the About page's "Safety step & prevention sources" table
+  // (#about_actionSourceBody) with each species' REAL immediate_action /
+  // prevention_action source row instead of the frontend's static
+  // safetySource/checklistSource text. Species with no database species_id
+  // mapping (the generic "snake" route — AC 1.1.2 deliberately never
+  // resolves a specific snake species) keep their existing static text,
+  // since there is no single species_id to query for a combined path.
+  function renderActionSourcesFromDb() {
+    var body = document.getElementById('about_actionSourceBody');
+    if (!body) return Promise.resolve(false);
+    var speciesList = (window.SPECIES || []).filter(function (a) { return a.id !== 'general'; });
+    if (!speciesList.length) return Promise.resolve(false);
+
+    return Promise.all(speciesList.map(function (a) {
+      var dbId = resolveSpeciesId(a.id);
+      if (!dbId) {
+        return Promise.resolve({
+          en: a.en,
+          actionHtml: institutionSourceLinkFallback(a.safetySource && a.safetySource.en),
+          preventionHtml: institutionSourceLinkFallback(a.checklistSource && a.checklistSource.en),
+        });
+      }
+      return Promise.all([getImmediateActions(dbId), getPreventionActions(dbId)])
+        .then(function (results) {
+          var actionRow = (results[0].actions || [])[0] || null;
+          var preventionRow = (results[1].actions || [])[0] || null;
+          return { en: a.en, actionHtml: sourceLinkHtml(actionRow), preventionHtml: sourceLinkHtml(preventionRow) };
+        })
+        .catch(function () {
+          return {
+            en: a.en,
+            actionHtml: institutionSourceLinkFallback(a.safetySource && a.safetySource.en),
+            preventionHtml: institutionSourceLinkFallback(a.checklistSource && a.checklistSource.en),
+          };
+        });
+    })).then(function (rows) {
+      body.innerHTML = rows.map(function (r) {
+        return '<tr>' +
+          '<td class="py-3 pr-4 font-display font-bold text-forest-950 whitespace-nowrap align-top">' + escapeHtml(r.en) + '</td>' +
+          '<td class="py-3 pr-4 align-top">' + r.actionHtml + '</td>' +
+          '<td class="py-3 align-top">' + r.preventionHtml + '</td>' +
+        '</tr>';
+      }).join('');
+      body.setAttribute('data-source', 'neon:immediate_action+prevention_action');
+      return true;
+    }).catch(function (err) {
+      console.warn('[Room for Both] Action-sources table could not load from the database.', err.message);
+      return false;
+    });
+  }
+
+  // Same regex-based fallback the page used before, only reached for the
+  // generic snake route (no species_id) or if the DB calls above fail.
+  function institutionSourceLinkFallback(text) {
+    if (!text) return '<span class="text-slate-300">—</span>';
+    var url = /PERHILITAN/i.test(text) ? 'https://www.wildlife.gov.my/'
+      : /Bomba/i.test(text) ? 'https://www.bomba.gov.my/'
+      : /MBPJ/i.test(text) ? 'https://www.mbpj.gov.my/'
+      : null;
+    if (!url) return '<span class="text-slate-500">' + escapeHtml(text) + '</span>';
+    return '<a href="' + url + '" target="_blank" rel="noopener" class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-start gap-1">' +
+      '<span>' + escapeHtml(text) + '</span>' +
+      '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>' +
+    '</a>';
+  }
+
   function installRenderHooks() {
     if (typeof window.render_whattodo === 'function' && !window.render_whattodo.__dbWrapped) {
       var originalWhatToDo = window.render_whattodo;
@@ -357,6 +442,16 @@
       };
       window.render_findable.__dbWrapped = true;
     }
+
+    if (typeof window.render_about === 'function' && !window.render_about.__dbWrapped) {
+      var originalAbout = window.render_about;
+      window.render_about = function () {
+        var result = originalAbout.apply(this, arguments);
+        Promise.resolve(window.RoomForBothDB.ready).then(renderActionSourcesFromDb);
+        return result;
+      };
+      window.render_about.__dbWrapped = true;
+    }
   }
 
   window.RoomForBothDB = {
@@ -375,7 +470,8 @@
     getPreventionActions: getPreventionActions,
     getAuthorities: getAuthorities,
     renderImmediateActionsFromDb: renderImmediateActionsFromDb,
-    renderBehaviourAndPreventionFromDb: renderBehaviourAndPreventionFromDb
+    renderBehaviourAndPreventionFromDb: renderBehaviourAndPreventionFromDb,
+    renderActionSourcesFromDb: renderActionSourcesFromDb
   };
 
   installRenderHooks();

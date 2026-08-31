@@ -1853,35 +1853,79 @@
 
 <main class="max-w-5xl mx-auto px-6 -mt-8 relative z-10 pb-16">
 
-  <!-- ===================== VERIFIED DATABASE SOURCES (live) ===================== -->
-  <!-- Populated by data-sources.js from GET /api/data-sources, which
-       aggregates the real source_person/source_institution/source_url/
-       date_verified columns already on species_behaviour, immediate_action,
-       prevention_action and authority — one row per distinct real record,
-       not a curated list maintained by hand. Replaces an earlier static
-       "spine datasets" table (GBIF/eBird/OpenDOSM/GRIIS/MyBIS) that didn't
-       correspond to anything in this database's actual 8 tables. -->
+  <!-- ===================== SPINE DATASETS TABLE ===================== -->
+  <!-- GBIF and MyBIS kept — they genuinely back the identification/status
+       features (occurrence records, protected-status names). eBird,
+       OpenDOSM and GRIIS rows were removed on request: this site's current
+       8-table database doesn't use eBird search-effort correction, OpenDOSM
+       forest-reserve series or a separate GRIIS lookup, so listing them
+       here read as sourcing data the site doesn't actually draw on. -->
   <div class="rounded-3xl reveal bg-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.12)] p-7 md:p-9">
     <h2 class="font-display text-2xl font-bold tracking-tight text-slate-900">
-      <span data-en>Verified sources</span><span data-bm>Sumber disahkan</span>
+      <span data-en>Spine datasets</span><span data-bm>Set data teras</span>
     </h2>
     <p class="mt-2 text-sm text-slate-500 max-w-2xl">
-      <span data-en>Every row below is read live from the database — the same source_person, source_institution, source_url and date_verified columns backing the safety steps, prevention advice, behaviour notes and authority contacts shown elsewhere on this site.</span>
-      <span data-bm>Setiap baris di bawah dibaca secara langsung daripada pangkalan data — lajur source_person, source_institution, source_url dan date_verified yang sama yang menyokong langkah keselamatan, nasihat pencegahan, nota tingkah laku dan hubungan pihak berkuasa yang ditunjukkan di tempat lain pada laman ini.</span>
+      <span data-en>Downloadable, licensed and verified on 18 August 2026. These power species identification and status labels on the site.</span>
+      <span data-bm>Boleh dimuat turun, berlesen dan disahkan pada 18 Ogos 2026. Ini menggerakkan pengenalan spesies dan label status di laman ini.</span>
     </p>
 
     <div class="mt-7 overflow-x-auto">
       <table class="w-full text-sm border-collapse">
         <thead>
           <tr class="text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-200">
-            <th class="pb-3 pr-4"><span data-en>Source</span><span data-bm>Sumber</span></th>
-            <th class="pb-3 pr-4"><span data-en>Used for</span><span data-bm>Digunakan untuk</span></th>
-            <th class="pb-3 pr-4"><span data-en>Verified</span><span data-bm>Disahkan</span></th>
-            <th class="pb-3"><span data-en>Link</span><span data-bm>Pautan</span></th>
+            <th class="pb-3 pr-4"><span data-en>Dataset</span><span data-bm>Set Data</span></th>
+            <th class="pb-3 pr-4"><span data-en>Gives us</span><span data-bm>Memberi kita</span></th>
+            <th class="pb-3 pr-4"><span data-en>Licence</span><span data-bm>Lesen</span></th>
+            <th class="pb-3"><span data-en>Source</span><span data-bm>Sumber</span></th>
           </tr>
         </thead>
-        <tbody id="about_database_sources" class="divide-y divide-slate-100">
-          <tr><td colspan="4" class="py-6 text-sm text-slate-500">Loading verified database sources…</td></tr>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">GBIF occurrence records</td>
+            <td class="py-4 pr-4 text-slate-600"><span data-en>Which species occur, aggregated to state level</span><span data-bm>Spesies yang wujud, digabung mengikut negeri</span></td>
+            <td class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">CC BY 4.0 / CC0</span></td>
+            <td class="py-4"><a href="https://gbif.org" target="_blank" rel="noopener" class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1">gbif.org <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></a></td>
+          </tr>
+          <tr>
+            <td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">MyBIS</td>
+            <td class="py-4 pr-4 text-slate-600"><span data-en>Malay and English names, protected status</span><span data-bm>Nama Melayu dan Inggeris, status dilindungi</span></td>
+            <td class="py-4 pr-4"><span class="rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 border border-amber-200 whitespace-nowrap"><span data-en>Non-commercial</span><span data-bm>Bukan komersial</span></span></td>
+            <td class="py-4"><a href="https://mybis.gov.my" target="_blank" rel="noopener" class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1">mybis.gov.my <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===================== SAFETY & PREVENTION SOURCES (live) ===================== -->
+  <!-- Same visual table as before — per species, "What to do now" and
+       "Prevention" columns. What changed: each cell's source link now
+       points at the REAL source_url for that species' real
+       immediate_action / prevention_action database row (via
+       GET /api/immediate-actions and /api/prevention-actions, already
+       fetched by api-data.js elsewhere), instead of the old regex-guessed
+       link (institutionSourceLink() matched "PERHILITAN"/"Bomba" by name
+       and produced NO link at all for anything else — MBPJ's House Crow
+       and Common Myna rows had no outbound arrow for exactly this reason). -->
+  <div class="mt-4 rounded-3xl reveal bg-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.12)] p-7 md:p-9">
+    <h2 class="font-display text-xl font-bold tracking-tight text-slate-900">
+      <span data-en>Safety step &amp; prevention sources</span><span data-bm>Sumber langkah keselamatan &amp; pencegahan</span>
+    </h2>
+    <p class="mt-2 text-sm text-slate-500 max-w-2xl">
+      <span data-en>Every "Source" note under an immediate-safety step or a prevention recommendation links here first, rather than to an external page directly.</span>
+      <span data-bm>Setiap nota "Sumber" di bawah langkah keselamatan segera atau cadangan pencegahan memaut ke sini dahulu, bukan terus ke laman luar.</span>
+    </p>
+    <div class="mt-6 overflow-x-auto">
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-200">
+            <th class="pb-3 pr-4"><span data-en>Species</span><span data-bm>Spesies</span></th>
+            <th class="pb-3 pr-4"><span data-en>What to do now</span><span data-bm>Apa perlu dibuat</span></th>
+            <th class="pb-3"><span data-en>Prevention</span><span data-bm>Pencegahan</span></th>
+          </tr>
+        </thead>
+        <tbody id="about_actionSourceBody" class="divide-y divide-slate-100">
+          <tr><td colspan="3" class="py-6 text-sm text-slate-500">Loading verified sources…</td></tr>
         </tbody>
       </table>
     </div>
@@ -3946,6 +3990,25 @@ function render_about() {
 
   setAboutPhotoSourceTab('species');
   setLang(localStorage.getItem('owm-lang') || 'en');
+
+  // AC-driven fix: this table used to show SPECIES.safetySource /
+  // .checklistSource — a single static aggregate string per species. As an
+  // immediate, synchronous fallback (in case api-data.js hasn't loaded yet,
+  // or its DB calls fail) it still shows that static text — but
+  // api-data.js's renderActionSourcesFromDb() overwrites this with the real
+  // per-species source_institution/date_verified/source_url from
+  // immediate_action/prevention_action moments later (see installRenderHooks).
+  var actionBody = document.getElementById('about_actionSourceBody');
+  if (actionBody) {
+    var actionRows = SPECIES.filter(function (a) { return a.id !== 'general'; });
+    actionBody.innerHTML = actionRows.map(function (a) {
+      return '<tr>' +
+        '<td class="py-3 pr-4 font-display font-bold text-forest-950 whitespace-nowrap align-top">' + a.en + '</td>' +
+        '<td class="py-3 pr-4 align-top">' + institutionSourceLink(a.safetySource && a.safetySource.en) + '</td>' +
+        '<td class="py-3 align-top">' + institutionSourceLink(a.checklistSource && a.checklistSource.en) + '</td>' +
+      '</tr>';
+    }).join('');
+  }
 }
 </script>
 

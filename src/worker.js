@@ -402,7 +402,7 @@ async function handleApi(request, env) {
 class FrontendScriptInjector {
   element(element) {
     element.append(
-      '<script src="/api-data.js" defer></script><script src="/snake-thumbnail.js" defer></script><script src="/data-sources.js" defer></script>',
+      '<script src="/api-data.js" defer></script><script src="/snake-thumbnail.js" defer></script>',
       { html: true },
     );
   }
