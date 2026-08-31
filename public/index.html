@@ -3076,6 +3076,12 @@ function init_home() {
         return;
       }
       warning.classList.add('hidden');
+      if (animalVal === 'snake') {
+        APP.speciesId = 'snake';
+        APP.stateId = stateVal;
+        goTo('snakewhattodo');
+        return;
+      }
       goTo('whattodo', { id: animalVal, state: stateVal });
     });
   }
@@ -3448,7 +3454,9 @@ function render_whattodo() {
 
   document.getElementById('wtd_safetyList').innerHTML = s.safetySteps.map(function (line, i) {
     var src = s.safetySource
-      ? '<a href="#" onclick="goTo(\'about\');return false;" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></a>'
+      ? (s.id === 'snake'
+          ? '<a href="https://www.bomba.gov.my/" target="_blank" rel="noopener" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></a>'
+          : '<a href="#" onclick="goTo(\'about\');return false;" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></a>')
       : '';
     // AC 2.1.1 content is the single highest-priority thing on the page.
     // A thick red left-border accent (news-site "important story" pattern)
