@@ -315,6 +315,83 @@ async function handleApi(request, env) {
       return json({ ok: true, tables: rows.map((row) => row.table_name) });
     }
 
+    // AC-driven "About the Data" requirement: every source note on the site
+    // must trace back to a real, named, dated record — not a curated list
+    // maintained by hand in the frontend. This aggregates the source_*
+    // columns that already exist on species_behaviour, immediate_action and
+    // prevention_action (per-species) plus authority (per jurisdiction),
+    // de-duplicating exact repeats (e.g. the same institution cited for
+    // every step of one species' immediate actions collapses to one row;
+    // the same authority contact repeated across animal_category rows for
+    // one jurisdiction collapses to one row with its categories combined).
+    if (url.pathname === '/api/data-sources') {
+      const rows = await sql`
+        WITH behaviour_sources AS (
+          SELECT DISTINCT
+            b.source_institution, b.source_person, b.source_url,
+            b.date_verified::text AS date_verified,
+            'species_behaviour' AS source_table,
+            s.english_name AS species_name,
+            NULL::text AS category_name,
+            NULL::text AS jurisdiction
+          FROM species_behaviour b
+          JOIN species s ON s.species_id = b.species_id
+          WHERE b.source_institution IS NOT NULL OR b.source_person IS NOT NULL
+        ),
+        action_sources AS (
+          SELECT DISTINCT
+            a.source_institution, a.source_person, a.source_url,
+            a.date_verified::text AS date_verified,
+            'immediate_action' AS source_table,
+            s.english_name AS species_name,
+            NULL::text AS category_name,
+            NULL::text AS jurisdiction
+          FROM immediate_action a
+          JOIN species s ON s.species_id = a.species_id
+          WHERE a.source_institution IS NOT NULL OR a.source_person IS NOT NULL
+        ),
+        prevention_sources AS (
+          SELECT DISTINCT
+            p.source_institution, p.source_person, p.source_url,
+            p.date_verified::text AS date_verified,
+            'prevention_action' AS source_table,
+            s.english_name AS species_name,
+            NULL::text AS category_name,
+            NULL::text AS jurisdiction
+          FROM prevention_action p
+          JOIN species s ON s.species_id = p.species_id
+          WHERE p.source_institution IS NOT NULL OR p.source_person IS NOT NULL
+        ),
+        authority_sources AS (
+          -- authority has no source_person/source_institution columns —
+          -- agency_name IS the institution for that record. Grouped by
+          -- (jurisdiction, agency_name) since this database currently has
+          -- one row per animal_category per jurisdiction, usually with an
+          -- identical agency/contact for all 5 categories; this collapses
+          -- those into one row per real distinct contact instead of
+          -- repeating the same institution 5 times per state.
+          SELECT
+            a.agency_name AS source_institution,
+            NULL::text AS source_person,
+            MAX(a.source_url) AS source_url,
+            MAX(a.last_verified)::text AS date_verified,
+            'authority' AS source_table,
+            NULL::text AS species_name,
+            STRING_AGG(DISTINCT c.category_name, ', ' ORDER BY c.category_name) AS category_name,
+            a.jurisdiction
+          FROM authority a
+          LEFT JOIN animal_category c ON c.category_id = a.category_id
+          GROUP BY a.jurisdiction, a.agency_name
+        )
+        SELECT * FROM behaviour_sources
+        UNION ALL SELECT * FROM action_sources
+        UNION ALL SELECT * FROM prevention_sources
+        UNION ALL SELECT * FROM authority_sources
+        ORDER BY source_table, species_name NULLS LAST, jurisdiction NULLS LAST
+      `;
+      return json({ ok: true, count: rows.length, sources: rows });
+    }
+
     return json({ ok: false, error: 'API route not found.' }, 404);
   } catch (err) {
     console.error('[RoomForBoth Worker]', err);
@@ -325,7 +402,7 @@ async function handleApi(request, env) {
 class FrontendScriptInjector {
   element(element) {
     element.append(
-      '<script src="/api-data.js" defer></script><script src="/snake-thumbnail.js" defer></script>',
+      '<script src="/api-data.js" defer></script><script src="/snake-thumbnail.js" defer></script><script src="/data-sources.js" defer></script>',
       { html: true },
     );
   }
