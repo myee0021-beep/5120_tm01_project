@@ -58,7 +58,7 @@ jobs:
 
       - name: Commit verification report
         run: |
-          if git diff --quiet -- docs/production-data-status.json; then
+          if [ -z "$(git status --porcelain -- docs/production-data-status.json)" ]; then
             exit 0
           fi
           git config user.name "github-actions[bot]"
