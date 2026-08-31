@@ -1,0 +1,39 @@
+name: Install exact V1.2 frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/install-exact-v12-frontend.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild and verify exact V1.2 frontend
+        run: |
+          cat scripts/v12-patch/part-01.b64 scripts/v12-patch/part-02.b64 scripts/v12-patch/part-03.b64 > /tmp/v12.patch.gz.b64
+          base64 -d /tmp/v12.patch.gz.b64 | gzip -d > /tmp/v17-to-v12.patch
+          cp archive/legacy-html/room_for_both_v17.html /tmp/index-v12.html
+          patch /tmp/index-v12.html < /tmp/v17-to-v12.patch
+          test "$(wc -c < /tmp/index-v12.html)" = "495440"
+          test "$(git hash-object /tmp/index-v12.html)" = "3aad17a18230eaf2e473473cd5183a02f7111707"
+          cp /tmp/index-v12.html public/index.html
+
+      - name: Commit exact frontend and clean staging files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/index.html
+          git rm -r scripts/v12-patch
+          git rm -r public/v12-source || true
+          git rm .github/workflows/install-exact-v12-frontend.yml
+          git commit -m "Install exact V1.2 frontend"
+          git push
