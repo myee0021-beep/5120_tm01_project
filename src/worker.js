@@ -305,6 +305,97 @@ async function handleApi(request, env) {
       return json({ ok: true, count: rows.length, authorities: rows });
     }
 
+    if (url.pathname === '/api/data-sources') {
+      const rows = await sql`
+        SELECT
+          'species_behaviour'::text AS source_table,
+          behaviour_id::int AS record_id,
+          sb.species_id::int AS species_id,
+          s.english_name::text AS species_name,
+          s.category_id::int AS category_id,
+          c.category_name::text AS category_name,
+          NULL::text AS jurisdiction,
+          sb.source_person::text AS source_person,
+          sb.source_institution::text AS source_institution,
+          sb.source_url::text AS source_url,
+          sb.date_verified::text AS date_verified
+        FROM species_behaviour sb
+        LEFT JOIN species s ON s.species_id = sb.species_id
+        LEFT JOIN animal_category c ON c.category_id = s.category_id
+        WHERE COALESCE(NULLIF(BTRIM(sb.source_person), ''), NULLIF(BTRIM(sb.source_institution), ''), NULLIF(BTRIM(sb.source_url), '')) IS NOT NULL
+
+        UNION ALL
+
+        SELECT
+          'immediate_action'::text,
+          ia.action_id::int,
+          ia.species_id::int,
+          s.english_name::text,
+          ia.category_id::int,
+          c.category_name::text,
+          NULL::text,
+          ia.source_person::text,
+          ia.source_institution::text,
+          ia.source_url::text,
+          ia.date_verified::text
+        FROM immediate_action ia
+        LEFT JOIN species s ON s.species_id = ia.species_id
+        LEFT JOIN animal_category c ON c.category_id = ia.category_id
+        WHERE COALESCE(NULLIF(BTRIM(ia.source_person), ''), NULLIF(BTRIM(ia.source_institution), ''), NULLIF(BTRIM(ia.source_url), '')) IS NOT NULL
+
+        UNION ALL
+
+        SELECT
+          'prevention_action'::text,
+          pa.prevention_id::int,
+          pa.species_id::int,
+          s.english_name::text,
+          pa.category_id::int,
+          c.category_name::text,
+          NULL::text,
+          pa.source_person::text,
+          pa.source_institution::text,
+          pa.source_url::text,
+          pa.date_verified::text
+        FROM prevention_action pa
+        LEFT JOIN species s ON s.species_id = pa.species_id
+        LEFT JOIN animal_category c ON c.category_id = pa.category_id
+        WHERE COALESCE(NULLIF(BTRIM(pa.source_person), ''), NULLIF(BTRIM(pa.source_institution), ''), NULLIF(BTRIM(pa.source_url), '')) IS NOT NULL
+
+        UNION ALL
+
+        SELECT
+          'authority'::text,
+          a.authority_id::int,
+          NULL::int,
+          NULL::text,
+          a.category_id::int,
+          c.category_name::text,
+          a.jurisdiction::text,
+          NULL::text,
+          a.agency_name::text,
+          a.source_url::text,
+          a.last_verified::text
+        FROM authority a
+        LEFT JOIN animal_category c ON c.category_id = a.category_id
+        WHERE COALESCE(NULLIF(BTRIM(a.agency_name), ''), NULLIF(BTRIM(a.source_url), '')) IS NOT NULL
+
+        ORDER BY source_table, record_id
+      `;
+
+      const sources = rows.filter((row) => {
+        const values = [row.source_person, row.source_institution, row.source_url];
+        return values.some((value) => value && !['NA', 'N/A'].includes(String(value).trim().toUpperCase()));
+      });
+
+      return json({
+        ok: true,
+        count: sources.length,
+        generated_from: ['species_behaviour', 'immediate_action', 'prevention_action', 'authority'],
+        sources,
+      });
+    }
+
     if (url.pathname === '/api/tables') {
       const rows = await sql`
         SELECT table_name
@@ -402,7 +493,7 @@ async function handleApi(request, env) {
 class FrontendScriptInjector {
   element(element) {
     element.append(
-      '<script src="/api-data.js" defer></script><script src="/snake-thumbnail.js" defer></script>',
+      '<script src="/api-data.js" defer></script><script src="/data-sources.js" defer></script><script src="/snake-thumbnail.js" defer></script>',
       { html: true },
     );
   }
