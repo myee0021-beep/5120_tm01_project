@@ -1,16 +1,28 @@
 (function () {
   'use strict';
 
+  function syncAppBridge() {
+    // The original page declares APP as a global lexical binding in some builds.
+    // Such bindings are readable as APP but are not guaranteed to appear on window.
+    // api-data.js reads window.APP, so keep a shared reference here.
+    try {
+      if (typeof APP !== 'undefined' && APP) window.APP = APP;
+    } catch (e) {}
+    return window.APP || null;
+  }
+
   function setHtml(el, html) {
     if (el) el.innerHTML = html;
   }
 
   function safeSpecies() {
+    var app = syncAppBridge();
+    var speciesId = app && app.speciesId ? app.speciesId : 'general';
     if (typeof window.getSpecies === 'function') {
-      return getSpecies((window.APP && APP.speciesId) || 'general');
+      return getSpecies(speciesId);
     }
     return (window.SPECIES || []).find(function (s) {
-      return s.id === ((window.APP && APP.speciesId) || 'general');
+      return s.id === speciesId;
     }) || { id: 'general', en: 'Species', bm: 'Spesies', icon: 'general', statusEn: '', statusBm: '' };
   }
 
@@ -19,17 +31,14 @@
     if (!el) return;
     el.onclick = function (e) {
       if (e) e.preventDefault();
+      syncAppBridge();
       goTo(page, {});
     };
   }
 
   function installDbOnlyPageSkeletons() {
-    // api-data.js intentionally wraps these functions after V1.2 prepare().
-    // These skeleton renderers therefore do presentation only. They do not
-    // read any retired embedded business fields such as safetySteps,
-    // checklist, authorityCategory, authority tables, behaviour notes, etc.
-
     window.render_authority = function () {
+      syncAppBridge();
       var s = safeSpecies();
       document.title = (s.id === 'snake' ? 'Who deals with this' : 'Who deals with this — ' + (s.en || '')) + ' | Room for Both';
 
@@ -49,8 +58,6 @@
           : [s.en, s.bm].filter(Boolean).join(' / ');
       }
 
-      // Old prototype-only sections are hidden. Neon renderer owns the
-      // authority record, state selector, contact details and SLA.
       ['auth_categoryNote'].forEach(function (id) {
         var el = document.getElementById(id);
         if (el) el.classList.add('hidden');
@@ -69,6 +76,7 @@
     };
 
     window.render_findable = function () {
+      syncAppBridge();
       var s = safeSpecies();
       document.title = (s.id === 'snake' ? 'Keep it findable' : 'Keep it findable — ' + (s.en || '')) + ' | Room for Both';
 
@@ -77,7 +85,6 @@
 
       safeLink('kif_backToWhatToDo', s.id === 'snake' ? 'snakewhattodo' : 'whattodo');
 
-      // Clear any prototype text before the Neon renderer hydrates it.
       var where = document.getElementById('kif_whereText');
       if (where) where.textContent = '';
       var observe = document.getElementById('kif_observeDistanceText');
@@ -93,10 +100,6 @@
 
       if (typeof window.setLang === 'function') setLang(localStorage.getItem('owm-lang') || 'en');
     };
-
-    // Mark neither function as __dbOnly here. The final
-    // RoomForBothDB.installRenderHooks() call wraps these safe skeletons with
-    // the actual Neon renderers.
   }
 
   function populateHomeStates() {
@@ -136,7 +139,7 @@
     var authorityNext = document.getElementById('auth_findableLink');
     if (authorityNext) {
       authorityNext.classList.remove('hidden');
-      authorityNext.onclick = function (e) { if (e) e.preventDefault(); goTo('species'); };
+      authorityNext.onclick = function (e) { if (e) e.preventDefault(); syncAppBridge(); goTo('species'); };
       setHtml(authorityNext.querySelector('span[data-en]'), 'Next: Species information');
       setHtml(authorityNext.querySelector('span[data-bm]'), 'Seterusnya: Maklumat spesies');
     }
@@ -146,7 +149,8 @@
       findableBack.id = 'kif_backToWhatToDo';
       findableBack.onclick = function (e) {
         if (e) e.preventDefault();
-        goTo(APP.speciesId === 'snake' ? 'snakewhattodo' : 'whattodo');
+        var app = syncAppBridge();
+        goTo(app && app.speciesId === 'snake' ? 'snakewhattodo' : 'whattodo');
       };
       setHtml(findableBack.querySelector('span[data-en]'), 'Back to what to do now');
       setHtml(findableBack.querySelector('span[data-bm]'), 'Kembali ke apa perlu dibuat');
@@ -154,7 +158,7 @@
 
     var done = document.getElementById('kif_doneLink');
     if (done) {
-      done.onclick = function (e) { if (e) e.preventDefault(); goTo('species'); };
+      done.onclick = function (e) { if (e) e.preventDefault(); syncAppBridge(); goTo('species'); };
       setHtml(done.querySelector('span[data-en]'), 'Next: Species information');
       setHtml(done.querySelector('span[data-bm]'), 'Seterusnya: Maklumat spesies');
     }
@@ -164,7 +168,7 @@
 
     var backSpecies = document.getElementById('wtd_backToSpecies');
     if (backSpecies) {
-      backSpecies.onclick = function (e) { if (e) e.preventDefault(); goTo('identify'); };
+      backSpecies.onclick = function (e) { if (e) e.preventDefault(); syncAppBridge(); goTo('identify'); };
       setHtml(backSpecies.querySelector('span[data-en]'), 'Back to identify');
       setHtml(backSpecies.querySelector('span[data-bm]'), 'Kembali ke kenal pasti');
     }
@@ -174,13 +178,21 @@
     var authSpecies = document.getElementById('auth_crumbSpecies');
     if (authSpecies) {
       authSpecies.id = 'auth_crumbWhatToDo';
-      authSpecies.onclick = function (e) { if (e) e.preventDefault(); goTo(APP.speciesId === 'snake' ? 'snakewhattodo' : 'whattodo'); };
+      authSpecies.onclick = function (e) {
+        if (e) e.preventDefault();
+        var app = syncAppBridge();
+        goTo(app && app.speciesId === 'snake' ? 'snakewhattodo' : 'whattodo');
+      };
       authSpecies.innerHTML = '<span data-en>What to do now</span><span data-bm>Apa Perlu Dibuat</span>';
     }
     var kifSpecies = document.getElementById('kif_crumbSpecies');
     if (kifSpecies) {
       kifSpecies.id = 'kif_crumbWhatToDo';
-      kifSpecies.onclick = function (e) { if (e) e.preventDefault(); goTo(APP.speciesId === 'snake' ? 'snakewhattodo' : 'whattodo'); };
+      kifSpecies.onclick = function (e) {
+        if (e) e.preventDefault();
+        var app = syncAppBridge();
+        goTo(app && app.speciesId === 'snake' ? 'snakewhattodo' : 'whattodo');
+      };
       kifSpecies.innerHTML = '<span data-en>What to do now</span><span data-bm>Apa Perlu Dibuat</span>';
     }
   }
@@ -189,7 +201,9 @@
     if (typeof window.goTo !== 'function' || window.goTo.__v12Wrapped) return;
     var original = window.goTo;
     window.goTo = function (page, opts) {
+      syncAppBridge();
       var result = original.apply(this, arguments);
+      syncAppBridge();
       if (page === 'states' && window.RoomForBothDB) RoomForBothDB.renderStatesFromDb();
       return result;
     };
@@ -197,14 +211,16 @@
   }
 
   function prepare() {
+    syncAppBridge();
     populateHomeStates();
     upgradePreventionSection();
     upgradeNavigation();
     upgradeBreadcrumbs();
     installDbOnlyPageSkeletons();
     wrapGoToForStates();
+    syncAppBridge();
     if (typeof window.setLang === 'function') setLang(localStorage.getItem('owm-lang') || 'en');
   }
 
-  window.RoomForBothV12 = { prepare: prepare };
+  window.RoomForBothV12 = { prepare: prepare, syncAppBridge: syncAppBridge };
 })();
