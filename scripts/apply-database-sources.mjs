@@ -6,11 +6,9 @@ const indexPath = 'public/index.html';
 let worker = fs.readFileSync(workerPath, 'utf8');
 let html = fs.readFileSync(indexPath, 'utf8');
 
-// This migration now keeps About > Spine datasets static (GBIF + MyBIS).
-// Remove the dedicated database-sources renderer from the worker injector.
+// About > Spine datasets stays intentionally static: only GBIF + MyBIS.
 worker = worker.replace('<script src="/data-sources.js" defer></script>', '');
 
-// 1) Restore the original two static Spine dataset rows.
 const staticSpineBody = `<tbody class="divide-y divide-slate-100">
           <tr>
             <td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">GBIF occurrence records</td>
@@ -26,37 +24,39 @@ const staticSpineBody = `<tbody class="divide-y divide-slate-100">
           </tr>
         </tbody>`;
 
-html = html.replace(
-  /<tbody id="about_database_sources"[^>]*>[\s\S]*?<\/tbody>/,
-  staticSpineBody,
-);
+html = html.replace(/<tbody id="about_database_sources"[^>]*>[\s\S]*?<\/tbody>/, staticSpineBody);
 
-// 2) Remove the duplicate Step 0 badge injected by a previous patch.
-// The original "Step 0 · One question first" remains in the gate markup.
+// Remove the extra injected "Step 0 · Snake safety check" badge. Keep the
+// original "Step 0 · One question first" already present in the gate markup.
 html = html.replace(
   /\n\s*\/\/ ---- Step 0 — snake safety gate ----[\s\S]*?gateInner\.insertBefore\(snakeStepLabel, gateInner\.firstChild\);\n\s*\}/,
-  '',
+  ''
 );
 
-// 3) Snake identity header: use the same static Naja sumatrana photo instead
-// of the alert icon, while still keeping neutral safety wording.
-html = html.replace(
-  """    if (s.id === 'snake') {
+const oldIdentity = `    if (s.id === 'snake') {
       iconBox.innerHTML = ICONS.alert;
       nameEn.innerHTML = '<span data-en>' + neutralEn + '</span><span data-bm>' + neutralBm + '</span>';
       nameBm.innerHTML = '';
-    } else {""",
-  """    if (s.id === 'snake') {
+    } else {`;
+const newIdentity = `    if (s.id === 'snake') {
       iconBox.innerHTML = '<img src="/assets/naja-sumatrana.jpg" alt="Snake" class="w-full h-full object-cover">';
       nameEn.innerHTML = '<span data-en>' + neutralEn + '</span><span data-bm>' + neutralBm + '</span>';
       nameBm.innerHTML = '';
-    } else {""",
-);
+    } else {`;
+html = html.replace(oldIdentity, newIdentity);
 
-// 4) Snake photo credit/source: direct external source, not About the Data.
-html = html.replace(
-  /function renderPhotoIcon\(prefix, s\) \{[\s\S]*?\n  \}/,
-`function renderPhotoIcon(prefix, s) {
+const oldPhotoFunction = `  function renderPhotoIcon(prefix, s) {
+    var iconBox = document.getElementById(prefix + '_iconBox');
+    var credit = document.getElementById(prefix + '_photoCredit');
+    if (!credit) return; // stopback's markup doesn't have a credit slot
+    if (s.photo && s.id !== 'snake') {
+      iconBox.innerHTML = '<img src="' + s.photo.dataUri + '" alt="' + s.en + '" class="w-full h-full object-cover">';
+      credit.classList.remove('hidden');
+    } else {
+      credit.classList.add('hidden');
+    }
+  }`;
+const newPhotoFunction = `  function renderPhotoIcon(prefix, s) {
     var iconBox = document.getElementById(prefix + '_iconBox');
     var credit = document.getElementById(prefix + '_photoCredit');
     if (!credit) return;
@@ -77,16 +77,13 @@ html = html.replace(
     } else {
       credit.classList.add('hidden');
     }
-  }`,
-);
+  }`;
+html = html.replace(oldPhotoFunction, newPhotoFunction);
 
-// 5) Dedicated snake What-to-do hero: replace the warning glyph with the
-// Naja sumatrana photo and add a direct iNaturalist source link below it.
-html = html.replace(
-`      <div class="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-rose-500/10 border border-rose-400/30 flex items-center justify-center backdrop-blur text-rose-300">
+const oldSnakeHero = `      <div class="shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-rose-500/10 border border-rose-400/30 flex items-center justify-center backdrop-blur text-rose-300">
         <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3z"/><line x1="12" y1="10" x2="12" y2="14.5"/><circle cx="12" cy="17.3" r=".6" fill="currentColor" stroke="none"/></svg>
-      </div>`,
-`      <div class="shrink-0 flex flex-col items-center gap-1.5 w-20 sm:w-24">
+      </div>`;
+const newSnakeHero = `      <div class="shrink-0 flex flex-col items-center gap-1.5 w-20 sm:w-24">
         <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/5 border border-white/10 overflow-hidden backdrop-blur">
           <img src="/assets/naja-sumatrana.jpg" alt="Snake" class="w-full h-full object-cover">
         </div>
@@ -96,22 +93,22 @@ html = html.replace(
             <span data-en>View source</span><span data-bm>Lihat sumber</span> ↗
           </a>
         </div>
-      </div>`,
-);
+      </div>`;
+html = html.replace(oldSnakeHero, newSnakeHero);
 
-// 6) Snake safety-step source links should also behave like normal external
-// sources, not route into About the Data.
-html = html.replace(
-`    var src = s.safetySource
-      ? '<a href="#" onclick="goTo(\\'about\\');return false;" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></a>'
-      : '';
-    return '<div class="flex gap-3 rounded-xl bg-white border border-slate-200 border-l-4 border-l-rose-600 px-4 py-3">' +`,
-`    var src = s.safetySource
-      ? '<a href="https://www.bomba.gov.my/" target="_blank" rel="noopener" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></a>'
-      : '';
-    return '<div class="flex gap-3 rounded-xl bg-white border border-slate-200 border-l-4 border-l-rose-600 px-4 py-3">' +`,
-);
+// Only change the snake page's immediate-safety source links: external Bomba,
+// not About the Data. Limit the replacement to render_snakewhattodo().
+const snakeStart = html.indexOf('function render_snakewhattodo()');
+const snakeEnd = html.indexOf('</script>', snakeStart);
+if (snakeStart >= 0 && snakeEnd > snakeStart) {
+  let snakeBlock = html.slice(snakeStart, snakeEnd);
+  snakeBlock = snakeBlock.replace(
+    `? '<a href="#" onclick="goTo(\\'about\\');return false;" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></a>'`,
+    `? '<a href="https://www.bomba.gov.my/" target="_blank" rel="noopener" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></a>'`
+  );
+  html = html.slice(0, snakeStart) + snakeBlock + html.slice(snakeEnd);
+}
 
 fs.writeFileSync(workerPath, worker);
 fs.writeFileSync(indexPath, html);
-console.log('Restored static Spine datasets and normalized snake photo/source flow.');
+console.log('Restored GBIF/MyBIS and normalized snake photo/source UI.');
