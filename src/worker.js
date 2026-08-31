@@ -59,13 +59,15 @@ async function handleApi(request, env) {
       const mediaCoverage = await sql`
         SELECT COUNT(*)::int AS media_rows, COUNT(DISTINCT species_id)::int AS species_with_media
         FROM species_media
-        WHERE image_url IS NOT NULL AND BTRIM(image_url) <> '' AND UPPER(BTRIM(image_url)) NOT IN ('NA','N/A')
+        WHERE image_url IS NOT NULL
+          AND BTRIM(image_url) <> ''
+          AND UPPER(BTRIM(image_url)) NOT IN ('NA','N/A')
       `;
       return json({
         ok: true,
         mode: 'read-only',
         tables: Object.fromEntries(rows.map((row) => [row.table_name, row.row_count])),
-        media: mediaCoverage[0] || { media_rows: 0, species_with_media: 0 }
+        media: mediaCoverage[0] || { media_rows: 0, species_with_media: 0 },
       });
     }
 
@@ -85,17 +87,14 @@ async function handleApi(request, env) {
       if (stateCode !== null) {
         const rows = await sql`
           SELECT state_code, state_name, jurisdiction_type
-          FROM state
-          WHERE state_code = ${stateCode}
-          LIMIT 1
+          FROM state WHERE state_code = ${stateCode} LIMIT 1
         `;
         if (!rows.length) return json({ ok: false, error: 'State not found.' }, 404);
         return json({ ok: true, state: rows[0] });
       }
       const rows = await sql`
         SELECT state_code, state_name, jurisdiction_type
-        FROM state
-        ORDER BY state_name, state_code
+        FROM state ORDER BY state_name, state_code
       `;
       return json({ ok: true, count: rows.length, states: rows });
     }
@@ -111,17 +110,25 @@ async function handleApi(request, env) {
       if (rawCategoryId !== null && categoryId === null) return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
       if (rawIsSnake !== null && isSnake === undefined) return json({ ok: false, error: 'is_snake must be true or false.' }, 400);
 
-      const select = (extraWhere = '', args = []) => null;
+      const fields = sql`
+        SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
+               s.english_name, s.category_id, s.protected_status, s.introduced_status,
+               s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
+               c.category_name, c.description AS category_description, c.responsible_body_type
+        FROM species s LEFT JOIN animal_category c ON c.category_id = s.category_id
+      `;
+      // The Neon tagged template cannot append a SQL fragment from another query safely,
+      // so each filtered SELECT remains explicit below.
+      void fields;
+
       if (id !== null) {
         const rows = await sql`
           SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
                  s.english_name, s.category_id, s.protected_status, s.introduced_status,
                  s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
                  c.category_name, c.description AS category_description, c.responsible_body_type
-          FROM species s
-          LEFT JOIN animal_category c ON c.category_id = s.category_id
-          WHERE s.species_id = ${id}
-          LIMIT 1
+          FROM species s LEFT JOIN animal_category c ON c.category_id = s.category_id
+          WHERE s.species_id = ${id} LIMIT 1
         `;
         if (!rows.length) return json({ ok: false, error: 'Species not found.' }, 404);
         return json({ ok: true, species: rows[0] });
@@ -287,7 +294,7 @@ function databaseOnlyHtml(html) {
   }
 
   const bootRegex = /<script>\s*\/\/ ---- one-time bindings[\s\S]*?goTo\('home'\);\s*<\/script>/;
-  const dbBoot = `<script src="/api-data.js"></script>\n<script>\nsetLang(localStorage.getItem('owm-lang') || 'en');\nRoomForBothDB.ready.then(function () {\n  init_home();\n  init_identify();\n  RoomForBothDB.installRenderHooks();\n  goTo('home');\n}).catch(function (err) {\n  console.error('Verified database content could not be loaded.', err);\n  var home = document.getElementById('page-home');\n  if (home) home.classList.remove('hidden');\n});\n</script>`;
+  const dbBoot = `<script src="/api-data.js"></script>\n<script src="/v12-ui.js"></script>\n<script>\nsetLang(localStorage.getItem('owm-lang') || 'en');\nRoomForBothDB.ready.then(function () {\n  if (window.RoomForBothV12) RoomForBothV12.prepare();\n  init_home();\n  init_identify();\n  RoomForBothDB.installRenderHooks();\n  goTo('home');\n}).catch(function (err) {\n  console.error('Verified database content could not be loaded.', err);\n  var home = document.getElementById('page-home');\n  if (home) home.classList.remove('hidden');\n});\n</script>`;
   if (bootRegex.test(html)) html = html.replace(bootRegex, dbBoot);
   else if (!html.includes('/api-data.js')) html = html.replace('</body>', dbBoot + '\n</body>');
   return html;
