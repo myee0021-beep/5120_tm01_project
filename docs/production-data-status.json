@@ -1,0 +1,121 @@
+{
+  "production_url": "https://5120-tm01-project.myee0021.workers.dev",
+  "database_status": {
+    "ok": true,
+    "mode": "read-only",
+    "tables": {
+      "animal_category": 5,
+      "authority": 70,
+      "immediate_action": 33,
+      "prevention_action": 25,
+      "species": 7,
+      "species_behaviour": 7,
+      "species_media": 7,
+      "state": 16
+    },
+    "media": {
+      "media_rows": 7,
+      "species_with_media": 7
+    }
+  },
+  "species_media_by_species_id": {
+    "1": {
+      "count": 1,
+      "has_image_url": true,
+      "media": [
+        {
+          "media_id": 1,
+          "species_id": 1,
+          "image_url": "https://www.inaturalist.org/taxa/147700-Macaca-fascicularis-fascicularis",
+          "photographer": null,
+          "licence": null,
+          "gbif_occurrence_id": null
+        }
+      ]
+    },
+    "2": {
+      "count": 1,
+      "has_image_url": true,
+      "media": [
+        {
+          "media_id": 2,
+          "species_id": 2,
+          "image_url": "https://www.inaturalist.org/taxa/42134-Sus-scrofa",
+          "photographer": null,
+          "licence": null,
+          "gbif_occurrence_id": null
+        }
+      ]
+    },
+    "3": {
+      "count": 1,
+      "has_image_url": true,
+      "media": [
+        {
+          "media_id": 3,
+          "species_id": 3,
+          "image_url": "https://www.inaturalist.org/taxa/204454-Acridotheres-tristis",
+          "photographer": null,
+          "licence": null,
+          "gbif_occurrence_id": null
+        }
+      ]
+    },
+    "4": {
+      "count": 1,
+      "has_image_url": true,
+      "media": [
+        {
+          "media_id": 4,
+          "species_id": 4,
+          "image_url": "https://www.thainationalparks.com/species/malayopython-reticulatus",
+          "photographer": null,
+          "licence": null,
+          "gbif_occurrence_id": null
+        }
+      ]
+    },
+    "5": {
+      "count": 1,
+      "has_image_url": true,
+      "media": [
+        {
+          "media_id": 5,
+          "species_id": 5,
+          "image_url": "https://www.inaturalist.org/taxa/8031-Corvus-splendens",
+          "photographer": null,
+          "licence": null,
+          "gbif_occurrence_id": null
+        }
+      ]
+    },
+    "6": {
+      "count": 1,
+      "has_image_url": true,
+      "media": [
+        {
+          "media_id": 6,
+          "species_id": 6,
+          "image_url": "https://www.inaturalist.org/taxa/114891-Varanus-salvator",
+          "photographer": null,
+          "licence": null,
+          "gbif_occurrence_id": null
+        }
+      ]
+    },
+    "7": {
+      "count": 1,
+      "has_image_url": true,
+      "media": [
+        {
+          "media_id": 7,
+          "species_id": 7,
+          "image_url": "https://www.inaturalist.org/taxa/106451-Naja-sumatrana",
+          "photographer": null,
+          "licence": null,
+          "gbif_occurrence_id": null
+        }
+      ]
+    }
+  }
+}
