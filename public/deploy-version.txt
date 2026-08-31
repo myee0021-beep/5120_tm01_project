@@ -1,3 +1,3 @@
-Force Cloudflare deployment of current main HEAD including About DB sources v5.
-Target frontend commit: 3c1135910172fb6f1d19a40efa373e2ceaf70f4a
-Created: 2026-08-31T20:18+08:00
+Force Cloudflare deployment of current main HEAD including Snake About Bomba fallback.
+Target frontend commit: f999ea07793698954f5292c28d998ccfb3ff6dec
+Created: 2026-08-31T20:30+08:00
