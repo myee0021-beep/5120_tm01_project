@@ -1,0 +1,34 @@
+name: Apply DB-only frontend
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/production-data-status.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sanitize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove embedded business fallback
+        run: python scripts/apply_db_only_frontend.py
+
+      - name: Commit sanitized frontend when needed
+        run: |
+          if git diff --quiet -- public/index.html; then
+            echo "public/index.html is already DB-only"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/index.html
+          git commit -m "Remove embedded frontend business fallback"
+          git push
