@@ -32,7 +32,6 @@ function boolParam(value) {
 
 async function handleApi(request, env) {
   const url = new URL(request.url);
-
   if (request.method !== 'GET') {
     return json({ ok: false, error: 'Read-only API. Only GET requests are allowed.' }, 405, { Allow: 'GET' });
   }
@@ -83,7 +82,6 @@ async function handleApi(request, env) {
       const rawStateCode = url.searchParams.get('state_code');
       const stateCode = positiveInt(rawStateCode);
       if (rawStateCode !== null && stateCode === null) return json({ ok: false, error: 'state_code must be a positive integer.' }, 400);
-
       if (stateCode !== null) {
         const rows = await sql`
           SELECT state_code, state_name, jurisdiction_type
@@ -94,7 +92,6 @@ async function handleApi(request, env) {
         if (!rows.length) return json({ ok: false, error: 'State not found.' }, 404);
         return json({ ok: true, state: rows[0] });
       }
-
       const rows = await sql`
         SELECT state_code, state_name, jurisdiction_type
         FROM state
@@ -110,18 +107,17 @@ async function handleApi(request, env) {
       const id = positiveInt(rawId);
       const categoryId = positiveInt(rawCategoryId);
       const isSnake = boolParam(rawIsSnake);
-
       if (rawId !== null && id === null) return json({ ok: false, error: 'id must be a positive integer.' }, 400);
       if (rawCategoryId !== null && categoryId === null) return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
       if (rawIsSnake !== null && isSnake === undefined) return json({ ok: false, error: 'is_snake must be true or false.' }, 400);
 
+      const select = (extraWhere = '', args = []) => null;
       if (id !== null) {
         const rows = await sql`
-          SELECT
-            s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
-            s.english_name, s.category_id, s.protected_status, s.introduced_status,
-            s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
-            c.category_name, c.description AS category_description, c.responsible_body_type
+          SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
+                 s.english_name, s.category_id, s.protected_status, s.introduced_status,
+                 s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
+                 c.category_name, c.description AS category_description, c.responsible_body_type
           FROM species s
           LEFT JOIN animal_category c ON c.category_id = s.category_id
           WHERE s.species_id = ${id}
@@ -137,9 +133,8 @@ async function handleApi(request, env) {
           SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
                  s.english_name, s.category_id, s.protected_status, s.introduced_status,
                  s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
-                 c.category_name, c.responsible_body_type
-          FROM species s
-          LEFT JOIN animal_category c ON c.category_id = s.category_id
+                 c.category_name, c.description AS category_description, c.responsible_body_type
+          FROM species s LEFT JOIN animal_category c ON c.category_id = s.category_id
           WHERE s.category_id = ${categoryId} AND s.is_snake = ${isSnake}
           ORDER BY s.english_name, s.species_id
         `;
@@ -148,9 +143,8 @@ async function handleApi(request, env) {
           SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
                  s.english_name, s.category_id, s.protected_status, s.introduced_status,
                  s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
-                 c.category_name, c.responsible_body_type
-          FROM species s
-          LEFT JOIN animal_category c ON c.category_id = s.category_id
+                 c.category_name, c.description AS category_description, c.responsible_body_type
+          FROM species s LEFT JOIN animal_category c ON c.category_id = s.category_id
           WHERE s.category_id = ${categoryId}
           ORDER BY s.english_name, s.species_id
         `;
@@ -159,9 +153,8 @@ async function handleApi(request, env) {
           SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
                  s.english_name, s.category_id, s.protected_status, s.introduced_status,
                  s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
-                 c.category_name, c.responsible_body_type
-          FROM species s
-          LEFT JOIN animal_category c ON c.category_id = s.category_id
+                 c.category_name, c.description AS category_description, c.responsible_body_type
+          FROM species s LEFT JOIN animal_category c ON c.category_id = s.category_id
           WHERE s.is_snake = ${isSnake}
           ORDER BY s.english_name, s.species_id
         `;
@@ -170,9 +163,8 @@ async function handleApi(request, env) {
           SELECT s.species_id, s.order_family_species, s.scientific_name, s.malay_name,
                  s.english_name, s.category_id, s.protected_status, s.introduced_status,
                  s.is_snake, s.id_keywords, s.taxonkey AS "taxonKey",
-                 c.category_name, c.responsible_body_type
-          FROM species s
-          LEFT JOIN animal_category c ON c.category_id = s.category_id
+                 c.category_name, c.description AS category_description, c.responsible_body_type
+          FROM species s LEFT JOIN animal_category c ON c.category_id = s.category_id
           ORDER BY s.english_name, s.species_id
         `;
       }
@@ -184,9 +176,7 @@ async function handleApi(request, env) {
       if (speciesId === null) return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
       const rows = await sql`
         SELECT media_id, species_id, image_url, photographer, licence, gbif_occurrence_id
-        FROM species_media
-        WHERE species_id = ${speciesId}
-        ORDER BY media_id
+        FROM species_media WHERE species_id = ${speciesId} ORDER BY media_id
       `;
       return json({ ok: true, species_id: speciesId, count: rows.length, media: rows });
     }
@@ -197,9 +187,7 @@ async function handleApi(request, env) {
       const rows = await sql`
         SELECT behaviour_id, species_id, likely_location, what_moves_it, safe_distance_note,
                lost_sight_note, source_person, source_institution, source_url, date_verified
-        FROM species_behaviour
-        WHERE species_id = ${speciesId}
-        ORDER BY behaviour_id
+        FROM species_behaviour WHERE species_id = ${speciesId} ORDER BY behaviour_id
       `;
       return json({ ok: true, species_id: speciesId, count: rows.length, behaviour: rows });
     }
@@ -212,15 +200,10 @@ async function handleApi(request, env) {
       if (rawSpeciesId !== null && speciesId === null) return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
       if (rawCategoryId !== null && categoryId === null) return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
       if (speciesId === null && categoryId === null) return json({ ok: false, error: 'Provide species_id or category_id.' }, 400);
-
       let rows;
-      if (speciesId !== null && categoryId !== null) {
-        rows = await sql`SELECT * FROM immediate_action WHERE species_id = ${speciesId} AND category_id = ${categoryId} ORDER BY step_order NULLS LAST, action_id`;
-      } else if (speciesId !== null) {
-        rows = await sql`SELECT * FROM immediate_action WHERE species_id = ${speciesId} ORDER BY step_order NULLS LAST, action_id`;
-      } else {
-        rows = await sql`SELECT * FROM immediate_action WHERE category_id = ${categoryId} ORDER BY step_order NULLS LAST, action_id`;
-      }
+      if (speciesId !== null && categoryId !== null) rows = await sql`SELECT * FROM immediate_action WHERE species_id = ${speciesId} AND category_id = ${categoryId} ORDER BY step_order NULLS LAST, action_id`;
+      else if (speciesId !== null) rows = await sql`SELECT * FROM immediate_action WHERE species_id = ${speciesId} ORDER BY step_order NULLS LAST, action_id`;
+      else rows = await sql`SELECT * FROM immediate_action WHERE category_id = ${categoryId} ORDER BY step_order NULLS LAST, action_id`;
       return json({ ok: true, count: rows.length, actions: rows });
     }
 
@@ -234,7 +217,6 @@ async function handleApi(request, env) {
       if (rawSpeciesId !== null && speciesId === null) return json({ ok: false, error: 'species_id must be a positive integer.' }, 400);
       if (rawCategoryId !== null && categoryId === null) return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
       if (speciesId === null && categoryId === null) return json({ ok: false, error: 'Provide species_id or category_id.' }, 400);
-
       let rows;
       if (speciesId !== null) {
         rows = await sql`
@@ -261,7 +243,6 @@ async function handleApi(request, env) {
       const categoryId = positiveInt(url.searchParams.get('category_id'));
       const jurisdiction = String(url.searchParams.get('jurisdiction') || '').trim();
       if (categoryId === null) return json({ ok: false, error: 'category_id must be a positive integer.' }, 400);
-
       let rows;
       if (jurisdiction) {
         rows = await sql`
@@ -275,9 +256,7 @@ async function handleApi(request, env) {
         rows = await sql`
           SELECT authority_id, jurisdiction, category_id, agency_name, contact_route,
                  contact_value, what_they_do, response_standard, source_url, last_verified
-          FROM authority
-          WHERE category_id = ${categoryId}
-          ORDER BY jurisdiction, authority_id
+          FROM authority WHERE category_id = ${categoryId} ORDER BY jurisdiction, authority_id
         `;
       }
       return json({ ok: true, count: rows.length, authorities: rows });
@@ -285,10 +264,8 @@ async function handleApi(request, env) {
 
     if (url.pathname === '/api/tables') {
       const rows = await sql`
-        SELECT table_name
-        FROM information_schema.tables
-        WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
-        ORDER BY table_name
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name
       `;
       return json({ ok: true, tables: rows.map((row) => row.table_name) });
     }
@@ -300,10 +277,37 @@ async function handleApi(request, env) {
   }
 }
 
+function databaseOnlyHtml(html) {
+  const dataStartMarker = '// EPIC 4 / AC 4.1.1';
+  const dataStart = html.indexOf(dataStartMarker);
+  const iconsStart = html.indexOf('  var ICONS = {', dataStart);
+  if (dataStart >= 0 && iconsStart > dataStart) {
+    const replacement = `// Business data is loaded from Neon through /api/* by /api-data.js.\nvar AUTHORITY_TABLE = {};\nvar SPECIES = [];\nvar STATES = [];\nfunction getSpecies(id) { return SPECIES.find(function (s) { return s.id === id; }) || SPECIES.find(function (s) { return s.id === 'general'; }); }\nfunction getState(id) { return STATES.find(function (s) { return s.id === id; }) || null; }\nfunction getTopSpeciesForState() { return []; }\n\n`;
+    html = html.slice(0, dataStart) + replacement + html.slice(iconsStart);
+  }
+
+  const bootRegex = /<script>\s*\/\/ ---- one-time bindings[\s\S]*?goTo\('home'\);\s*<\/script>/;
+  const dbBoot = `<script src="/api-data.js"></script>\n<script>\nsetLang(localStorage.getItem('owm-lang') || 'en');\nRoomForBothDB.ready.then(function () {\n  init_home();\n  init_identify();\n  RoomForBothDB.installRenderHooks();\n  goTo('home');\n}).catch(function (err) {\n  console.error('Verified database content could not be loaded.', err);\n  var home = document.getElementById('page-home');\n  if (home) home.classList.remove('hidden');\n});\n</script>`;
+  if (bootRegex.test(html)) html = html.replace(bootRegex, dbBoot);
+  else if (!html.includes('/api-data.js')) html = html.replace('</body>', dbBoot + '\n</body>');
+  return html;
+}
+
+async function serveAsset(request, env) {
+  const response = await env.ASSETS.fetch(request);
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('text/html')) return response;
+  const html = databaseOnlyHtml(await response.text());
+  const headers = new Headers(response.headers);
+  headers.delete('content-length');
+  headers.set('cache-control', 'no-cache');
+  return new Response(html, { status: response.status, statusText: response.statusText, headers });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith('/api/')) return handleApi(request, env);
-    return env.ASSETS.fetch(request);
+    return serveAsset(request, env);
   },
 };
