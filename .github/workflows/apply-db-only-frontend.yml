@@ -22,7 +22,9 @@ jobs:
         run: python scripts/apply_db_only_frontend.py
 
       - name: Restore presentation photos as frontend static media
-        run: node scripts/use-frontend-media.js
+        run: |
+          cp scripts/use-frontend-media.js /tmp/use-frontend-media.cjs
+          node /tmp/use-frontend-media.cjs
 
       - name: Commit frontend media separation when needed
         run: |
