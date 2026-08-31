@@ -345,6 +345,31 @@
   // bomba.gov.my) and silently produced no link at all for anything else
   // (MBPJ's House Crow/Common Myna rows had no outbound link for exactly
   // this reason — the regex simply didn't recognise "MBPJ").
+  function uniqueSourceRows(rows) {
+    var seen = {};
+    return (rows || []).filter(function (row) {
+      if (!row) return false;
+      var key = [
+        visibleText(row.source_url),
+        visibleText(row.source_institution),
+        visibleText(row.source_person),
+        visibleText(row.date_verified)
+      ].join('|');
+      if (!key.replace(/\|/g, '')) return false;
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
+
+  function sourceLinksHtml(rows) {
+    var unique = uniqueSourceRows(rows);
+    if (!unique.length) return '<span class="text-slate-300">—</span>';
+    return '<div class="space-y-1.5">' + unique.map(function (row) {
+      return '<div>' + sourceLinkHtml(row) + '</div>';
+    }).join('') + '</div>';
+  }
+
   function sourceLinkHtml(row) {
     var label = sourceLabel(row);
     if (!label) return '<span class="text-slate-300">—</span>';
@@ -380,9 +405,13 @@
       }
       return Promise.all([getImmediateActions(dbId), getPreventionActions(dbId)])
         .then(function (results) {
-          var actionRow = (results[0].actions || [])[0] || null;
-          var preventionRow = (results[1].actions || [])[0] || null;
-          return { en: a.en, actionHtml: sourceLinkHtml(actionRow), preventionHtml: sourceLinkHtml(preventionRow) };
+          var actionRows = results[0].actions || [];
+          var preventionRows = results[1].actions || [];
+          return {
+            en: a.en,
+            actionHtml: sourceLinksHtml(actionRows),
+            preventionHtml: sourceLinksHtml(preventionRows)
+          };
         })
         .catch(function () {
           return {
@@ -422,6 +451,26 @@
     '</a>';
   }
 
+  function refreshCurrentDbPage() {
+    var page = '';
+    try { page = (window.APP && window.APP.currentPage) || ''; } catch (e) {}
+
+    if (page === 'whattodo') return renderImmediateActionsFromDb();
+    if (page === 'findable') return renderBehaviourAndPreventionFromDb();
+    if (page === 'about') return renderActionSourcesFromDb();
+    return Promise.resolve(false);
+  }
+
+  function scheduleDbRefresh() {
+    setTimeout(function () {
+      Promise.resolve(window.RoomForBothDB && window.RoomForBothDB.ready)
+        .then(refreshCurrentDbPage)
+        .catch(function (err) {
+          console.warn('[Room for Both] DB refresh after navigation failed.', err && err.message ? err.message : err);
+        });
+    }, 0);
+  }
+
   function installRenderHooks() {
     if (typeof window.render_whattodo === 'function' && !window.render_whattodo.__dbWrapped) {
       var originalWhatToDo = window.render_whattodo;
@@ -452,6 +501,16 @@
       };
       window.render_about.__dbWrapped = true;
     }
+
+    if (typeof window.goTo === 'function' && !window.goTo.__dbWrapped) {
+      var originalGoTo = window.goTo;
+      window.goTo = function () {
+        var result = originalGoTo.apply(this, arguments);
+        scheduleDbRefresh();
+        return result;
+      };
+      window.goTo.__dbWrapped = true;
+    }
   }
 
   window.RoomForBothDB = {
@@ -475,5 +534,9 @@
   };
 
   installRenderHooks();
-  window.addEventListener('DOMContentLoaded', installRenderHooks);
+  window.addEventListener('DOMContentLoaded', function () {
+    installRenderHooks();
+    scheduleDbRefresh();
+  });
+  window.addEventListener('roomforboth:db-ready', scheduleDbRefresh);
 })();
