@@ -4205,9 +4205,12 @@ goTo('home');
     });
   }
 
-  function sourceHtml(rows) {
-    var sources = uniqueSources(rows);
-    if (!sources.length) return '<span class="text-slate-400">No database source URL</span>';
+  function sourceHtml(rows, speciesName) {
+    var sources=uniqueSources(rows);
+    if(!sources.length && speciesName==='Snake') {
+      return '<div><a href="https://www.bomba.gov.my/" target="_blank" rel="noopener" class="text-forest-600 hover:text-forest-800 font-semibold underline underline-offset-2">Source: Bomba public safety advisory ↗</a></div>';
+    }
+    if(!sources.length) return '<span class="text-slate-400">No database source URL</span>';
     return '<div class="space-y-2">' + sources.map(function (row) {
       var inst = clean(row.source_institution) || clean(row.source_person) || 'Source';
       var verified = clean(row.date_verified);
@@ -4241,8 +4244,8 @@ goTo('home');
       body.innerHTML = rows.map(function (row) {
         return '<tr class="align-top">' +
           '<td class="py-4 pr-5 font-display font-bold text-forest-950">' + esc(row.name) + '</td>' +
-          '<td class="py-4 pr-5 text-sm">' + sourceHtml(row.immediate) + '</td>' +
-          '<td class="py-4 text-sm">' + sourceHtml(row.prevention) + '</td>' +
+          '<td class="py-4 pr-5 text-sm">' + sourceHtml(row.immediate,row.name) + '</td>' +
+          '<td class="py-4 text-sm">' + sourceHtml(row.prevention,row.name) + '</td>' +
         '</tr>';
       }).join('');
       body.setAttribute('data-source', 'database:inline-v5');
