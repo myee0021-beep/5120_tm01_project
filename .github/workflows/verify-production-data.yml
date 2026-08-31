@@ -1,0 +1,68 @@
+name: Verify production data
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/production-data-status.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Cloudflare deployment and read database status
+        run: |
+          BASE='https://5120-tm01-project.myee0021.workers.dev'
+          ok=0
+          for attempt in $(seq 1 24); do
+            if curl -fsS "$BASE/api/data-status" -o /tmp/data-status.json && grep -q '"ok":true' /tmp/data-status.json; then
+              ok=1
+              break
+            fi
+            echo "Waiting for deployment ($attempt/24)..."
+            sleep 10
+          done
+          test "$ok" = 1
+          for id in 1 2 3 4 5 6 7; do
+            curl -fsS "$BASE/api/species-media?species_id=$id" -o "/tmp/media-$id.json"
+          done
+
+      - name: Build production verification report
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          status = json.loads(Path('/tmp/data-status.json').read_text())
+          media = {}
+          for species_id in range(1, 8):
+              row = json.loads(Path(f'/tmp/media-{species_id}.json').read_text())
+              media[str(species_id)] = {
+                  'count': row.get('count', 0),
+                  'has_image_url': any(bool((m.get('image_url') or '').strip()) and (m.get('image_url') or '').strip().upper() not in {'NA','N/A'} for m in row.get('media', [])),
+                  'media': row.get('media', []),
+              }
+          report = {
+              'production_url': 'https://5120-tm01-project.myee0021.workers.dev',
+              'database_status': status,
+              'species_media_by_species_id': media,
+          }
+          Path('docs').mkdir(exist_ok=True)
+          Path('docs/production-data-status.json').write_text(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
+          PY
+
+      - name: Commit verification report
+        run: |
+          if git diff --quiet -- docs/production-data-status.json; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/production-data-status.json
+          git commit -m "Record production database coverage"
+          git push
