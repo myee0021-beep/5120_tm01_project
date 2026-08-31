@@ -3,12 +3,10 @@ name: Verify production data
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - 'docs/production-data-status.json'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify:
@@ -16,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Wait for Cloudflare deployment and read database status
+      - name: Wait for Cloudflare deployment and verify database status
         run: |
           BASE='https://5120-tm01-project.myee0021.workers.dev'
           ok=0
@@ -29,40 +27,30 @@ jobs:
             sleep 10
           done
           test "$ok" = 1
-          for id in 1 2 3 4 5 6 7; do
-            curl -fsS "$BASE/api/species-media?species_id=$id" -o "/tmp/media-$id.json"
-          done
 
-      - name: Build production verification report
-        run: |
           python - <<'PY'
           import json
           from pathlib import Path
           status = json.loads(Path('/tmp/data-status.json').read_text())
-          media = {}
-          for species_id in range(1, 8):
-              row = json.loads(Path(f'/tmp/media-{species_id}.json').read_text())
-              media[str(species_id)] = {
-                  'count': row.get('count', 0),
-                  'has_image_url': any(bool((m.get('image_url') or '').strip()) and (m.get('image_url') or '').strip().upper() not in {'NA','N/A'} for m in row.get('media', [])),
-                  'media': row.get('media', []),
-              }
-          report = {
-              'production_url': 'https://5120-tm01-project.myee0021.workers.dev',
-              'database_status': status,
-              'species_media_by_species_id': media,
-          }
-          Path('docs').mkdir(exist_ok=True)
-          Path('docs/production-data-status.json').write_text(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
+          assert status.get('ok') is True, status
+          tables = status.get('tables', {})
+          required = ['animal_category','authority','immediate_action','prevention_action','species','species_behaviour','state']
+          missing = [name for name in required if name not in tables]
+          assert not missing, f'Missing expected tables from production status: {missing}'
+          print(json.dumps(status, indent=2, ensure_ascii=False))
           PY
 
-      - name: Commit verification report
+      - name: Verify read-only business APIs
         run: |
-          if [ -z "$(git status --porcelain -- docs/production-data-status.json)" ]; then
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/production-data-status.json
-          git commit -m "Record production database coverage"
-          git push
+          BASE='https://5120-tm01-project.myee0021.workers.dev'
+          curl -fsS "$BASE/api/species" | grep -q '"ok":true'
+          curl -fsS "$BASE/api/categories" | grep -q '"ok":true'
+          curl -fsS "$BASE/api/states" | grep -q '"ok":true'
+          curl -fsS "$BASE/api/species-behaviour?species_id=1" | grep -q '"ok":true'
+          curl -fsS "$BASE/api/immediate-actions?species_id=1" | grep -q '"ok":true'
+          curl -fsS "$BASE/api/prevention-actions?species_id=1" | grep -q '"ok":true'
+
+          # This workflow is intentionally read-only. It validates production
+          # but never commits generated reports back to main, so it cannot race
+          # with the frontend migration workflow.
+          echo "Production database verification passed."
