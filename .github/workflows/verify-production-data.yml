@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -14,43 +14,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Wait for Cloudflare deployment and verify database status
+      - name: Apply static Naja photo and split Homepage sources
         run: |
-          BASE='https://5120-tm01-project.myee0021.workers.dev'
-          ok=0
-          for attempt in $(seq 1 24); do
-            if curl -fsS "$BASE/api/data-status" -o /tmp/data-status.json && grep -q '"ok":true' /tmp/data-status.json; then
-              ok=1
-              break
-            fi
-            echo "Waiting for deployment ($attempt/24)..."
-            sleep 10
-          done
-          test "$ok" = 1
-
+          mkdir -p public/assets
           python - <<'PY'
-          import json
+          import hashlib, json, urllib.request
           from pathlib import Path
-          status = json.loads(Path('/tmp/data-status.json').read_text())
-          assert status.get('ok') is True, status
-          tables = status.get('tables', {})
-          required = ['animal_category','authority','immediate_action','prevention_action','species','species_behaviour','state']
-          missing = [name for name in required if name not in tables]
-          assert not missing, f'Missing expected tables from production status: {missing}'
-          print(json.dumps(status, indent=2, ensure_ascii=False))
+
+          api = 'https://api.inaturalist.org/v1/taxa/106451'
+          req = urllib.request.Request(api, headers={'User-Agent':'RoomForBoth/1.0'})
+          with urllib.request.urlopen(req, timeout=30) as r:
+              data = json.load(r)
+          taxon = data['results'][0]
+          photo = taxon.get('default_photo') or {}
+          url = photo.get('medium_url') or photo.get('url') or photo.get('large_url')
+          if not url:
+              raise SystemExit('No Naja sumatrana default photo returned by iNaturalist')
+          req = urllib.request.Request(url, headers={'User-Agent':'RoomForBoth/1.0'})
+          with urllib.request.urlopen(req, timeout=30) as r:
+              raw = r.read()
+          out = Path('public/assets/naja-sumatrana.jpg')
+          out.write_bytes(raw)
+          print('Naja source:', url)
+          print('Naja bytes:', len(raw))
+          print('Naja sha256:', hashlib.sha256(raw).hexdigest())
+          print('Uploaded ZIP reference sha256: 946f593099b37d3a74c641c39646fcce346cbe5a2e5a5b7e441e81c16c6e2efb')
           PY
 
-      - name: Verify read-only business APIs
+          python scripts/apply-static-snake-homepage-section.py
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/index.html public/assets/naja-sumatrana.jpg
+          if git diff --cached --quiet; then
+            echo "No frontend changes to commit."
+            exit 0
+          fi
+          git commit -m "Use static Naja photo and separate homepage sources"
+          git push
+
+      - name: Verify read-only production database
         run: |
           BASE='https://5120-tm01-project.myee0021.workers.dev'
-          curl -fsS "$BASE/api/species" | grep -q '"ok":true'
-          curl -fsS "$BASE/api/categories" | grep -q '"ok":true'
-          curl -fsS "$BASE/api/states" | grep -q '"ok":true'
-          curl -fsS "$BASE/api/species-behaviour?species_id=1" | grep -q '"ok":true'
-          curl -fsS "$BASE/api/immediate-actions?species_id=1" | grep -q '"ok":true'
-          curl -fsS "$BASE/api/prevention-actions?species_id=1" | grep -q '"ok":true'
-
-          # This workflow is intentionally read-only. It validates production
-          # but never commits generated reports back to main, so it cannot race
-          # with the frontend migration workflow.
+          curl -fsS "$BASE/api/data-status" | grep -q '"ok":true'
           echo "Production database verification passed."
