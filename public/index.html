@@ -1903,13 +1903,23 @@
     </div>
   </div>
 
+  <!-- ===================== PHOTO SOURCE TABS ===================== -->
+  <div class="mt-4 flex flex-wrap gap-2 reveal" role="tablist" aria-label="Photo source categories">
+    <button id="about_speciesPhotoTab" type="button" role="tab" onclick="setAboutPhotoSourceTab('species')" class="rounded-full border border-slate-200 bg-forest-950 text-white px-5 py-2.5 text-sm font-bold shadow-sm transition">
+      <span data-en>Species photos</span><span data-bm>Foto spesies</span>
+    </button>
+    <button id="about_homepagePhotoTab" type="button" role="tab" onclick="setAboutPhotoSourceTab('homepage')" class="rounded-full border border-slate-200 bg-white text-forest-700 px-5 py-2.5 text-sm font-bold shadow-sm transition hover:bg-forest-50">
+      <span data-en>Homepage backgrounds</span><span data-bm>Latar halaman utama</span>
+    </button>
+  </div>
+
   <!-- ===================== SPECIES PHOTOS ===================== -->
   <!-- Every species photo elsewhere on the site (species info, what to do
        now, who deals with this, keep it findable) links here first via its
        "View source" link, instead of opening the photographer's page
        directly — populated in render_about() from the same SPECIES.photo
        data those pages already use. -->
-  <div class="mt-4 rounded-3xl reveal bg-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.12)] p-7 md:p-9">
+  <div id="about_speciesPhotoSection" class="mt-4 rounded-3xl reveal bg-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.12)] p-7 md:p-9">
     <h2 class="font-display text-xl font-bold tracking-tight text-slate-900">
       <span data-en>Species photos</span><span data-bm>Foto spesies</span>
     </h2>
@@ -1921,7 +1931,7 @@
   </div>
 
   <!-- ===================== HOMEPAGE BACKGROUNDS ===================== -->
-  <div class="mt-4 rounded-3xl reveal bg-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.12)] p-7 md:p-9">
+  <div id="about_homepagePhotoSection" class="hidden mt-4 rounded-3xl reveal bg-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.12)] p-7 md:p-9">
     <h2 class="font-display text-xl font-bold tracking-tight text-slate-900">
       <span data-en>Homepage backgrounds</span><span data-bm>Latar halaman utama</span>
     </h2>
@@ -2914,7 +2924,7 @@ function init_home() {
       creditEl.innerHTML = slides[i].dataset.creditEn;
       creditEl.querySelectorAll('a').forEach(function(a){
         a.removeAttribute('target'); a.href='#';
-        a.onclick=function(e){ if(e)e.preventDefault(); goTo('about'); return false; };
+        a.onclick=function(e){ if(e)e.preventDefault(); goTo('about'); setTimeout(function(){ setAboutPhotoSourceTab('homepage'); }, 0); return false; };
       });
     }
     showSlide(0);
@@ -3876,6 +3886,30 @@ function institutionSourceLink(text) {
   '</a>';
 }
 
+function setAboutPhotoSourceTab(tab) {
+  var speciesSection = document.getElementById('about_speciesPhotoSection');
+  var homepageSection = document.getElementById('about_homepagePhotoSection');
+  var speciesBtn = document.getElementById('about_speciesPhotoTab');
+  var homepageBtn = document.getElementById('about_homepagePhotoTab');
+  var showHomepage = tab === 'homepage';
+
+  if (speciesSection) speciesSection.classList.toggle('hidden', showHomepage);
+  if (homepageSection) homepageSection.classList.toggle('hidden', !showHomepage);
+
+  if (speciesBtn) {
+    speciesBtn.classList.toggle('bg-forest-950', !showHomepage);
+    speciesBtn.classList.toggle('text-white', !showHomepage);
+    speciesBtn.classList.toggle('bg-white', showHomepage);
+    speciesBtn.classList.toggle('text-forest-700', showHomepage);
+  }
+  if (homepageBtn) {
+    homepageBtn.classList.toggle('bg-forest-950', showHomepage);
+    homepageBtn.classList.toggle('text-white', showHomepage);
+    homepageBtn.classList.toggle('bg-white', !showHomepage);
+    homepageBtn.classList.toggle('text-forest-700', !showHomepage);
+  }
+}
+
 function render_about() {
   var photoList = document.getElementById('about_photoList');
   if (photoList) {
@@ -3942,6 +3976,7 @@ function render_about() {
     }).join('');
   }
 
+  setAboutPhotoSourceTab('species');
   setLang(localStorage.getItem('owm-lang') || 'en');
 }
 </script>
