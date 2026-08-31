@@ -5,6 +5,100 @@
     if (el) el.innerHTML = html;
   }
 
+  function safeSpecies() {
+    if (typeof window.getSpecies === 'function') {
+      return getSpecies((window.APP && APP.speciesId) || 'general');
+    }
+    return (window.SPECIES || []).find(function (s) {
+      return s.id === ((window.APP && APP.speciesId) || 'general');
+    }) || { id: 'general', en: 'Species', bm: 'Spesies', icon: 'general', statusEn: '', statusBm: '' };
+  }
+
+  function safeLink(id, page) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.onclick = function (e) {
+      if (e) e.preventDefault();
+      goTo(page, {});
+    };
+  }
+
+  function installDbOnlyPageSkeletons() {
+    // api-data.js intentionally wraps these functions after V1.2 prepare().
+    // These skeleton renderers therefore do presentation only. They do not
+    // read any retired embedded business fields such as safetySteps,
+    // checklist, authorityCategory, authority tables, behaviour notes, etc.
+
+    window.render_authority = function () {
+      var s = safeSpecies();
+      document.title = (s.id === 'snake' ? 'Who deals with this' : 'Who deals with this — ' + (s.en || '')) + ' | Room for Both';
+
+      if (typeof window.renderCrumb === 'function') renderCrumb('auth', s, 'Immediate safety', 'Keselamatan segera');
+      if (typeof window.renderIdentityHeader === 'function') renderIdentityHeader('auth', s, 'Who Deals With This', 'Siapa Mengendalikannya');
+
+      safeLink('auth_crumbWhatToDo', s.id === 'snake' ? 'snakewhattodo' : 'whattodo');
+      safeLink('auth_backToWhatToDo', s.id === 'snake' ? 'snakewhattodo' : 'whattodo');
+
+      var status = document.getElementById('auth_statusText');
+      if (status) status.innerHTML = '<span data-en>' + (s.statusEn || '') + '</span><span data-bm>' + (s.statusBm || '') + '</span>';
+
+      var speciesName = document.getElementById('auth_checklistSpeciesName');
+      if (speciesName) {
+        speciesName.textContent = s.id === 'snake'
+          ? 'Describe what you saw, in your own words'
+          : [s.en, s.bm].filter(Boolean).join(' / ');
+      }
+
+      // Old prototype-only sections are hidden. Neon renderer owns the
+      // authority record, state selector, contact details and SLA.
+      ['auth_categoryNote'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+
+      var script = document.getElementById('auth_scriptList');
+      if (script) script.innerHTML = '';
+      var willDo = document.getElementById('auth_willDo');
+      if (willDo) willDo.textContent = '';
+      var wontDo = document.getElementById('auth_wontDo');
+      if (wontDo) wontDo.textContent = '';
+
+      var print = document.getElementById('auth_printBtn');
+      if (print) print.onclick = function () { window.print(); };
+      if (typeof window.setLang === 'function') setLang(localStorage.getItem('owm-lang') || 'en');
+    };
+
+    window.render_findable = function () {
+      var s = safeSpecies();
+      document.title = (s.id === 'snake' ? 'Keep it findable' : 'Keep it findable — ' + (s.en || '')) + ' | Room for Both';
+
+      if (typeof window.renderCrumb === 'function') renderCrumb('kif', s, 'Immediate safety', 'Keselamatan segera');
+      if (typeof window.renderIdentityHeader === 'function') renderIdentityHeader('kif', s, 'Keep It Findable', 'Kekalkan Boleh Dijumpai');
+
+      safeLink('kif_backToWhatToDo', s.id === 'snake' ? 'snakewhattodo' : 'whattodo');
+
+      // Clear any prototype text before the Neon renderer hydrates it.
+      var where = document.getElementById('kif_whereText');
+      if (where) where.textContent = '';
+      var observe = document.getElementById('kif_observeDistanceText');
+      if (observe) observe.textContent = '';
+      var tips = document.getElementById('kif_tipsList');
+      if (tips) tips.innerHTML = '';
+
+      var oldLostSight = document.getElementById('kif_lostSightContent');
+      if (oldLostSight && oldLostSight.parentElement) oldLostSight.parentElement.classList.add('hidden');
+
+      var stop = document.getElementById('kif_stopComingBackLink');
+      if (stop) stop.classList.add('hidden');
+
+      if (typeof window.setLang === 'function') setLang(localStorage.getItem('owm-lang') || 'en');
+    };
+
+    // Mark neither function as __dbOnly here. The final
+    // RoomForBothDB.installRenderHooks() call wraps these safe skeletons with
+    // the actual Neon renderers.
+  }
+
   function populateHomeStates() {
     var select = document.getElementById('home_stateSelect');
     if (!select || !window.STATES) return;
@@ -15,8 +109,6 @@
   }
 
   function upgradePreventionSection() {
-    // Older deployed markup nests prevention inside the "no longer visible"
-    // disclosure. V1.2 presents it as a standalone verified-data section.
     var oldWrap = document.getElementById('kif_lostSightPreventionWrap');
     if (oldWrap && !document.getElementById('kif_preventionWrap')) {
       var card = oldWrap.closest('#kif_lostSightContent') && oldWrap.closest('#kif_lostSightContent').parentElement;
@@ -98,9 +190,7 @@
     var original = window.goTo;
     window.goTo = function (page, opts) {
       var result = original.apply(this, arguments);
-      if (page === 'states' && window.RoomForBothDB) {
-        RoomForBothDB.renderStatesFromDb();
-      }
+      if (page === 'states' && window.RoomForBothDB) RoomForBothDB.renderStatesFromDb();
       return result;
     };
     window.goTo.__v12Wrapped = true;
@@ -111,6 +201,7 @@
     upgradePreventionSection();
     upgradeNavigation();
     upgradeBreadcrumbs();
+    installDbOnlyPageSkeletons();
     wrapGoToForStates();
     if (typeof window.setLang === 'function') setLang(localStorage.getItem('owm-lang') || 'en');
   }
