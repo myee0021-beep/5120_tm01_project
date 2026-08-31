@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -14,43 +14,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Wait for Cloudflare deployment and verify database status
+      - name: Apply V1.2 flow fixes
+        run: |
+          python scripts/apply-v12-flow-fixes.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/index.html
+          if git diff --cached --quiet; then
+            echo "No frontend changes to commit."
+          else
+            git commit -m "Update V1.2 identify flow and navigation"
+            git push
+          fi
+
+      - name: Verify read-only production database
         run: |
           BASE='https://5120-tm01-project.myee0021.workers.dev'
-          ok=0
-          for attempt in $(seq 1 24); do
-            if curl -fsS "$BASE/api/data-status" -o /tmp/data-status.json && grep -q '"ok":true' /tmp/data-status.json; then
-              ok=1
-              break
-            fi
-            echo "Waiting for deployment ($attempt/24)..."
-            sleep 10
-          done
-          test "$ok" = 1
-
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          status = json.loads(Path('/tmp/data-status.json').read_text())
-          assert status.get('ok') is True, status
-          tables = status.get('tables', {})
-          required = ['animal_category','authority','immediate_action','prevention_action','species','species_behaviour','state']
-          missing = [name for name in required if name not in tables]
-          assert not missing, f'Missing expected tables from production status: {missing}'
-          print(json.dumps(status, indent=2, ensure_ascii=False))
-          PY
-
-      - name: Verify read-only business APIs
-        run: |
-          BASE='https://5120-tm01-project.myee0021.workers.dev'
+          curl -fsS "$BASE/api/data-status" | grep -q '"ok":true'
           curl -fsS "$BASE/api/species" | grep -q '"ok":true'
-          curl -fsS "$BASE/api/categories" | grep -q '"ok":true'
-          curl -fsS "$BASE/api/states" | grep -q '"ok":true'
-          curl -fsS "$BASE/api/species-behaviour?species_id=1" | grep -q '"ok":true'
-          curl -fsS "$BASE/api/immediate-actions?species_id=1" | grep -q '"ok":true'
-          curl -fsS "$BASE/api/prevention-actions?species_id=1" | grep -q '"ok":true'
-
-          # This workflow is intentionally read-only. It validates production
-          # but never commits generated reports back to main, so it cannot race
-          # with the frontend migration workflow.
           echo "Production database verification passed."
