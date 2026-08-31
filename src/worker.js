@@ -45,6 +45,31 @@ async function handleApi(request, env) {
       return json({ ok: true, service: 'room-for-both-worker', mode: 'read-only', database: 'connected', database_time: rows[0]?.database_time });
     }
 
+    if (url.pathname === '/api/data-status') {
+      const rows = await sql`
+        SELECT 'animal_category' AS table_name, COUNT(*)::int AS row_count FROM animal_category
+        UNION ALL SELECT 'authority', COUNT(*)::int FROM authority
+        UNION ALL SELECT 'immediate_action', COUNT(*)::int FROM immediate_action
+        UNION ALL SELECT 'prevention_action', COUNT(*)::int FROM prevention_action
+        UNION ALL SELECT 'species', COUNT(*)::int FROM species
+        UNION ALL SELECT 'species_behaviour', COUNT(*)::int FROM species_behaviour
+        UNION ALL SELECT 'species_media', COUNT(*)::int FROM species_media
+        UNION ALL SELECT 'state', COUNT(*)::int FROM state
+        ORDER BY table_name
+      `;
+      const mediaCoverage = await sql`
+        SELECT COUNT(*)::int AS media_rows, COUNT(DISTINCT species_id)::int AS species_with_media
+        FROM species_media
+        WHERE image_url IS NOT NULL AND BTRIM(image_url) <> '' AND UPPER(BTRIM(image_url)) NOT IN ('NA','N/A')
+      `;
+      return json({
+        ok: true,
+        mode: 'read-only',
+        tables: Object.fromEntries(rows.map((row) => [row.table_name, row.row_count])),
+        media: mediaCoverage[0] || { media_rows: 0, species_with_media: 0 }
+      });
+    }
+
     if (url.pathname === '/api/categories') {
       const rows = await sql`
         SELECT category_id, category_name, description, responsible_body_type
@@ -275,22 +300,10 @@ async function handleApi(request, env) {
   }
 }
 
-class ApiDataInjector {
-  element(element) {
-    element.append('<script src="/api-data.js" defer></script>', { html: true });
-  }
-}
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith('/api/')) return handleApi(request, env);
-
-    const response = await env.ASSETS.fetch(request);
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('text/html')) {
-      return new HTMLRewriter().on('body', new ApiDataInjector()).transform(response);
-    }
-    return response;
+    return env.ASSETS.fetch(request);
   },
 };
