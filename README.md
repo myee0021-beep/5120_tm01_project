@@ -14,17 +14,19 @@ Read-only /api/* endpoints
 Neon PostgreSQL
 ```
 
-The production application is intentionally **database-driven**. Business content defined by the project ERD is loaded from Neon; the frontend does not keep a second embedded copy as a fallback.
+The production application is intentionally **database-driven for business data**. Business content defined by the project ERD is loaded from Neon; the frontend does not keep a second embedded copy as a business-data fallback.
+
+The one deliberate presentation exception is **species photography**. The V1.2 species photos remain static frontend presentation assets so the existing visual interface can be retained reliably. Those images do not supply species names, safety actions, behaviour guidance, prevention guidance, authority records, state records, or other business content.
 
 If a database record is missing, the UI shows an empty/not-verified state or omits the field. It does **not** silently replace missing data with hard-coded business content.
 
-Values such as `NA`, `N/A`, null, undefined, or an empty string are treated as empty and are not rendered as resident-facing content.
+Values such as `NA`, `N/A`, null, undefined, or an empty string are treated as empty and are not rendered as resident-facing business content.
 
 ## Frontend
 
-The Iteration 1 V1.2 user flow is retained, including the Identify, Immediate Safety, Authority, Keep It Findable, Species Information, About/Data Sources, and supporting state views.
+The Iteration 1 V1.2 user flow is retained, including Identify, Immediate Safety, Authority, Keep It Findable, Species Information, About/Data Sources, and supporting state views.
 
-Static HTML/CSS/JavaScript is responsible for layout, navigation, labels, interaction, and presentation logic. Wildlife records, actions, authority records, state records, behaviour guidance, prevention guidance, and species media come from Neon.
+Static HTML/CSS/JavaScript is responsible for layout, navigation, labels, interaction, presentation logic, and presentation photos. Wildlife records, categories, actions, authority records, state records, behaviour guidance, and prevention guidance come from Neon.
 
 The generic snake route intentionally avoids exposing a specific snake species identity to residents. Snake safety content is loaded by category where appropriate.
 
@@ -34,7 +36,7 @@ The generic snake route intentionally avoids exposing a specific snake species i
 |---|---|
 | `species` | Core species data and identification keywords |
 | `animal_category` | Wildlife categories and responsible-body type |
-| `species_media` | Image URLs, photographer, licence, GBIF occurrence ID |
+| `species_media` | Media/source metadata retained in the ERD and read-only API |
 | `species_behaviour` | Likely location, movement, safe-distance and lost-sight guidance |
 | `immediate_action` | Ordered immediate safety actions |
 | `prevention_action` | Prevention actions, housing/cause/cost/harm metadata |
@@ -63,7 +65,7 @@ Implementation notes:
 - `authority.jurisdiction` is a varchar field, not a foreign key to `state` in the current ERD.
 - PostgreSQL exposes the unquoted `taxonKey` column as `taxonkey`; the API aliases it back to `taxonKey`.
 - The current ERD field is `action_kind`, not `action_type`.
-- `species_media` stores image URLs and attribution metadata, not image binary data.
+- `species_media` stores URLs/metadata and remains queryable through the read-only API, but it is not used to render the V1.2 presentation photos.
 
 ## Read-only API
 
@@ -91,20 +93,18 @@ GET /api/tables
 
 `/api/data-status` is a read-only deployment diagnostic that reports row counts for the eight ERD tables and media coverage. It does not expose credentials or arbitrary SQL access.
 
-## Species media
+## Presentation media
 
-The frontend reads `species_media` for each database species. The first available media row is used for the species image in the existing V1.2 presentation, while the About/Data Sources view can list the media attribution records.
-
-Expected media fields:
+Species photography is intentionally separated from business data:
 
 ```text
-image_url
-photographer
-licence
-gbif_occurrence_id
+public/frontend-media.js  -> presentation photos only
+Neon /api/*               -> business data
 ```
 
-If no valid `image_url` is stored for a species, no substitute business-data image is injected from a frontend fallback.
+`frontend-media.js` contains the V1.2 presentation images and their visual-source attribution. It does not contain safety guidance, authority details, state statistics, species behaviour, prevention actions, or other business rules.
+
+The `species_media` database table remains part of the ERD and can still be inspected through `/api/species-media`, but the current database rows contain source-page URLs rather than direct image-file URLs. The resident-facing V1.2 UI therefore does not use those rows as `<img src>` values.
 
 ## Security
 
@@ -121,12 +121,14 @@ If no valid `image_url` is stored for a species, no substitute business-data ima
 5120_tm01_project/
 ├── public/
 │   ├── index.html              # production frontend
-│   ├── api-data.js             # Neon-backed frontend data/rendering layer
+│   ├── frontend-media.js       # static V1.2 presentation photos only
+│   ├── api-data.js             # Neon-backed business data/rendering layer
 │   └── v12-ui.js               # Iteration 1 V1.2 UI/flow compatibility
 ├── src/
 │   └── worker.js               # Cloudflare Worker + read-only API
 ├── scripts/
-│   └── apply_db_only_frontend.py
+│   ├── apply_db_only_frontend.py
+│   └── use-frontend-media.js
 ├── .github/workflows/
 │   ├── apply-db-only-frontend.yml
 │   └── verify-production-data.yml
@@ -138,7 +140,7 @@ If no valid `image_url` is stored for a species, no substitute business-data ima
 └── README.md
 ```
 
-The source-level sanitizer exists to prevent the old embedded prototype dataset from being reintroduced into `public/index.html`. Production business data remains Neon-backed.
+The source-level sanitizer prevents the old embedded prototype business dataset from being reintroduced into `public/index.html`. Production business data remains Neon-backed; presentation photography remains frontend-managed by design.
 
 ## Local development
 
