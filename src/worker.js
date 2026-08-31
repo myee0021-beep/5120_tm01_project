@@ -50,8 +50,6 @@ async function resolveDisplayImageUrl(sourceUrl) {
   try {
     const parsed = new URL(sourceUrl);
 
-    // iNaturalist taxon pages store a taxon id in /taxa/<id>-<slug>.
-    // The public iNaturalist API gives us a displayable default photo URL.
     if (parsed.hostname === 'www.inaturalist.org' || parsed.hostname === 'inaturalist.org') {
       const match = parsed.pathname.match(/^\/taxa\/(\d+)/);
       if (match) {
@@ -67,9 +65,6 @@ async function resolveDisplayImageUrl(sourceUrl) {
       }
     }
 
-    // For other source pages (for example Thai National Parks), use their
-    // Open Graph / Twitter preview image. This remains GET-only and does not
-    // alter the stored database row.
     const response = await fetch(sourceUrl, {
       headers: {
         accept: 'text/html,application/xhtml+xml',
@@ -327,10 +322,25 @@ async function handleApi(request, env) {
   }
 }
 
+class FrontendScriptInjector {
+  element(element) {
+    element.append(
+      '<script src="/api-data.js" defer></script><script src="/snake-thumbnail.js" defer></script>',
+      { html: true },
+    );
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname.startsWith('/api/')) return handleApi(request, env);
-    return env.ASSETS.fetch(request);
+
+    const response = await env.ASSETS.fetch(request);
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/html')) {
+      return new HTMLRewriter().on('body', new FrontendScriptInjector()).transform(response);
+    }
+    return response;
   },
 };
