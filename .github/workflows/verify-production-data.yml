@@ -56,11 +56,12 @@ jobs:
           BASE='https://5120-tm01-project.myee0021.workers.dev'
           curl -fsS -H 'Cache-Control: no-cache' "$BASE/?verify=$(date +%s)" -o /tmp/prod-index.html
           echo "Production HTML bytes: $(wc -c < /tmp/prod-index.html)"
-          if grep -q 'about-db-sources-inline-v5' /tmp/prod-index.html; then
-            echo 'FRONTEND_V5_PRESENT=yes'
-          else
-            echo 'FRONTEND_V5_PRESENT=no'
-            echo '--- Production About copy sample ---'
-            grep -o 'Every "Source" note[^<]*' /tmp/prod-index.html | head -1 || true
+
+          grep -q 'about-db-sources-inline-v5' /tmp/prod-index.html
+          echo 'FRONTEND_V5_PRESENT=yes'
+
+          if grep -q "institutionSourceLink(a.safetySource" /tmp/prod-index.html; then
+            echo 'OLD_ABOUT_FALLBACK_PRESENT=yes'
             exit 1
           fi
+          echo 'OLD_ABOUT_FALLBACK_PRESENT=no'
