@@ -21,18 +21,18 @@
   "species_media_by_species_id": {
     "1": {
       "count": 1,
-      "has_image_url": true,
+      "has_image_url": false,
       "media": [
         {
           "media_id": 1,
           "species_id": 1,
-          "image_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/336699371/medium.jpg",
+          "image_url": null,
           "photographer": null,
           "licence": null,
           "gbif_occurrence_id": null,
           "stored_image_url": "https://www.inaturalist.org/taxa/147700-Macaca-fascicularis-fascicularis",
           "source_url": "https://www.inaturalist.org/taxa/147700-Macaca-fascicularis-fascicularis",
-          "image_resolved": true
+          "image_resolved": false
         }
       ]
     },
@@ -55,18 +55,18 @@
     },
     "3": {
       "count": 1,
-      "has_image_url": false,
+      "has_image_url": true,
       "media": [
         {
           "media_id": 3,
           "species_id": 3,
-          "image_url": null,
+          "image_url": "https://static.inaturalist.org/photos/354943417/medium.jpg",
           "photographer": null,
           "licence": null,
           "gbif_occurrence_id": null,
           "stored_image_url": "https://www.inaturalist.org/taxa/204454-Acridotheres-tristis",
           "source_url": "https://www.inaturalist.org/taxa/204454-Acridotheres-tristis",
-          "image_resolved": false
+          "image_resolved": true
         }
       ]
     },
