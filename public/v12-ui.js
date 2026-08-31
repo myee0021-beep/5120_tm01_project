@@ -2,13 +2,20 @@
   'use strict';
 
   function syncAppBridge() {
-    // The original page declares APP as a global lexical binding in some builds.
-    // Such bindings are readable as APP but are not guaranteed to appear on window.
-    // api-data.js reads window.APP, so keep a shared reference here.
     try {
       if (typeof APP !== 'undefined' && APP) window.APP = APP;
     } catch (e) {}
     return window.APP || null;
+  }
+
+  function removeLegacyAnimalPlaceholder() {
+    var select = document.getElementById('home_animalSelect');
+    if (!select) return;
+    Array.prototype.slice.call(select.options || []).forEach(function (option) {
+      if (option.value === '' && String(option.textContent || '').trim() === 'Haiwan apa ini?') {
+        option.remove();
+      }
+    });
   }
 
   function setHtml(el, html) {
@@ -204,6 +211,7 @@
       syncAppBridge();
       var result = original.apply(this, arguments);
       syncAppBridge();
+      removeLegacyAnimalPlaceholder();
       if (page === 'states' && window.RoomForBothDB) RoomForBothDB.renderStatesFromDb();
       return result;
     };
@@ -212,6 +220,7 @@
 
   function prepare() {
     syncAppBridge();
+    removeLegacyAnimalPlaceholder();
     populateHomeStates();
     upgradePreventionSection();
     upgradeNavigation();
@@ -219,8 +228,13 @@
     installDbOnlyPageSkeletons();
     wrapGoToForStates();
     syncAppBridge();
+    removeLegacyAnimalPlaceholder();
     if (typeof window.setLang === 'function') setLang(localStorage.getItem('owm-lang') || 'en');
   }
 
-  window.RoomForBothV12 = { prepare: prepare, syncAppBridge: syncAppBridge };
+  window.RoomForBothV12 = {
+    prepare: prepare,
+    syncAppBridge: syncAppBridge,
+    removeLegacyAnimalPlaceholder: removeLegacyAnimalPlaceholder
+  };
 })();
