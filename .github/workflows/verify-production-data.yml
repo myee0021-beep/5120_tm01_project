@@ -6,13 +6,24 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Apply one-time V1.2 photo fixes
+        run: |
+          python scripts/apply-v12-photo-fix.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Fix V1.2 snake photos and photo source routing"
+            git push
+          fi
 
       - name: Wait for Cloudflare deployment and verify database status
         run: |
@@ -49,8 +60,4 @@ jobs:
           curl -fsS "$BASE/api/species-behaviour?species_id=1" | grep -q '"ok":true'
           curl -fsS "$BASE/api/immediate-actions?species_id=1" | grep -q '"ok":true'
           curl -fsS "$BASE/api/prevention-actions?species_id=1" | grep -q '"ok":true'
-
-          # This workflow is intentionally read-only. It validates production
-          # but never commits generated reports back to main, so it cannot race
-          # with the frontend migration workflow.
           echo "Production database verification passed."
