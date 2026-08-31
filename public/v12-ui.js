@@ -45,6 +45,56 @@
     });
   }
 
+  function restoreAboutLinks() {
+    var page = document.getElementById('page-about');
+    if (!page) return;
+
+    var sourceMap = {
+      'GBIF occurrence records': 'https://gbif.org',
+      'eBird Basic Dataset': 'https://ebird.org',
+      'OpenDOSM Forest Reserves': 'https://open.dosm.gov.my',
+      'GRIIS Malaysia': 'https://gbif.org/dataset',
+      'MyBIS': 'https://mybis.gov.my'
+    };
+
+    page.querySelectorAll('tbody tr').forEach(function (row) {
+      var firstCell = row.querySelector('td');
+      if (!firstCell) return;
+      var name = String(firstCell.textContent || '').replace(/\s+/g, ' ').trim();
+      var url = sourceMap[name];
+      if (!url) return;
+
+      var link = row.querySelector('a[href]');
+      if (!link) {
+        var lastCell = row.querySelector('td:last-child');
+        if (lastCell) {
+          lastCell.innerHTML = '<a href="' + url + '" target="_blank" rel="noopener" class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1">View source ↗</a>';
+          link = lastCell.querySelector('a');
+        }
+      } else {
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noopener';
+      }
+
+      row.style.cursor = 'pointer';
+      row.setAttribute('tabindex', '0');
+      row.setAttribute('role', 'link');
+      row.onclick = function (event) {
+        if (event && event.target && event.target.closest && event.target.closest('a')) return;
+        window.open(url, '_blank', 'noopener');
+      };
+      row.onkeydown = function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          window.open(url, '_blank', 'noopener');
+        }
+      };
+    });
+
+    revealPage('page-about');
+  }
+
   function setHtml(el, html) { if (el) el.innerHTML = html; }
 
   function safeSpecies() {
@@ -70,17 +120,13 @@
       syncAppBridge();
       var s = safeSpecies();
       document.title = (s.id === 'snake' ? 'Who deals with this' : 'Who deals with this — ' + (s.en || '')) + ' | Room for Both';
-
       if (typeof window.renderIdentityHeader === 'function') renderIdentityHeader('auth', s, 'Who Deals With This', 'Siapa Mengendalikannya');
       safeLink('auth_crumbWhatToDo', s.id === 'snake' ? 'snakewhattodo' : 'whattodo');
       safeLink('auth_backToWhatToDo', s.id === 'snake' ? 'snakewhattodo' : 'whattodo');
-
       var status = document.getElementById('auth_statusText');
       if (status) status.innerHTML = '<span data-en>' + (s.statusEn || '') + '</span><span data-bm>' + (s.statusBm || '') + '</span>';
-
       var speciesName = document.getElementById('auth_checklistSpeciesName');
       if (speciesName) speciesName.textContent = s.id === 'snake' ? 'Describe what you saw, in your own words' : [s.en, s.bm].filter(Boolean).join(' / ');
-
       var categoryNote = document.getElementById('auth_categoryNote');
       if (categoryNote) categoryNote.classList.add('hidden');
       var script = document.getElementById('auth_scriptList');
@@ -89,7 +135,6 @@
       if (willDo) willDo.textContent = '';
       var wontDo = document.getElementById('auth_wontDo');
       if (wontDo) wontDo.textContent = '';
-
       var print = document.getElementById('auth_printBtn');
       if (print) print.onclick = function () { window.print(); };
       revealPage('page-authority');
@@ -101,22 +146,18 @@
       syncAppBridge();
       var s = safeSpecies();
       document.title = (s.id === 'snake' ? 'Keep it findable' : 'Keep it findable — ' + (s.en || '')) + ' | Room for Both';
-
       if (typeof window.renderIdentityHeader === 'function') renderIdentityHeader('kif', s, 'Keep It Findable', 'Kekalkan Boleh Dijumpai');
       safeLink('kif_backToWhatToDo', s.id === 'snake' ? 'snakewhattodo' : 'whattodo');
-
       var where = document.getElementById('kif_whereText');
       if (where) where.textContent = '';
       var observe = document.getElementById('kif_observeDistanceText');
       if (observe) observe.textContent = '';
       var tips = document.getElementById('kif_tipsList');
       if (tips) tips.innerHTML = '';
-
       var oldLostSight = document.getElementById('kif_lostSightContent');
       if (oldLostSight && oldLostSight.parentElement) oldLostSight.parentElement.classList.add('hidden');
       var stop = document.getElementById('kif_stopComingBackLink');
       if (stop) stop.classList.add('hidden');
-
       revealPage('page-findable');
       setTimeout(function () { revealPage('page-findable'); dedupeBreadcrumb('page-findable'); }, 0);
       if (typeof window.setLang === 'function') setLang(localStorage.getItem('owm-lang') || 'en');
@@ -155,7 +196,6 @@
       setHtml(authorityNext.querySelector('span[data-en]'), 'Next: Species information');
       setHtml(authorityNext.querySelector('span[data-bm]'), 'Seterusnya: Maklumat spesies');
     }
-
     var findableBack = document.getElementById('kif_backToAuthority');
     if (findableBack) {
       findableBack.id = 'kif_backToWhatToDo';
@@ -167,17 +207,14 @@
       setHtml(findableBack.querySelector('span[data-en]'), 'Back to what to do now');
       setHtml(findableBack.querySelector('span[data-bm]'), 'Kembali ke apa perlu dibuat');
     }
-
     var done = document.getElementById('kif_doneLink');
     if (done) {
       done.onclick = function (e) { if (e) e.preventDefault(); syncAppBridge(); goTo('species'); };
       setHtml(done.querySelector('span[data-en]'), 'Next: Species information');
       setHtml(done.querySelector('span[data-bm]'), 'Seterusnya: Maklumat spesies');
     }
-
     var stop = document.getElementById('kif_stopComingBackLink');
     if (stop) stop.classList.add('hidden');
-
     var backSpecies = document.getElementById('wtd_backToSpecies');
     if (backSpecies) {
       backSpecies.onclick = function (e) { if (e) e.preventDefault(); syncAppBridge(); goTo('identify'); };
@@ -220,6 +257,7 @@
       if (page === 'states' && window.RoomForBothDB) RoomForBothDB.renderStatesFromDb();
       if (page === 'authority') setTimeout(function () { revealPage('page-authority'); dedupeBreadcrumb('page-authority'); }, 0);
       if (page === 'findable') setTimeout(function () { revealPage('page-findable'); dedupeBreadcrumb('page-findable'); }, 0);
+      if (page === 'about') setTimeout(restoreAboutLinks, 0);
       return result;
     };
     window.goTo.__v12Wrapped = true;
@@ -236,12 +274,14 @@
     wrapGoToForStates();
     syncAppBridge();
     removeLegacyAnimalPlaceholder();
+    restoreAboutLinks();
     if (typeof window.setLang === 'function') setLang(localStorage.getItem('owm-lang') || 'en');
   }
 
   window.RoomForBothV12 = {
     prepare: prepare,
     syncAppBridge: syncAppBridge,
-    removeLegacyAnimalPlaceholder: removeLegacyAnimalPlaceholder
+    removeLegacyAnimalPlaceholder: removeLegacyAnimalPlaceholder,
+    restoreAboutLinks: restoreAboutLinks
   };
 })();
