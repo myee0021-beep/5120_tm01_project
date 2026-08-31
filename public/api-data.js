@@ -114,7 +114,7 @@
   }
 
   function uiSpecies(row) {
-    var mediaRows = cache.mediaBySpecies[Number(row.species_id)] || [];
+    var frontendPhoto = (window.FRONTEND_SPECIES_MEDIA || {})[routeForSpecies(row)] || null;
     var keywords = text(row.id_keywords).toLowerCase().split(',').map(function (v) { return v.trim(); }).filter(Boolean);
     var category = text(row.category_name);
     var origin = text(row.introduced_status);
@@ -139,7 +139,7 @@
       covering: coveringForCategory(category),
       sizeCat: sizeForCategory(category),
       blurbEn: text(row.category_description), blurbBm: text(row.category_description),
-      photo: mediaToPhoto(mediaRows[0]),
+      photo: frontendPhoto,
       facts: facts,
       topStates: [], why: { en: '', bm: '' },
       safetySteps: [], safetySource: null,
@@ -204,11 +204,7 @@
         cache.species = results[0].species || [];
         cache.categories = results[1].categories || [];
         cache.states = results[2].states || [];
-        return Promise.all(cache.species.map(function (row) {
-          return getJson('/api/species-media?species_id=' + encodeURIComponent(row.species_id))
-            .then(function (data) { cache.mediaBySpecies[Number(row.species_id)] = data.media || []; })
-            .catch(function () { cache.mediaBySpecies[Number(row.species_id)] = []; });
-        }));
+        return null;
       })
       .then(function () {
         cache.loaded = true;
@@ -529,17 +525,21 @@
 
   function renderAboutFromDb() {
     var photoList = document.getElementById('about_photoList');
-    if (photoList) {
-      var rows = [];
-      cache.species.forEach(function (sp) {
-        (cache.mediaBySpecies[Number(sp.species_id)] || []).forEach(function (m) { rows.push({ sp: sp, m: m }); });
-      });
-      photoList.innerHTML = rows.length ? rows.map(function (x) {
-        var p = mediaToPhoto(x.m);
-        return '<div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3"><div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-white"><img src="' + esc(p.dataUri) + '" alt="" class="w-full h-full object-cover"></div><div class="min-w-0 flex-1"><div class="font-display font-bold text-sm text-slate-900">' + esc(text(x.sp.english_name)) + ' <span class="font-normal italic text-slate-400">/ ' + esc(text(x.sp.malay_name)) + '</span></div><div class="text-xs text-slate-500 mt-0.5">' + esc(p.creditEn) + '</div></div><a href="' + esc(p.sourceUrl) + '" target="_blank" rel="noopener" class="shrink-0 text-forest-600 hover:text-forest-800 text-xs font-bold">View source ↗</a></div>';
-      }).join('') : dbEmptyHtml('No species media rows are currently recorded in the database.');
-      photoList.setAttribute('data-source', 'neon:species_media');
-    }
+    if (!photoList) return;
+    var frontendMedia = window.FRONTEND_SPECIES_MEDIA || {};
+    var rows = cache.species
+      .filter(function (sp) { return sp.is_snake !== true; })
+      .map(function (sp) { return { sp: sp, photo: frontendMedia[routeForSpecies(sp)] || null }; })
+      .filter(function (item) { return item.photo && item.photo.dataUri; });
+    photoList.innerHTML = rows.length ? rows.map(function (item) {
+      return '<div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3">' +
+        '<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-white"><img src="' + esc(item.photo.dataUri) + '" alt="" class="w-full h-full object-cover"></div>' +
+        '<div class="min-w-0 flex-1"><div class="font-display font-bold text-sm text-slate-900">' + esc(text(item.sp.english_name)) + '</div>' +
+        '<div class="text-xs text-slate-500 mt-0.5">' + esc(item.photo.creditEn || 'Frontend presentation photo.') + '</div></div>' +
+        (item.photo.sourceUrl ? '<a href="' + esc(item.photo.sourceUrl) + '" target="_blank" rel="noopener" class="shrink-0 text-forest-600 hover:text-forest-800 text-xs font-bold">View source ↗</a>' : '') +
+        '</div>';
+    }).join('') : dbEmptyHtml('No frontend presentation photos are configured.');
+    photoList.setAttribute('data-source', 'frontend:static-media');
   }
 
   function installRenderHooks() {
