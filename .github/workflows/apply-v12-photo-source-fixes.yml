@@ -1,5 +1,6 @@
 name: Apply V1.2 photo source fixes
 
+# Triggered once after the workflow file exists on main.
 on:
   push:
     paths:
