@@ -96,8 +96,7 @@ const newSnakeHero = `      <div class="shrink-0 flex flex-col items-center gap-
       </div>`;
 html = html.replace(oldSnakeHero, newSnakeHero);
 
-// Only change the snake page's immediate-safety source links: external Bomba,
-// not About the Data. Limit the replacement to render_snakewhattodo().
+// Snake's dedicated What-to-do page: source links go straight to Bomba.
 const snakeStart = html.indexOf('function render_snakewhattodo()');
 const snakeEnd = html.indexOf('</script>', snakeStart);
 if (snakeStart >= 0 && snakeEnd > snakeStart) {
@@ -109,6 +108,27 @@ if (snakeStart >= 0 && snakeEnd > snakeStart) {
   html = html.slice(0, snakeStart) + snakeBlock + html.slice(snakeEnd);
 }
 
+// Home selector used to send every animal, including Snake, to the shared
+// What-to-do page. Route Snake to the dedicated snake page so Home and
+// Identify/keyword entry paths behave identically.
+html = html.replace(
+  `      warning.classList.add('hidden');\n      goTo('whattodo', { id: animalVal, state: stateVal });`,
+  `      warning.classList.add('hidden');\n      if (animalVal === 'snake') {\n        APP.speciesId = 'snake';\n        APP.stateId = stateVal;\n        goTo('snakewhattodo');\n        return;\n      }\n      goTo('whattodo', { id: animalVal, state: stateVal });`
+);
+
+// Defence in depth: if Snake ever reaches the shared What-to-do renderer,
+// its safety source must still be an external Bomba link rather than About.
+const sharedStart = html.indexOf('function render_whattodo()');
+const sharedEnd = html.indexOf('</script>', sharedStart);
+if (sharedStart >= 0 && sharedEnd > sharedStart) {
+  let sharedBlock = html.slice(sharedStart, sharedEnd);
+  sharedBlock = sharedBlock.replace(
+    `    var src = s.safetySource\n      ? '<a href="#" onclick="goTo(\\'about\\');return false;" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></a>'\n      : '';`,
+    `    var src = s.safetySource\n      ? (s.id === 'snake'\n          ? '<a href="https://www.bomba.gov.my/" target="_blank" rel="noopener" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></a>'\n          : '<a href="#" onclick="goTo(\\'about\\');return false;" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2"><span data-en>' + s.safetySource.en + '</span><span data-bm>' + s.safetySource.bm + '</span></a>')\n      : '';`
+  );
+  html = html.slice(0, sharedStart) + sharedBlock + html.slice(sharedEnd);
+}
+
 fs.writeFileSync(workerPath, worker);
 fs.writeFileSync(indexPath, html);
-console.log('Restored GBIF/MyBIS and normalized snake photo/source UI.');
+console.log('Unified Snake Home/keyword flow and external source links.');
