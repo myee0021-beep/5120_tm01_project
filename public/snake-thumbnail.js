@@ -1,6 +1,7 @@
 (function () {
   'use strict';
 
+  var SNAKE_SPECIES_ID = 7;
   var snakeImageUrl = '';
 
   function firstResolvedImage(payload) {
@@ -11,8 +12,8 @@
     return '';
   }
 
-  function fetchSnakeImage(speciesId) {
-    return fetch('/api/species-media?species_id=' + encodeURIComponent(speciesId), {
+  function fetchSnakeImage() {
+    return fetch('/api/species-media?species_id=' + encodeURIComponent(SNAKE_SPECIES_ID), {
       method: 'GET',
       headers: { Accept: 'application/json' }
     }).then(function (res) {
@@ -21,73 +22,107 @@
     }).then(firstResolvedImage);
   }
 
-  function loadSnakeImage() {
-    // Prefer the database photo for species_id 4 (python). If that row has
-    // no usable media, fall back to species_id 7 (cobra).
-    return fetchSnakeImage(4).then(function (url) {
-      if (url) return url;
-      return fetchSnakeImage(7);
-    }).catch(function () {
-      return fetchSnakeImage(7).catch(function () { return ''; });
-    });
-  }
-
   function imageMarkup(url) {
     return '<img src="' + String(url).replace(/"/g, '&quot;') + '" alt="Snake" class="w-full h-full object-cover">';
+  }
+
+  function setThumbElement(el) {
+    if (!el || !snakeImageUrl) return;
+    el.innerHTML = imageMarkup(snakeImageUrl);
+    el.setAttribute('data-db-snake-thumb', '1');
+  }
+
+  function getSnakeRow() {
+    var exact = document.querySelector('#home_animalList [data-value="snake"]');
+    if (exact) return exact;
+
+    var scope = document.getElementById('home_animalList') || document;
+    var candidates = scope.querySelectorAll('button, li, div');
+    for (var i = 0; i < candidates.length; i += 1) {
+      var text = (candidates[i].textContent || '').trim().toLowerCase();
+      if (text === 'snake') return candidates[i];
+    }
+    return null;
+  }
+
+  function findRowThumb(row) {
+    if (!row) return null;
+    var marked = row.querySelector('[data-db-snake-thumb="1"]');
+    if (marked) return marked;
+
+    var nodes = row.querySelectorAll('span, div');
+    for (var i = 0; i < nodes.length; i += 1) {
+      var cls = (nodes[i].className || '').toString();
+      if (/w-7|w-8|h-7|h-8|rounded-full/.test(cls)) return nodes[i];
+    }
+    return row.querySelector('span, div');
+  }
+
+  function updateSelectedThumb() {
+    var select = document.getElementById('home_animalSelect');
+    var selectedThumb = document.getElementById('home_animalBtnThumb');
+    var selectedText = document.getElementById('home_animalBtnText');
+    var isSnake = false;
+
+    if (select && String(select.value).toLowerCase() === 'snake') isSnake = true;
+    if (selectedText && /snake/i.test(selectedText.textContent || '')) isSnake = true;
+
+    if (isSnake && selectedThumb) {
+      setThumbElement(selectedThumb);
+      selectedThumb.classList.remove('hidden');
+      selectedThumb.classList.add('flex');
+    }
+  }
+
+  function bindRowClick(row) {
+    if (!row || row.getAttribute('data-db-snake-click') === '1') return;
+    row.addEventListener('click', function () {
+      window.setTimeout(updateSelectedThumb, 0);
+      window.setTimeout(updateSelectedThumb, 50);
+      window.setTimeout(updateSelectedThumb, 150);
+    });
+    row.setAttribute('data-db-snake-click', '1');
   }
 
   function applySnakeThumbnail() {
     if (!snakeImageUrl) return false;
 
-    var row = document.querySelector('#home_animalList [data-value="snake"]');
-    if (!row) return false;
-
-    var thumb = row.querySelector('span.w-7.h-7');
-    if (thumb && thumb.getAttribute('data-db-snake-thumb') !== '1') {
-      thumb.innerHTML = imageMarkup(snakeImageUrl);
-      thumb.setAttribute('data-db-snake-thumb', '1');
+    var row = getSnakeRow();
+    if (row) {
+      var thumb = findRowThumb(row);
+      if (thumb) setThumbElement(thumb);
+      bindRowClick(row);
     }
 
-    if (row.getAttribute('data-db-snake-click') !== '1') {
-      row.addEventListener('click', function () {
-        // The V1.2 click handler first applies its embedded generic snake
-        // icon. Run immediately afterwards and replace it with the DB photo.
-        var selectedThumb = document.getElementById('home_animalBtnThumb');
-        if (selectedThumb && snakeImageUrl) {
-          selectedThumb.innerHTML = imageMarkup(snakeImageUrl);
-          selectedThumb.classList.remove('hidden');
-          selectedThumb.classList.add('flex');
-        }
-      });
-      row.setAttribute('data-db-snake-click', '1');
-    }
-
-    var select = document.getElementById('home_animalSelect');
-    var selectedThumb = document.getElementById('home_animalBtnThumb');
-    if (select && select.value === 'snake' && selectedThumb) {
-      selectedThumb.innerHTML = imageMarkup(snakeImageUrl);
-      selectedThumb.classList.remove('hidden');
-      selectedThumb.classList.add('flex');
-    }
-
-    return true;
+    updateSelectedThumb();
+    return Boolean(row);
   }
 
-  function watchForDropdown() {
-    if (applySnakeThumbnail()) return;
+  function boot() {
+    applySnakeThumbnail();
+
     var observer = new MutationObserver(function () {
-      if (applySnakeThumbnail()) observer.disconnect();
+      applySnakeThumbnail();
     });
     observer.observe(document.documentElement, { childList: true, subtree: true });
+
+    var attempts = 0;
+    var timer = setInterval(function () {
+      applySnakeThumbnail();
+      attempts += 1;
+      if (attempts > 40) clearInterval(timer);
+    }, 250);
   }
 
-  loadSnakeImage().then(function (url) {
+  fetchSnakeImage().then(function (url) {
     snakeImageUrl = url || '';
     if (!snakeImageUrl) return;
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', watchForDropdown, { once: true });
+      document.addEventListener('DOMContentLoaded', boot, { once: true });
     } else {
-      watchForDropdown();
+      boot();
     }
+  }).catch(function (err) {
+    console.warn('[RoomForBoth] Failed to load snake thumbnail from species 7.', err && err.message ? err.message : err);
   });
 })();
