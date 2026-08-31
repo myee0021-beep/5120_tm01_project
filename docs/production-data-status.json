@@ -26,10 +26,13 @@
         {
           "media_id": 1,
           "species_id": 1,
-          "image_url": "https://www.inaturalist.org/taxa/147700-Macaca-fascicularis-fascicularis",
+          "image_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/336699371/medium.jpg",
           "photographer": null,
           "licence": null,
-          "gbif_occurrence_id": null
+          "gbif_occurrence_id": null,
+          "stored_image_url": "https://www.inaturalist.org/taxa/147700-Macaca-fascicularis-fascicularis",
+          "source_url": "https://www.inaturalist.org/taxa/147700-Macaca-fascicularis-fascicularis",
+          "image_resolved": true
         }
       ]
     },
@@ -40,24 +43,30 @@
         {
           "media_id": 2,
           "species_id": 2,
-          "image_url": "https://www.inaturalist.org/taxa/42134-Sus-scrofa",
+          "image_url": "https://inaturalist-open-data.s3.amazonaws.com/photos/414500081/medium.jpg",
           "photographer": null,
           "licence": null,
-          "gbif_occurrence_id": null
+          "gbif_occurrence_id": null,
+          "stored_image_url": "https://www.inaturalist.org/taxa/42134-Sus-scrofa",
+          "source_url": "https://www.inaturalist.org/taxa/42134-Sus-scrofa",
+          "image_resolved": true
         }
       ]
     },
     "3": {
       "count": 1,
-      "has_image_url": true,
+      "has_image_url": false,
       "media": [
         {
           "media_id": 3,
           "species_id": 3,
-          "image_url": "https://www.inaturalist.org/taxa/204454-Acridotheres-tristis",
+          "image_url": null,
           "photographer": null,
           "licence": null,
-          "gbif_occurrence_id": null
+          "gbif_occurrence_id": null,
+          "stored_image_url": "https://www.inaturalist.org/taxa/204454-Acridotheres-tristis",
+          "source_url": "https://www.inaturalist.org/taxa/204454-Acridotheres-tristis",
+          "image_resolved": false
         }
       ]
     },
@@ -68,10 +77,13 @@
         {
           "media_id": 4,
           "species_id": 4,
-          "image_url": "https://www.thainationalparks.com/species/malayopython-reticulatus",
+          "image_url": "http://www.thainationalparks.com/img/species/2019/05/24/373203/malayopython-reticulatus-w-1500.jpg",
           "photographer": null,
           "licence": null,
-          "gbif_occurrence_id": null
+          "gbif_occurrence_id": null,
+          "stored_image_url": "https://www.thainationalparks.com/species/malayopython-reticulatus",
+          "source_url": "https://www.thainationalparks.com/species/malayopython-reticulatus",
+          "image_resolved": true
         }
       ]
     },
@@ -82,10 +94,13 @@
         {
           "media_id": 5,
           "species_id": 5,
-          "image_url": "https://www.inaturalist.org/taxa/8031-Corvus-splendens",
+          "image_url": "https://static.inaturalist.org/photos/58979232/medium.jpeg",
           "photographer": null,
           "licence": null,
-          "gbif_occurrence_id": null
+          "gbif_occurrence_id": null,
+          "stored_image_url": "https://www.inaturalist.org/taxa/8031-Corvus-splendens",
+          "source_url": "https://www.inaturalist.org/taxa/8031-Corvus-splendens",
+          "image_resolved": true
         }
       ]
     },
@@ -96,10 +111,13 @@
         {
           "media_id": 6,
           "species_id": 6,
-          "image_url": "https://www.inaturalist.org/taxa/114891-Varanus-salvator",
+          "image_url": "https://static.inaturalist.org/photos/81745135/medium.jpg",
           "photographer": null,
           "licence": null,
-          "gbif_occurrence_id": null
+          "gbif_occurrence_id": null,
+          "stored_image_url": "https://www.inaturalist.org/taxa/114891-Varanus-salvator",
+          "source_url": "https://www.inaturalist.org/taxa/114891-Varanus-salvator",
+          "image_resolved": true
         }
       ]
     },
@@ -110,10 +128,13 @@
         {
           "media_id": 7,
           "species_id": 7,
-          "image_url": "https://www.inaturalist.org/taxa/106451-Naja-sumatrana",
+          "image_url": "https://static.inaturalist.org/photos/42263949/medium.jpg",
           "photographer": null,
           "licence": null,
-          "gbif_occurrence_id": null
+          "gbif_occurrence_id": null,
+          "stored_image_url": "https://www.inaturalist.org/taxa/106451-Naja-sumatrana",
+          "source_url": "https://www.inaturalist.org/taxa/106451-Naja-sumatrana",
+          "image_resolved": true
         }
       ]
     }
