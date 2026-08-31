@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 
+// Trigger v4 source-link migration after workflow began tracking api-data.js.
 const workerPath = 'src/worker.js';
 const indexPath = 'public/index.html';
 const apiPath = 'public/api-data.js';
