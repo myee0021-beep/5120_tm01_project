@@ -21,14 +21,17 @@ jobs:
       - name: Remove embedded business fallback
         run: python scripts/apply_db_only_frontend.py
 
-      - name: Commit sanitized frontend when needed
+      - name: Restore presentation photos as frontend static media
+        run: node scripts/use-frontend-media.js
+
+      - name: Commit frontend media separation when needed
         run: |
-          if git diff --quiet -- public/index.html; then
-            echo "public/index.html is already DB-only"
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/index.html
-          git commit -m "Remove embedded frontend business fallback"
+          git add public/index.html public/api-data.js public/frontend-media.js
+          if git diff --cached --quiet; then
+            echo "Frontend is already using static presentation media with DB-only business data"
+            exit 0
+          fi
+          git commit -m "Use frontend static species photos"
           git push
