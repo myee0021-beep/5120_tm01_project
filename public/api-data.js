@@ -238,7 +238,9 @@
           (en ? '<span data-en>' + escapeHtml(en) + '</span>' : '') +
           (bm ? '<span data-bm>' + escapeHtml(bm) + '</span>' : '') +
           '</p>' +
-          (source ? '<a href="#" onclick="goTo(\'about\');return false;" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2">' + escapeHtml(source) + '</a>' : '') +
+          (source ? (visibleText(row.source_url)
+            ? '<a href="' + escapeHtml(visibleText(row.source_url)) + '" target="_blank" rel="noopener" class="mt-1 inline-block text-[11px] text-slate-400 hover:text-forest-700 underline underline-offset-2">' + escapeHtml(source) + ' ↗</a>'
+            : '<span class="mt-1 inline-block text-[11px] text-slate-400">' + escapeHtml(source) + '</span>') : '') +
           '</div></div></div>';
       }).join('');
       list.setAttribute('data-source', 'neon:immediate_action');
@@ -309,19 +311,16 @@
             (bm ? '<span data-bm>' + escapeHtml(bm) + '</span>' : '') +
             '</p>' +
             (tags ? '<div class="mt-1.5 flex flex-wrap gap-1.5">' + tags + '</div>' : '') +
+            /* PREVENTION_ROW_SOURCE_V4 */
+            '<div class="mt-1.5">' + sourceLinkHtml(row) + '</div>' +
             '</div></div>';
         }).join('');
         list.setAttribute('data-source', 'neon:prevention_action');
 
-        var firstSource = usable.map(sourceLabel).filter(Boolean)[0] || '';
         if (source) {
-          if (firstSource) {
-            source.textContent = firstSource;
-            source.classList.remove('hidden');
-          } else {
-            source.textContent = '';
-            source.classList.add('hidden');
-          }
+          var preventionSourceHtml = sourceLinksHtml(usable);
+          source.innerHTML = preventionSourceHtml;
+          source.classList.toggle('hidden', !uniqueSourceRows(usable).length);
         }
         wrap.classList.remove('hidden');
         if (empty) empty.classList.add('hidden');
@@ -352,8 +351,7 @@
       var key = [
         visibleText(row.source_url),
         visibleText(row.source_institution),
-        visibleText(row.source_person),
-        visibleText(row.date_verified)
+        visibleText(row.source_person)
       ].join('|');
       if (!key.replace(/\|/g, '')) return false;
       if (seen[key]) return false;
@@ -375,7 +373,7 @@
     if (!label) return '<span class="text-slate-300">—</span>';
     var url = visibleText(row && row.source_url);
     if (!url) return '<span class="text-slate-500">' + escapeHtml(label) + '</span>';
-    return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-start gap-1">' +
+    return '<a href="' + escapeHtml(url) + '" target="_blank" rel="noopener" class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-start gap-1 underline underline-offset-2">' +
       '<span>' + escapeHtml(label) + '</span>' +
       '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 mt-0.5"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>' +
     '</a>';
