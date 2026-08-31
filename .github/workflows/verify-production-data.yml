@@ -49,8 +49,18 @@ jobs:
           curl -fsS "$BASE/api/species-behaviour?species_id=1" | grep -q '"ok":true'
           curl -fsS "$BASE/api/immediate-actions?species_id=1" | grep -q '"ok":true'
           curl -fsS "$BASE/api/prevention-actions?species_id=1" | grep -q '"ok":true'
-
-          # This workflow is intentionally read-only. It validates production
-          # but never commits generated reports back to main, so it cannot race
-          # with the frontend migration workflow.
           echo "Production database verification passed."
+
+      - name: Verify production frontend version
+        run: |
+          BASE='https://5120-tm01-project.myee0021.workers.dev'
+          curl -fsS -H 'Cache-Control: no-cache' "$BASE/?verify=$(date +%s)" -o /tmp/prod-index.html
+          echo "Production HTML bytes: $(wc -c < /tmp/prod-index.html)"
+          if grep -q 'about-db-sources-inline-v5' /tmp/prod-index.html; then
+            echo 'FRONTEND_V5_PRESENT=yes'
+          else
+            echo 'FRONTEND_V5_PRESENT=no'
+            echo '--- Production About copy sample ---'
+            grep -o 'Every "Source" note[^<]*' /tmp/prod-index.html | head -1 || true
+            exit 1
+          fi
