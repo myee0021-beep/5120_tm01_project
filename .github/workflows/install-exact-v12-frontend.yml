@@ -19,8 +19,11 @@ jobs:
 
       - name: Rebuild and verify exact V1.2 frontend
         run: |
-          cat scripts/v12-patch/part-01.b64 scripts/v12-patch/part-02.b64 scripts/v12-patch/part-03.b64 > /tmp/v12.patch.gz.b64
-          base64 -d /tmp/v12.patch.gz.b64 | gzip -d > /tmp/v17-to-v12.patch
+          cat scripts/v12-patch2/chunk-*.b64 > /tmp/v12.patch.gz.b64
+          test "$(sha256sum /tmp/v12.patch.gz.b64 | cut -d' ' -f1)" = "56fd4f3c045998d69913071d06ac48f99a2a1e93bb89fa2cb07d3302746f2de7"
+          base64 -d /tmp/v12.patch.gz.b64 > /tmp/v12.patch.gz
+          test "$(sha256sum /tmp/v12.patch.gz | cut -d' ' -f1)" = "355860217f22680320346e48ecc6a3e08290c5498dc326cbb04b8b0dbe3beee9"
+          gzip -d -c /tmp/v12.patch.gz > /tmp/v17-to-v12.patch
           cp archive/legacy-html/room_for_both_v17.html /tmp/index-v12.html
           patch /tmp/index-v12.html < /tmp/v17-to-v12.patch
           test "$(wc -c < /tmp/index-v12.html)" = "495440"
@@ -33,6 +36,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/index.html
           git rm -r scripts/v12-patch
+          git rm -r scripts/v12-patch2
           git rm -r public/v12-source || true
           git rm .github/workflows/install-exact-v12-frontend.yml
           git commit -m "Install exact V1.2 frontend"
