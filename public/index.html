@@ -1920,7 +1920,7 @@
       <span data-en>Safety step &amp; prevention sources</span><span data-bm>Sumber langkah keselamatan &amp; pencegahan</span>
     </h2>
     <p class="mt-2 text-sm text-slate-500 max-w-2xl">
-      <span data-en>Every "Source" note under an immediate-safety step or a prevention recommendation links here first, rather than to an external page directly.</span>
+      <span data-en>Database source links for every immediate-safety and prevention record are listed below. Each link opens the original external source directly.</span>
       <span data-bm>Setiap nota "Sumber" di bawah langkah keselamatan segera atau cadangan pencegahan memaut ke sini dahulu, bukan terus ke laman luar.</span>
     </p>
     <div class="mt-6 overflow-x-auto">
@@ -4006,25 +4006,6 @@ function render_about() {
 
   setAboutPhotoSourceTab('species');
   setLang(localStorage.getItem('owm-lang') || 'en');
-
-  // AC-driven fix: this table used to show SPECIES.safetySource /
-  // .checklistSource — a single static aggregate string per species. As an
-  // immediate, synchronous fallback (in case api-data.js hasn't loaded yet,
-  // or its DB calls fail) it still shows that static text — but
-  // api-data.js's renderActionSourcesFromDb() overwrites this with the real
-  // per-species source_institution/date_verified/source_url from
-  // immediate_action/prevention_action moments later (see installRenderHooks).
-  var actionBody = document.getElementById('about_actionSourceBody');
-  if (actionBody) {
-    var actionRows = SPECIES.filter(function (a) { return a.id !== 'general'; });
-    actionBody.innerHTML = actionRows.map(function (a) {
-      return '<tr>' +
-        '<td class="py-3 pr-4 font-display font-bold text-forest-950 whitespace-nowrap align-top">' + a.en + '</td>' +
-        '<td class="py-3 pr-4 align-top">' + institutionSourceLink(a.safetySource && a.safetySource.en) + '</td>' +
-        '<td class="py-3 align-top">' + institutionSourceLink(a.checklistSource && a.checklistSource.en) + '</td>' +
-      '</tr>';
-    }).join('');
-  }
 }
 </script>
 
