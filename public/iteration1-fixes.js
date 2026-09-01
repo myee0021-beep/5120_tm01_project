@@ -90,20 +90,24 @@
   function populateHomeStates() {
     var select = document.getElementById('home_stateSelect');
     if (!select) return Promise.resolve(false);
-    return fetch('/api/states', { method: 'GET', headers: { Accept: 'application/json' } })
+
+    return fetch('/api/states', { method: 'GET', headers: { Accept: 'application/json' }, cache: 'no-store' })
       .then(function (res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
       })
       .then(function (data) {
         var rows = Array.isArray(data.states) ? data.states : [];
-        if (!rows.length) return false;
+        if (!rows.length) throw new Error('No states returned');
+
         var previous = select.value || '';
         select.innerHTML = '';
+
         var placeholder = document.createElement('option');
         placeholder.value = '';
         placeholder.textContent = currentLang() === 'bm' ? 'Pilih negeri…' : 'Select state…';
         select.appendChild(placeholder);
+
         rows.forEach(function (row) {
           var name = String(row.state_name || '').trim();
           if (!name) return;
@@ -114,10 +118,14 @@
           option.dataset.jurisdictionType = String(row.jurisdiction_type || '');
           select.appendChild(option);
         });
+
         if (previous && Array.prototype.some.call(select.options, function (o) { return o.value === previous; })) {
           select.value = previous;
         }
+
         select.dataset.source = 'neon:state';
+        select.dataset.count = String(rows.length);
+        console.info('[Room for Both] home_stateSelect populated from /api/states:', rows.length);
         return true;
       })
       .catch(function (err) {
@@ -133,19 +141,15 @@
     var keywordPanel = document.getElementById('panel-keyword');
     var tabGrid = tab && tab.parentElement;
 
-    if (tabGrid) {
+    if (tabGrid && tabGrid.classList.contains('grid-cols-3')) {
       tabGrid.classList.remove('grid-cols-3');
       tabGrid.classList.add('grid-cols-2');
     }
-    if (tab) {
-      tab.style.display = 'none';
-      tab.setAttribute('aria-hidden', 'true');
-      tab.setAttribute('tabindex', '-1');
-    }
-    if (panel) {
-      panel.style.display = 'none';
-      panel.setAttribute('aria-hidden', 'true');
-    }
+    if (tab && tab.style.display !== 'none') tab.style.display = 'none';
+    if (tab && tab.getAttribute('aria-hidden') !== 'true') tab.setAttribute('aria-hidden', 'true');
+    if (tab && tab.getAttribute('tabindex') !== '-1') tab.setAttribute('tabindex', '-1');
+    if (panel && panel.style.display !== 'none') panel.style.display = 'none';
+    if (panel && panel.getAttribute('aria-hidden') !== 'true') panel.setAttribute('aria-hidden', 'true');
 
     if ((tab && tab.classList.contains('active')) || (panel && panel.classList.contains('active'))) {
       if (tab) tab.classList.remove('active');
@@ -164,15 +168,16 @@
   }
 
   function init() {
-    populateHomeStates();
     enforceDescribeHidden();
     scrubVisibleText(document.body);
 
-    var describeTab = document.querySelector('.route-tab[data-route="describe"]');
-    var describePanel = document.getElementById('panel-describe');
-    var describeObserver = new MutationObserver(enforceDescribeHidden);
-    if (describeTab) describeObserver.observe(describeTab, { attributes: true, attributeFilter: ['class', 'style'] });
-    if (describePanel) describeObserver.observe(describePanel, { attributes: true, attributeFilter: ['class', 'style'] });
+    // Populate after the page's own scripts have finished initialising, then retry once
+    // to prevent older hard-coded initialisation from overwriting the database result.
+    setTimeout(function () {
+      populateHomeStates().then(function () {
+        setTimeout(populateHomeStates, 300);
+      });
+    }, 0);
 
     var bodyObserver = new MutationObserver(function (mutations) {
       mutations.forEach(function (mutation) {
