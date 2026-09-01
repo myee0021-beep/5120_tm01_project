@@ -35,6 +35,12 @@
     return d + ' ' + months[m] + ' ' + year;
   }
 
+  function monthIndex(name) {
+    var all = MONTHS_EN.concat(MONTHS_BM);
+    var idx = all.map(function (x) { return x.toLowerCase(); }).indexOf(String(name || '').toLowerCase());
+    return idx < 0 ? -1 : idx % 12;
+  }
+
   function localiseDatesInText(text) {
     if (!text) return text;
     var out = String(text);
@@ -44,8 +50,14 @@
     out = out.replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, function (_, y, m, d) {
       return formatDateParts(y, m, d) || _;
     });
-    out = out.replace(/\b18 Aug 2026\b/g, '19 August 2026');
-    out = out.replace(/\b18 Ogos 2026\b/g, '19 Ogos 2026');
+    out = out.replace(/\b(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December|Januari|Februari|Mac|Mei|Jun|Julai|Ogos|Oktober|Disember)\s+(\d{4})\b/gi, function (_, d, monthName, y) {
+      var idx = monthIndex(monthName);
+      if (idx < 0) return _;
+      var months = currentLang() === 'bm' ? MONTHS_BM : MONTHS_EN;
+      return Number(d) + ' ' + months[idx] + ' ' + y;
+    });
+    out = out.replace(/\b18 Aug 2026\b/g, currentLang() === 'bm' ? '19 Ogos 2026' : '19 August 2026');
+    out = out.replace(/\b18 Ogos 2026\b/g, currentLang() === 'bm' ? '19 Ogos 2026' : '19 August 2026');
     return out;
   }
 
@@ -119,7 +131,12 @@
     var panel = document.getElementById('panel-describe');
     var keywordTab = document.querySelector('.route-tab[data-route="keyword"]');
     var keywordPanel = document.getElementById('panel-keyword');
+    var tabGrid = tab && tab.parentElement;
 
+    if (tabGrid) {
+      tabGrid.classList.remove('grid-cols-3');
+      tabGrid.classList.add('grid-cols-2');
+    }
     if (tab) {
       tab.style.display = 'none';
       tab.setAttribute('aria-hidden', 'true');
