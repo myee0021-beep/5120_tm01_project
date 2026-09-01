@@ -39,7 +39,7 @@
   function updateStateCard(card) {
     var id = stateIdFromCard(card);
     var row = STATE_DATA[id];
-    if (!row) return;
+    if (!row || card.getAttribute('data-state-occurrence-applied') === 'true') return;
 
     var paragraphs = card.querySelectorAll('p');
     Array.prototype.forEach.call(paragraphs, function (p) {
@@ -61,6 +61,7 @@
     card.setAttribute('data-source', 'state_occurrence_summary.csv');
     card.setAttribute('data-occurrence-records', String(row.records));
     card.setAttribute('data-top-species', row.topSpecies);
+    card.setAttribute('data-state-occurrence-applied', 'true');
   }
 
   function updateStateCards() {
@@ -83,14 +84,21 @@
     });
   }
 
-  function init() {
+  function apply() {
     updateSharedStateDataset();
     updateStateCards();
-    var observer = new MutationObserver(function () {
-      updateSharedStateDataset();
-      updateStateCards();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  function init() {
+    apply();
+    // Do not observe the whole DOM: updateStateCards() changes innerHTML itself,
+    // which previously retriggered the observer indefinitely and froze clicks.
+    window.addEventListener('hashchange', apply);
+    window.addEventListener('roomforboth:db-ready', apply);
+    document.addEventListener('click', function (event) {
+      var target = event.target && event.target.closest ? event.target.closest('a,button') : null;
+      if (target) setTimeout(apply, 0);
+    }, true);
   }
 
   window.ROOM_FOR_BOTH_STATE_OCCURRENCE = STATE_DATA;
