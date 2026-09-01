@@ -16,9 +16,13 @@ export default {
       .replace(/Step 2 · Authority (?:&amp;|&) Contact/g, 'Step 3 · Authority &amp; Contact')
       .replace(/Langkah 2 · Agensi (?:&amp;|&) Hubungan/g, 'Langkah 3 · Agensi &amp; Hubungan');
 
+    // Version injected assets so a fresh deployment bypasses stale browser/edge cache.
+    // Increment this value whenever these patch assets need an explicit cache-bust.
+    const assetVersion = '20260901-2';
+
     updatedHtml = updatedHtml.replace(
       /<\/body>/i,
-      '<script src="/iteration1-fixes.js"></script><script src="/bilingual-fallback.js"></script><script src="/provenance-links.js"></script><script src="/hide-prevention-source-summary.js"></script><script src="/state-occurrence-data.js"></script><script src="/species-state-occurrence.js"></script></body>'
+      `<script src="/iteration1-fixes.js?v=${assetVersion}"></script><script src="/bilingual-fallback.js?v=${assetVersion}"></script><script src="/provenance-links.js?v=${assetVersion}"></script><script src="/hide-prevention-source-summary.js?v=${assetVersion}"></script><script src="/state-occurrence-data.js?v=${assetVersion}"></script><script src="/species-state-occurrence.js?v=${assetVersion}"></script></body>`
     );
 
     const headers = new Headers(response.headers);
