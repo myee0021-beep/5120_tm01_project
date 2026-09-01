@@ -84,7 +84,10 @@ export default {
       );
     }
 
-    updatedHtml = updatedHtml.replace(/<\/body>/i, '<script src="/iteration1-fixes.js"></script></body>');
+    updatedHtml = updatedHtml.replace(
+      /<\/body>/i,
+      '<script src="/iteration1-fixes.js"></script><script src="/bilingual-fallback.js"></script><script src="/provenance-links.js"></script></body>'
+    );
 
     const headers = new Headers(response.headers);
     headers.delete('content-length');
