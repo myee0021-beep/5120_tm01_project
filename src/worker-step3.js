@@ -18,11 +18,11 @@ export default {
 
     // Version injected assets so a fresh deployment bypasses stale browser/edge cache.
     // Increment this value whenever these patch assets need an explicit cache-bust.
-    const assetVersion = '20260901-2';
+    const assetVersion = '20260902-1';
 
     updatedHtml = updatedHtml.replace(
       /<\/body>/i,
-      `<script src="/iteration1-fixes.js?v=${assetVersion}"></script><script src="/bilingual-fallback.js?v=${assetVersion}"></script><script src="/provenance-links.js?v=${assetVersion}"></script><script src="/hide-prevention-source-summary.js?v=${assetVersion}"></script><script src="/state-occurrence-data.js?v=${assetVersion}"></script><script src="/species-state-occurrence.js?v=${assetVersion}"></script></body>`
+      `<script src="/iteration1-fixes.js?v=${assetVersion}"></script><script src="/bilingual-fallback.js?v=${assetVersion}"></script><script src="/provenance-links.js?v=${assetVersion}"></script><script src="/hide-prevention-source-summary.js?v=${assetVersion}"></script><script src="/state-occurrence-data.js?v=${assetVersion}"></script><script src="/species-state-occurrence.js?v=${assetVersion}"></script><script src="/general-guidance-db-fixes.js?v=${assetVersion}"></script></body>`
     );
 
     const headers = new Headers(response.headers);
