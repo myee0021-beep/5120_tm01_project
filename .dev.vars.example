@@ -1,3 +1,8 @@
 # Copy this file to .dev.vars for local development.
-# Never commit the real Neon connection string.
+# Never commit the real Neon connection string or the MiniMax API key.
 DATABASE_URL=postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
+
+# Used by /api/identify-describe (the "Describe it" free-text identification
+# route). Get a key from https://platform.minimax.io — in production set it
+# with `wrangler secret put MINIMAX_API_KEY`, never commit it.
+MINIMAX_API_KEY=your-minimax-api-key

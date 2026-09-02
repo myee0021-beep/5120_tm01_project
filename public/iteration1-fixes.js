@@ -134,31 +134,6 @@
       });
   }
 
-  function enforceDescribeHidden() {
-    var tab = document.querySelector('.route-tab[data-route="describe"]');
-    var panel = document.getElementById('panel-describe');
-    var keywordTab = document.querySelector('.route-tab[data-route="keyword"]');
-    var keywordPanel = document.getElementById('panel-keyword');
-    var tabGrid = tab && tab.parentElement;
-
-    if (tabGrid && tabGrid.classList.contains('grid-cols-3')) {
-      tabGrid.classList.remove('grid-cols-3');
-      tabGrid.classList.add('grid-cols-2');
-    }
-    if (tab && tab.style.display !== 'none') tab.style.display = 'none';
-    if (tab && tab.getAttribute('aria-hidden') !== 'true') tab.setAttribute('aria-hidden', 'true');
-    if (tab && tab.getAttribute('tabindex') !== '-1') tab.setAttribute('tabindex', '-1');
-    if (panel && panel.style.display !== 'none') panel.style.display = 'none';
-    if (panel && panel.getAttribute('aria-hidden') !== 'true') panel.setAttribute('aria-hidden', 'true');
-
-    if ((tab && tab.classList.contains('active')) || (panel && panel.classList.contains('active'))) {
-      if (tab) tab.classList.remove('active');
-      if (panel) panel.classList.remove('active');
-      if (keywordTab) keywordTab.classList.add('active');
-      if (keywordPanel) keywordPanel.classList.add('active');
-    }
-  }
-
   function hidePrintableGuidanceCard() {
     var button = document.getElementById('auth_printBtn');
     if (!button) return;
@@ -176,7 +151,6 @@
   }
 
   function init() {
-    enforceDescribeHidden();
     hidePrintableGuidanceCard();
     scrubVisibleText(document.body);
 

@@ -484,11 +484,11 @@
 
     <div class="p-7 md:p-9">
 
-      <!-- "Describe it" runs on local keyword scoring against the species
-           table — NOT a real text-classification model/API. Re-added on
-           request; see the conversation for the earlier removal rationale
-           (Work Distribution Instructions v3.0, Jingyu's section flagged
-           free-text ID as out of scope pending a model/provider decision). -->
+      <!-- "Describe it" calls /api/identify-describe (Worker -> MiniMax API)
+           to classify the free-text report against the 5 non-snake species
+           this product covers, then falls back to local keyword scoring if
+           that request fails or is unconfigured. Snake terms are still
+           caught locally first and never reach the AI (AC 1.1.2). -->
 
       <!-- ===== Panel 1: Describe it ===== -->
       <div class="route-panel active" id="panel-describe">
@@ -3201,12 +3201,48 @@ function init_identify() {
     });
   }
 
-  // "Describe it" — local keyword-scoring against a.keys/a.sci, NOT a real
-  // text-classification model. Re-added on request; renderMatchCard,
+  // "Describe it" — tries /api/identify-describe (Worker -> MiniMax API)
+  // first, then falls back to local keyword-scoring against a.keys/a.sci if
+  // that call fails, times out, or is unconfigured, so the feature never
+  // breaks outright when the AI backend is unavailable. renderMatchCard,
   // SNAKE_TERM_RE and renderSnakeRedirectPrompt (defined just below) are
   // shared with the keyword route.
+  function localDescribeMatch(lowerText) {
+    var scored = ANIMALS.map(function (a) {
+      var score = a.keys.reduce(function (s, k) { return s + (lowerText.indexOf(k) > -1 ? 1 : 0); }, 0);
+      if (a.sci.toLowerCase().split(' ').some(function (w) { return w.length > 3 && lowerText.indexOf(w) > -1; })) score += 1;
+      return { a: a, score: score };
+    }).sort(function (x, y) { return y.score - x.score; });
+    return scored.filter(function (s) { return s.score > 0; }).slice(0, 3).map(function (s) { return s.a; });
+  }
+
+  // aiSpeciesIds: array of matched ids from the API, [] if the AI found no
+  // match, or null if the API call itself failed (falls back to local scoring).
+  function renderDescribeResult(aiSpeciesIds, lowerText) {
+    var grid = document.getElementById('id_describeMatchGrid');
+    var matched;
+    if (aiSpeciesIds === null) {
+      console.log('[Describe it] AI call failed/unavailable — using local keyword fallback');
+      matched = localDescribeMatch(lowerText);
+    } else {
+      console.log('[Describe it] AI responded with species_ids:', aiSpeciesIds);
+      matched = aiSpeciesIds
+        .map(function (id) { return ANIMALS.filter(function (a) { return a.id === id; })[0]; })
+        .filter(Boolean);
+    }
+    if (matched.length === 0) {
+      grid.innerHTML = '<p class="text-sm text-slate-400 text-center py-4"><span data-en>No match — try the guided questions instead.</span><span data-bm>Tiada padanan — cuba soal jawab berpandu.</span></p>';
+    } else {
+      grid.innerHTML = matched.map(renderMatchCard).join('');
+      wireCardSelection(grid);
+    }
+    document.getElementById('id_describeMatches').classList.remove('hidden');
+    setLang(localStorage.getItem('owm-lang') || 'en');
+  }
+
   document.getElementById('id_describeBtn').addEventListener('click', function () {
-    var text = document.getElementById('id_describeInput').value.toLowerCase().trim();
+    var rawText = document.getElementById('id_describeInput').value.trim();
+    var text = rawText.toLowerCase();
     var grid = document.getElementById('id_describeMatchGrid');
     if (SNAKE_TERM_RE.test(text)) {
       var snakeCandidate = SPECIES.filter(function (a) { return a.id === 'snake'; })[0];
@@ -3219,30 +3255,34 @@ function init_identify() {
     // An empty description has no signal to match on — show nothing rather
     // than an arbitrary default top-3 (that was the previous behaviour and
     // it made it look like a blank box always "finds" an animal).
-    if (text.length === 0) {
+    if (rawText.length === 0) {
       grid.innerHTML = '<p class="text-sm text-slate-400 text-center py-4"><span data-en>Type a description first, or try the guided questions instead.</span><span data-bm>Taip penerangan dahulu, atau cuba soal jawab berpandu.</span></p>';
       document.getElementById('id_describeMatches').classList.remove('hidden');
       setLang(localStorage.getItem('owm-lang') || 'en');
       return;
     }
-    var scored = ANIMALS.map(function (a) {
-      var score = a.keys.reduce(function (s, k) { return s + (text.indexOf(k) > -1 ? 1 : 0); }, 0);
-      if (a.sci.toLowerCase().split(' ').some(function (w) { return w.length > 3 && text.indexOf(w) > -1; })) score += 1;
-      return { a: a, score: score };
-    }).sort(function (x, y) { return y.score - x.score; });
-    // Only ever show candidates that actually matched something in the
-    // description — a real but unmatched description (score 0 for every
-    // species) is treated the same as "no match", not padded out with
-    // unrelated top-3 filler.
-    var matched = scored.filter(function (s) { return s.score > 0; });
-    if (matched.length === 0) {
-      grid.innerHTML = '<p class="text-sm text-slate-400 text-center py-4"><span data-en>No match — try the guided questions instead.</span><span data-bm>Tiada padanan — cuba soal jawab berpandu.</span></p>';
-    } else {
-      grid.innerHTML = matched.slice(0, 3).map(function (s) { return s.a; }).map(renderMatchCard).join('');
-      wireCardSelection(grid);
-    }
+    grid.innerHTML = '<p class="text-sm text-slate-400 text-center py-4"><span data-en>Looking for a match…</span><span data-bm>Mencari padanan…</span></p>';
     document.getElementById('id_describeMatches').classList.remove('hidden');
     setLang(localStorage.getItem('owm-lang') || 'en');
+
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+    fetch('/api/identify-describe', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text: rawText }),
+      signal: controller.signal,
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        clearTimeout(timeoutId);
+        var ids = (data && data.ok && Array.isArray(data.species_ids)) ? data.species_ids : null;
+        renderDescribeResult(ids, text);
+      })
+      .catch(function () {
+        clearTimeout(timeoutId);
+        renderDescribeResult(null, text);
+      });
   });
 
   // ---- keyword search: live filter ----
