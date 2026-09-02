@@ -159,6 +159,14 @@
     }
   }
 
+  function hidePrintableGuidanceCard() {
+    var button = document.getElementById('auth_printBtn');
+    if (!button) return;
+    button.style.display = 'none';
+    button.setAttribute('aria-hidden', 'true');
+    button.setAttribute('tabindex', '-1');
+  }
+
   function refreshLanguageSensitiveUi() {
     var select = document.getElementById('home_stateSelect');
     if (select && select.options.length) {
@@ -169,6 +177,7 @@
 
   function init() {
     enforceDescribeHidden();
+    hidePrintableGuidanceCard();
     scrubVisibleText(document.body);
 
     // Populate after the page's own scripts have finished initialising, then retry once
