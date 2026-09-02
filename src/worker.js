@@ -89,6 +89,102 @@ async function resolveDisplayImageUrl(sourceUrl) {
   return null;
 }
 
+// The 5 species this product covers that "Describe it" is allowed to
+// identify (snake is excluded on purpose — AC 1.1.2 requires snake reports
+// to skip identification entirely and go straight to safety guidance, so it
+// must never reach the AI or be offered as a candidate here; "general" is a
+// fallback shown when nothing matches, not something the AI should pick).
+const DESCRIBE_SPECIES = [
+  { id: 'house-crow', en: 'House Crow', bm: 'Gagak Rumah', sci: 'Corvus splendens', hints: 'noisy black bird, raids open rubbish bins and food waste, nests on roofs/eaves' },
+  { id: 'macaque', en: 'Long-tailed Macaque', bm: 'Kera', sci: 'Macaca fascicularis', hints: 'monkey, often in a troop, enters through windows/roofs, takes food from kitchens or bins' },
+  { id: 'water-monitor', en: 'Water Monitor Lizard', bm: 'Biawak', sci: 'Varanus salvator', hints: 'large lizard, follows drains/canals/rivers, preys on poultry or fish ponds' },
+  { id: 'wild-boar', en: 'Wild Boar', bm: 'Babi Hutan', sci: 'Sus scrofa', hints: 'pig-like animal, roots up soil/gardens at night, forest-fringe housing' },
+  { id: 'common-myna', en: 'Common Myna', bm: 'Gembala Kerbau', sci: 'Acridotheres tristis', hints: 'small brown bird with a yellow beak, noisy, nests in roof eaves and cavities' },
+];
+
+async function handleIdentifyDescribe(request, env) {
+  if (!env.MINIMAX_API_KEY) {
+    return json({ ok: false, error: 'AI identification is not configured.' }, 501);
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return json({ ok: false, error: 'Request body must be JSON.' }, 400);
+  }
+
+  const text = String(body?.text || '').trim().slice(0, 500);
+  if (!text) return json({ ok: false, error: 'text is required.' }, 400);
+
+  const allowedIds = DESCRIBE_SPECIES.map((s) => s.id);
+  const speciesList = DESCRIBE_SPECIES
+    .map((s) => `- id: "${s.id}" | ${s.en} (${s.sci}, Malay: ${s.bm}) — ${s.hints}`)
+    .join('\n');
+
+  const systemPrompt = `You identify which wildlife species is most likely being described in a report of an animal causing a problem at a home in Malaysia. You may ONLY choose from this fixed list of species ids — never invent a new id or name:\n${speciesList}\n\nThe user's text may be in English, Malay, or a mix of the two.\n\nHow to decide:\n- If the text describes ANY behaviour, damage, sound, appearance, or location that is even loosely consistent with one of the species above (e.g. "rubbish bin knocked over", "something messed up my yard at night", "noisy bird on the roof"), include that species as a match — use "low" confidence if the description is vague or could fit more than one species, rather than leaving it out. The user will be shown the candidates as cards to pick from or dismiss, so it is safe to suggest a plausible low-confidence guess.\n- Only return an empty list when the text has NO real connection to any of these species at all — e.g. it names an unrelated animal not in the list, is empty of any incident description, is random/meaningless text, or is a completely different topic. Do not force a match onto text like that just to avoid an empty list.\n\nRespond with ONLY a JSON object matching this shape — no explanation, no reasoning steps, no markdown code fences, nothing before or after it: {"matches":[{"species_id":"<one of the ids above>","confidence":"high"|"medium"|"low"}]}. List at most 3 matches, most likely first.`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch('https://api.minimax.io/v1/text/chatcompletion_v2', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${env.MINIMAX_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'MiniMax-Text-01',
+        temperature: 0.1,
+        max_tokens: 300,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: text },
+        ],
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      console.error('[RoomForBoth Worker] MiniMax API error', response.status, await response.text().catch(() => ''));
+      return json({ ok: false, error: 'AI identification request failed.' }, 502);
+    }
+
+    const payload = await response.json();
+    const content = payload?.choices?.[0]?.message?.content || '';
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      // MiniMax can return HTTP 200 with an error inside base_resp instead of
+      // a real completion (bad model name, quota, auth, etc.) — log the full
+      // payload so this is diagnosable instead of a bare "no usable result".
+      console.error('[RoomForBoth Worker] MiniMax returned no parseable content', JSON.stringify(payload));
+      return json({ ok: false, error: 'AI returned no usable result.', debug: payload }, 502);
+    }
+
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch {
+      return json({ ok: false, error: 'AI returned malformed JSON.' }, 502);
+    }
+
+    const speciesIds = Array.isArray(parsed?.matches)
+      ? parsed.matches
+          .map((m) => m?.species_id)
+          .filter((id) => allowedIds.includes(id))
+          .slice(0, 3)
+      : [];
+
+    return json({ ok: true, species_ids: speciesIds });
+  } catch (err) {
+    clearTimeout(timeout);
+    console.error('[RoomForBoth Worker] identify-describe failed', err?.message || err);
+    return json({ ok: false, error: 'AI identification request failed.' }, 502);
+  }
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
 
@@ -502,6 +598,9 @@ class FrontendScriptInjector {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/api/identify-describe' && request.method === 'POST') {
+      return handleIdentifyDescribe(request, env);
+    }
     if (url.pathname.startsWith('/api/')) return handleApi(request, env);
 
     const response = await env.ASSETS.fetch(request);
