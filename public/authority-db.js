@@ -1,6 +1,9 @@
 (function () {
   'use strict';
 
+  var HQ_JURISDICTION = 'National / Headquarters';
+  var HQ_FALLBACK_STATES = ['Putrajaya', 'Sabah', 'Sarawak'];
+
   function text(value) {
     if (value === null || value === undefined) return '';
     var out = String(value).trim();
@@ -26,6 +29,11 @@
     return (currentLang() === 'bm' ? 'Disahkan: ' : 'Verified: ') + d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
+  function currentRouteId() {
+    try { return String((window.APP && window.APP.speciesId) || '').toLowerCase(); }
+    catch (e) { return ''; }
+  }
+
   function categoryForCurrentRoute() {
     var db = window.RoomForBothDB;
     if (!db || !db.cache) return null;
@@ -33,11 +41,7 @@
     var species = typeof db.currentDbSpecies === 'function' ? db.currentDbSpecies() : null;
     if (species && Number(species.category_id) > 0) return Number(species.category_id);
 
-    var route = '';
-    try { route = String((window.APP && window.APP.speciesId) || '').toLowerCase(); } catch (e) {}
-
-    // Generic snake has no species row by design. Resolve its authority category
-    // only from the database category metadata; never use a hard-coded category id.
+    var route = currentRouteId();
     if (route === 'snake') {
       var candidates = (db.cache.categories || []).filter(function (row) {
         var haystack = [row.category_name, row.description, row.responsible_body_type]
@@ -50,6 +54,13 @@
     return null;
   }
 
+  function firstDbCategoryId() {
+    var db = window.RoomForBothDB;
+    var rows = db && db.cache && Array.isArray(db.cache.categories) ? db.cache.categories : [];
+    var found = rows.find(function (row) { return Number(row.category_id) > 0; });
+    return found ? Number(found.category_id) : null;
+  }
+
   function populateStateSelectFromDb() {
     var db = window.RoomForBothDB;
     var select = document.getElementById('auth_stateSelect');
@@ -59,6 +70,7 @@
     if (!rows.length) return false;
 
     var previous = select.value || (window.APP && window.APP.stateId) || '';
+    var previousName = stateNameFromSelect(select);
     select.innerHTML = '';
 
     var placeholder = document.createElement('option');
@@ -77,15 +89,11 @@
       select.appendChild(option);
     });
 
-    // Preserve the state selected elsewhere in the app by matching either the
-    // numeric DB state_code or the human-readable state name.
-    if (previous) {
-      var prevText = String(previous).toLowerCase();
-      var match = Array.prototype.find.call(select.options, function (o) {
-        return o.value === String(previous) || text(o.textContent).toLowerCase() === prevText;
-      });
-      if (match) select.value = match.value;
-    }
+    var match = Array.prototype.find.call(select.options, function (o) {
+      return (previous && o.value === String(previous)) ||
+        (previousName && text(o.textContent).toLowerCase() === previousName.toLowerCase());
+    });
+    if (match) select.value = match.value;
 
     select.dataset.source = 'neon:state';
     select.dataset.count = String(rows.length);
@@ -104,7 +112,7 @@
     }
   }
 
-  function showAuthority(row) {
+  function showAuthority(row, isHqFallback) {
     var contactBlock = document.getElementById('auth_contactBlock');
     var noContact = document.getElementById('auth_noContactBlock');
     var categoryNote = document.getElementById('auth_categoryNote');
@@ -119,7 +127,15 @@
     var call = document.getElementById('auth_callBtn');
 
     if (name) name.textContent = text(row.agency_name) || '—';
-    if (desc) desc.textContent = text(row.what_they_do) || text(row.contact_route) || '—';
+    if (desc) {
+      var baseDesc = text(row.what_they_do) || text(row.contact_route) || '—';
+      if (isHqFallback) {
+        baseDesc += currentLang() === 'bm'
+          ? ' — digunakan sebagai hubungan ibu pejabat kerana rekod negeri khusus belum tersedia.'
+          : ' — used as the headquarters fallback because no state-specific record is available.';
+      }
+      desc.textContent = baseDesc;
+    }
     if (verified) verified.textContent = formatVerified(row.last_verified);
 
     if (source) {
@@ -141,7 +157,8 @@
     var contact = text(row.contact_value);
     if (number) number.textContent = contact || '—';
     if (call) {
-      var phone = contact.replace(/[^0-9+]/g, '');
+      var phoneMatch = contact.match(/\+?[0-9][0-9\-\s]{2,}/);
+      var phone = phoneMatch ? phoneMatch[0].replace(/[^0-9+]/g, '') : '';
       call.href = phone ? 'tel:' + phone : '#';
       call.classList.toggle('pointer-events-none', !phone);
       call.classList.toggle('opacity-50', !phone);
@@ -158,7 +175,22 @@
       }
     }
 
-    if (contactBlock) contactBlock.dataset.source = 'neon:authority';
+    if (contactBlock) {
+      contactBlock.dataset.source = 'neon:authority';
+      contactBlock.dataset.fallback = isHqFallback ? 'national-headquarters' : 'none';
+    }
+  }
+
+  function fetchHq(categoryId, fallbackReason) {
+    var db = window.RoomForBothDB;
+    if (!db || typeof db.getAuthorities !== 'function' || !categoryId) return Promise.resolve(false);
+
+    return db.getAuthorities(categoryId, HQ_JURISDICTION).then(function (data) {
+      var rows = Array.isArray(data.authorities) ? data.authorities : [];
+      if (!rows.length) return false;
+      showAuthority(rows[0], Boolean(fallbackReason));
+      return true;
+    });
   }
 
   function fetchAuthorityForSelection() {
@@ -176,6 +208,28 @@
     }
 
     var categoryId = categoryForCurrentRoute();
+
+    // General Guidance has no confirmed species/category. The DB stores the same
+    // National / Headquarters contact across authority categories, so select a
+    // real category id from the DB and read the HQ record rather than hard-coding a number.
+    if (!categoryId && currentRouteId() === 'general') {
+      var generalCategoryId = firstDbCategoryId();
+      if (!generalCategoryId) {
+        showNoContact(
+          'The National / Headquarters database contact could not be resolved.',
+          'Hubungan pangkalan data National / Headquarters tidak dapat dikenal pasti.'
+        );
+        return Promise.resolve(false);
+      }
+      return fetchHq(generalCategoryId, 'general').then(function (ok) {
+        if (!ok) showNoContact(
+          'No verified National / Headquarters contact is available in the database.',
+          'Tiada hubungan National / Headquarters yang disahkan tersedia dalam pangkalan data.'
+        );
+        return ok;
+      });
+    }
+
     if (!categoryId) {
       showNoContact(
         'A specific authority cannot be loaded until the animal category is confirmed in the database.',
@@ -187,30 +241,33 @@
     return db.getAuthorities(categoryId, stateName).then(function (data) {
       var rows = Array.isArray(data.authorities) ? data.authorities : [];
       if (rows.length) {
-        showAuthority(rows[0]);
+        showAuthority(rows[0], false);
         return true;
       }
 
-      // Some authority categories (for example a national emergency line) are
-      // stored once rather than duplicated for every state. Use such a row only
-      // when the database itself returns exactly one authority for the category.
-      return db.getAuthorities(categoryId).then(function (allData) {
-        var allRows = Array.isArray(allData.authorities) ? allData.authorities : [];
-        if (allRows.length === 1) {
-          showAuthority(allRows[0]);
-          return true;
-        }
-        showNoContact(
-          'No verified database authority record is available for ' + stateName + ' and this animal category.',
-          'Tiada rekod agensi pangkalan data yang disahkan untuk ' + stateName + ' dan kategori haiwan ini.'
-        );
-        return false;
-      });
+      // Putrajaya, Sabah and Sarawak are currently present in the state table but
+      // do not have state-specific authority rows. For those three only, read the
+      // verified National / Headquarters contact from Neon. Do not hard-code 999.
+      if (HQ_FALLBACK_STATES.indexOf(stateName) !== -1) {
+        return fetchHq(categoryId, stateName).then(function (ok) {
+          if (!ok) showNoContact(
+            'No verified state or National / Headquarters contact is available in the database for ' + stateName + '.',
+            'Tiada hubungan negeri atau National / Headquarters yang disahkan tersedia dalam pangkalan data untuk ' + stateName + '.'
+          );
+          return ok;
+        });
+      }
+
+      showNoContact(
+        'No verified database authority record is available for ' + stateName + ' and this animal category.',
+        'Tiada rekod agensi pangkalan data yang disahkan untuk ' + stateName + ' dan kategori haiwan ini.'
+      );
+      return false;
     }).catch(function (err) {
       console.warn('[Room for Both] Authority database lookup failed:', err.message);
       showNoContact(
-        'The authority database could not be reached. No fallback phone number is being shown.',
-        'Pangkalan data agensi tidak dapat dicapai. Tiada nombor telefon sandaran dipaparkan.'
+        'The authority database could not be reached. No hard-coded fallback phone number is being shown.',
+        'Pangkalan data agensi tidak dapat dicapai. Tiada nombor telefon sandaran berkod keras dipaparkan.'
       );
       return false;
     });
@@ -243,9 +300,7 @@
     }
 
     document.addEventListener('change', function (event) {
-      if (event.target && event.target.id === 'auth_stateSelect') {
-        setTimeout(fetchAuthorityForSelection, 0);
-      }
+      if (event.target && event.target.id === 'auth_stateSelect') setTimeout(fetchAuthorityForSelection, 0);
     }, true);
 
     window.addEventListener('roomforboth:db-ready', function () {
