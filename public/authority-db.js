@@ -209,26 +209,11 @@
 
     var categoryId = categoryForCurrentRoute();
 
-    // General Guidance has no confirmed species/category. The DB stores the same
-    // National / Headquarters contact across authority categories, so select a
-    // real category id from the DB and read the HQ record rather than hard-coding a number.
-    if (!categoryId && currentRouteId() === 'general') {
-      var generalCategoryId = firstDbCategoryId();
-      if (!generalCategoryId) {
-        showNoContact(
-          'The National / Headquarters database contact could not be resolved.',
-          'Hubungan pangkalan data National / Headquarters tidak dapat dikenal pasti.'
-        );
-        return Promise.resolve(false);
-      }
-      return fetchHq(generalCategoryId, 'general').then(function (ok) {
-        if (!ok) showNoContact(
-          'No verified National / Headquarters contact is available in the database.',
-          'Tiada hubungan National / Headquarters yang disahkan tersedia dalam pangkalan data.'
-        );
-        return ok;
-      });
-    }
+    // General Guidance has no confirmed species/category, but the user still needs
+    // the selected state's verified authority contact. Use a real DB category id
+    // to query the state-specific authority table; only the three states without
+    // their own rows are allowed to fall back to National / Headquarters.
+    if (!categoryId && currentRouteId() === 'general') categoryId = firstDbCategoryId();
 
     if (!categoryId) {
       showNoContact(
@@ -245,9 +230,7 @@
         return true;
       }
 
-      // Putrajaya, Sabah and Sarawak are currently present in the state table but
-      // do not have state-specific authority rows. For those three only, read the
-      // verified National / Headquarters contact from Neon. Do not hard-code 999.
+      // Only these three currently lack state-specific authority rows in Neon.
       if (HQ_FALLBACK_STATES.indexOf(stateName) !== -1) {
         return fetchHq(categoryId, stateName).then(function (ok) {
           if (!ok) showNoContact(
