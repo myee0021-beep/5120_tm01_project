@@ -18,7 +18,7 @@ export default {
 
     // Version injected assets so a fresh deployment bypasses stale browser/edge cache.
     // Increment this value whenever these patch assets need an explicit cache-bust.
-    const assetVersion = '20260902-4';
+    const assetVersion = '20260902-5';
 
     // general-guidance-db-fixes.js is intentionally no longer injected. It used
     // to overwrite the page hero background. The General Guidance thumbnail is
