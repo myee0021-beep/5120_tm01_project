@@ -17,6 +17,10 @@
 
   function fillMalayFromEnglish(parent) {
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE) return;
+    // Native select options should stay plain text. Adding bilingual fallback
+    // spans inside <option> causes duplicated labels such as
+    // "select a state —select a state(EN)" in some browsers.
+    if (parent.tagName === 'OPTION' || parent.tagName === 'SELECT') return;
 
     var en = null;
     var bm = null;
