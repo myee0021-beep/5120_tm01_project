@@ -4,8 +4,8 @@
   var TAXON_ID = 346360;
   var SOURCE_URL = 'https://www.inaturalist.org/taxa/346360-Dillenia-suffruticosa';
   var imageUrl = '';
-  var creditEn = 'iNaturalist — Dillenia suffruticosa';
-  var creditBm = 'iNaturalist — Dillenia suffruticosa';
+  var creditEn = 'iNaturalist';
+  var creditBm = 'iNaturalist';
 
   function isGeneralRoute() {
     try {
@@ -44,7 +44,7 @@
 
     document.querySelectorAll(selectors.join(',')).forEach(function (img) {
       img.src = imageUrl;
-      img.alt = currentLang() === 'bm' ? 'Dillenia suffruticosa' : 'Dillenia suffruticosa';
+      img.alt = 'Dillenia suffruticosa';
       img.onerror = null;
     });
 
@@ -56,7 +56,7 @@
       var bm = el.querySelector('[data-bm]');
       if (en) en.textContent = creditEn;
       if (bm) bm.textContent = creditBm;
-      if (!en && !bm) el.textContent = currentLang() === 'bm' ? creditBm : creditEn;
+      if (!en && !bm) el.textContent = 'iNaturalist';
     });
 
     ['auth_photoSourceLink', 'sp_photoSourceLink', 'kif_photoSourceLink'].forEach(function (id) {
@@ -67,10 +67,6 @@
       el.rel = 'noopener';
       el.style.display = '';
     });
-  }
-
-  function currentLang() {
-    return document.documentElement.lang === 'bm' ? 'bm' : 'en';
   }
 
   function apply() {
@@ -93,12 +89,6 @@
 
         imageUrl = photo.medium_url || photo.url || photo.square_url || '';
         if (!imageUrl) throw new Error('No usable photo URL returned');
-
-        var attribution = String(photo.attribution || '').trim();
-        if (attribution) {
-          creditEn = 'iNaturalist — ' + attribution;
-          creditBm = 'iNaturalist — ' + attribution;
-        }
         apply();
       })
       .catch(function (err) {
