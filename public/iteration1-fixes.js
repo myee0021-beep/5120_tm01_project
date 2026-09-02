@@ -125,7 +125,6 @@
 
         select.dataset.source = 'neon:state';
         select.dataset.count = String(rows.length);
-        console.info('[Room for Both] home_stateSelect populated from /api/states:', rows.length);
         return true;
       })
       .catch(function (err) {
@@ -142,20 +141,35 @@
     button.setAttribute('tabindex', '-1');
   }
 
+  function localiseFreeTextControls() {
+    var describeTab = document.querySelector('.route-tab[data-route="describe"]');
+    if (describeTab) {
+      var sub = describeTab.querySelector('.route-tab-sub');
+      if (sub) sub.textContent = currentLang() === 'bm' ? 'Teks bebas' : 'Free text';
+    }
+
+    var describeInput = document.getElementById('id_describeInput');
+    if (describeInput) {
+      describeInput.placeholder = currentLang() === 'bm'
+        ? 'cth. Sekumpulan monyet masuk melalui jaring tingkap dan mengambil makanan dari dapur…'
+        : 'e.g. A troop of monkeys came through the window screen and took food from the kitchen…';
+    }
+  }
+
   function refreshLanguageSensitiveUi() {
     var select = document.getElementById('home_stateSelect');
     if (select && select.options.length) {
       select.options[0].textContent = currentLang() === 'bm' ? 'Pilih negeri…' : 'Select state…';
     }
+    localiseFreeTextControls();
     scrubVisibleText(document.body);
   }
 
   function init() {
     hidePrintableGuidanceCard();
+    localiseFreeTextControls();
     scrubVisibleText(document.body);
 
-    // Populate after the page's own scripts have finished initialising, then retry once
-    // to prevent older hard-coded initialisation from overwriting the database result.
     setTimeout(function () {
       populateHomeStates().then(function () {
         setTimeout(populateHomeStates, 300);
