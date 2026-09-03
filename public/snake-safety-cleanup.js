@@ -9,6 +9,14 @@
     return '<img src="' + photoUrl + '" alt="Representative non-venomous snake — Painted Bronzeback (Dendrelaphis pictus)" class="' + (className || 'w-full h-full object-cover') + '" data-neutral-snake-photo="true">';
   }
 
+  function snakeInfoBadge() {
+    return '<a href="#" data-neutral-snake-credit="true" onclick="event.stopPropagation();goTo(\'about\');return false;" title="Representative snake photo · iNaturalist" class="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-black/55 hover:bg-black/75 transition-colors text-white text-[9px] font-bold flex items-center justify-center leading-none">i</a>';
+  }
+
+  function snakePhotoWithBadge(photoUrl) {
+    return neutralSnakeImage(photoUrl) + snakeInfoBadge();
+  }
+
   function updateSnakeCopy(root) {
     var walker = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT);
     var nodes = [];
@@ -79,7 +87,10 @@
     if (!photoUrl) return;
     (root || document).querySelectorAll('[data-species-id="snake"]').forEach(function (row) {
       var holder = row.querySelector('.relative, [class*="w-11"]');
-      if (holder) holder.innerHTML = neutralSnakeImage(photoUrl);
+      if (holder) {
+        holder.classList.add('relative');
+        holder.innerHTML = snakePhotoWithBadge(photoUrl);
+      }
     });
     ensureSnakeCardNavigation(root || document);
   }
@@ -94,13 +105,15 @@
       if (!wrap) return;
       var box = wrap.querySelector('.w-20.h-20, .sm\\:w-24.sm\\:h-24, div[class*="w-20"][class*="h-20"]');
       if (box) {
-        box.innerHTML = neutralSnakeImage(photoUrl);
+        box.classList.add('relative');
+        box.innerHTML = snakePhotoWithBadge(photoUrl);
         box.classList.remove('text-amber-300', 'text-amber-500');
       }
     });
 
     (root || document).querySelectorAll('[id*="snake"][id$="_iconBox"], #snake_iconBox').forEach(function (box) {
-      box.innerHTML = neutralSnakeImage(photoUrl);
+      box.classList.add('relative');
+      box.innerHTML = snakePhotoWithBadge(photoUrl);
       box.classList.remove('text-amber-300', 'text-amber-500');
     });
   }
