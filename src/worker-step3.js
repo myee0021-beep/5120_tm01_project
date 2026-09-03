@@ -189,7 +189,7 @@ export default {
       .replace(/Step 2 · Authority (?:&amp;|&) Contact/g, 'Step 3 · Authority &amp; Contact')
       .replace(/Langkah 2 · Agensi (?:&amp;|&) Hubungan/g, 'Langkah 3 · Agensi &amp; Hubungan');
 
-    const assetVersion = '20260903-12';
+    const assetVersion = '20260903-13';
 
     updatedHtml = updatedHtml.replace(
       /<\/body>/i,
