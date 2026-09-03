@@ -877,7 +877,7 @@
         <span data-en>Who deals with this</span><span data-bm>Siapa Mengendalikannya</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
-      <a id="wtd_findableLink" href="#" onclick="goTo('findable');return false;" class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-full bg-white/70 border border-forest-600/30 hover:bg-white transition-colors text-forest-700 font-semibold px-7 py-4">
+      <a id="wtd_findableLink" href="#" onclick="goTo('findable');return false;" class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-full bg-forest-900 hover:bg-black transition-colors text-white font-bold px-7 py-4">
         <span data-en>Keep it findable while you wait</span><span data-bm>Kekal Mudah Dijumpai Semasa Menunggu</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
@@ -917,15 +917,12 @@
     </a>
 
     <div class="mt-8 flex items-start gap-6 flex-wrap sm:flex-nowrap">
+      <!-- AC 1.1.2 — neutral alert glyph only, never a species photo or a
+           source link (a link to the real species' page would leak its
+           identity just as much as the photo would). -->
       <div class="shrink-0 flex flex-col items-center gap-1.5 w-20 sm:w-24">
-        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/5 border border-white/10 overflow-hidden backdrop-blur">
-          <img src="/assets/naja-sumatrana.jpg" alt="Snake" class="w-full h-full object-cover">
-        </div>
-        <div class="text-center leading-tight">
-          <p class="text-[9px] text-slate-400"><span data-en>iNaturalist photo</span><span data-bm>Foto iNaturalist</span></p>
-          <a href="https://www.inaturalist.org/taxa/106451-Naja-sumatrana" target="_blank" rel="noopener" class="text-[9px] font-semibold text-emerald-300 hover:text-emerald-200 transition-colors">
-            <span data-en>View source</span><span data-bm>Lihat sumber</span> ↗
-          </a>
+        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/5 border border-white/10 overflow-hidden backdrop-blur flex items-center justify-center text-amber-300">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3z"/><line x1="12" y1="10" x2="12" y2="14.5"/><circle cx="12" cy="17.3" r=".6" fill="currentColor" stroke="none"/></svg>
         </div>
       </div>
       <div class="flex-1 min-w-0">
@@ -1026,7 +1023,7 @@
         <span data-en>Who deals with this</span><span data-bm>Siapa Mengendalikannya</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
-      <a id="snake_findableLink" href="#" onclick="goTo('findable',{id:'snake'});return false;" class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-full bg-white/70 border border-forest-600/30 hover:bg-white transition-colors text-forest-700 font-semibold px-7 py-4">
+      <a id="snake_findableLink" href="#" onclick="goTo('findable',{id:'snake'});return false;" class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-full bg-forest-900 hover:bg-black transition-colors text-white font-bold px-7 py-4">
         <span data-en>Keep it findable while you wait</span><span data-bm>Kekal Mudah Dijumpai Semasa Menunggu</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
@@ -2698,7 +2695,7 @@ function getTopSpeciesForState(stateName) {
     var nameEn = document.getElementById(prefix + '_nameEn');
     var nameBm = document.getElementById(prefix + '_nameBm');
     if (s.id === 'snake') {
-      iconBox.innerHTML = '<img src="/assets/naja-sumatrana.jpg" alt="Snake" class="w-full h-full object-cover">';
+      iconBox.innerHTML = ICONS.alert;
       nameEn.innerHTML = '<span data-en>' + neutralEn + '</span><span data-bm>' + neutralBm + '</span>';
       nameBm.innerHTML = '';
     } else {
@@ -2724,14 +2721,11 @@ function getTopSpeciesForState(stateName) {
     var sourceLink = document.getElementById(prefix + '_photoSourceLink');
 
     if (s.id === 'snake') {
-      iconBox.innerHTML = '<img src="/assets/naja-sumatrana.jpg" alt="Snake" class="w-full h-full object-cover">';
-      credit.classList.remove('hidden');
-      if (sourceLink) {
-        sourceLink.href = 'https://www.inaturalist.org/taxa/106451-Naja-sumatrana';
-        sourceLink.target = '_blank';
-        sourceLink.rel = 'noopener';
-        sourceLink.onclick = null;
-      }
+      // No photo and no credit/source link — a "View source" link to the
+      // real species' iNaturalist page would leak the species identity just
+      // as much as the photo itself would.
+      iconBox.innerHTML = ICONS.alert;
+      credit.classList.add('hidden');
     } else if (s.photo) {
       iconBox.innerHTML = '<img src="' + s.photo.dataUri + '" alt="' + s.en + '" class="w-full h-full object-cover">';
       credit.classList.remove('hidden');
@@ -2923,8 +2917,13 @@ function primeScrollReveal(container) {
 /* STATIC_SNAKE_PHOTO_V3 */
 var STATIC_SNAKE_PHOTO = '/assets/naja-sumatrana.jpg';
 var STATIC_SNAKE_SOURCE = 'https://www.inaturalist.org/taxa/106451-Naja-sumatrana';
+// AC 1.1.2 — no species photo is ever shown on the snake path (that's what
+// ICONS.alert, the neutral warning glyph, is for). STATIC_SNAKE_PHOTO/
+// STATIC_SNAKE_SOURCE stay defined only for the About page's photo-credit
+// list, which documents this asset exists in the codebase without putting
+// it in front of a user going through an actual snake report.
 function snakeStaticImageHtml() {
-  return '<img src="' + STATIC_SNAKE_PHOTO + '" alt="Snake" class="w-full h-full object-cover">';
+  return '<div style="transform:scale(0.55)">' + ICONS.alert + '</div>';
 }
 function init_home() {
 
@@ -3150,7 +3149,7 @@ function init_identify() {
     // to the icon + an honest "pending" note rather than a fake attribution.
     var isSnakeCandidate = a.id === 'snake';
     var thumb = isSnakeCandidate
-      ? snakeStaticImageHtml()
+      ? '<div style="transform:scale(0.55)">' + ICONS.alert + '</div>'
       : (a.photo
           ? '<img src="' + a.photo.dataUri + '" alt="' + a.en + '" class="w-full h-full object-cover">'
           : '<div style="transform:scale(0.55)">' + (ICONS[a.icon] || ICONS.crow) + '</div>');
@@ -3159,8 +3158,10 @@ function init_identify() {
     // sentence on every card). The credit/licence itself is never dropped —
     // AC 1.2.1 requires it — it just moves to a small "i" badge on the photo
     // that carries the full text as a tooltip and links to the source.
+    // AC 1.1.2 overrides AC 1.2.1 for the snake candidate specifically — no
+    // species name or photo credit is shown, only a neutral safety note.
     var caption = isSnakeCandidate
-      ? '<span data-en>Snake safety route — representative Naja sumatrana photo</span><span data-bm>Laluan keselamatan ular — foto wakil Naja sumatrana</span>'
+      ? '<span data-en>No species name or photo shown for snakes — safety first</span><span data-bm>Tiada nama spesies atau foto ditunjukkan untuk ular — keselamatan diutamakan</span>'
       : (a.photo
           ? (a.blurbEn
               ? '<span data-en>' + a.blurbEn + '</span><span data-bm>' + a.blurbBm + '</span>'
@@ -3168,9 +3169,11 @@ function init_identify() {
           : '<span data-en>Placeholder photo — photographer &amp; licence pending</span><span data-bm>Foto sementara — jurugambar &amp; lesen belum ditetapkan</span>');
     // Routes to the About page first (like every other photo credit
     // sitewide) rather than opening a.photo.sourceUrl directly — see
-    // render_about()'s "Species photos" section for the real link.
+    // render_about()'s "Species photos" section for the real link. No badge
+    // at all for the snake candidate — there is no photo/credit to attach it to,
+    // and a "Naja sumatrana" title tooltip would itself name the species.
     var creditBadge = isSnakeCandidate
-      ? '<a href="#" onclick="event.stopPropagation();goTo(\'about\');return false;" title="Naja sumatrana · iNaturalist" class="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-black/55 hover:bg-black/75 transition-colors text-white text-[9px] font-bold flex items-center justify-center leading-none">i</a>'
+      ? ''
       : (a.photo
           ? '<a href="#" onclick="event.stopPropagation();goTo(\'about\');return false;" title="' + a.photo.creditEn.replace(/"/g, '&quot;') + '" class="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-black/55 hover:bg-black/75 transition-colors text-white text-[9px] font-bold flex items-center justify-center leading-none">i</a>'
           : '');
@@ -3252,6 +3255,12 @@ function init_identify() {
       setLang(localStorage.getItem('owm-lang') || 'en');
       return;
     }
+    if (isBiteEmergencyText(text)) {
+      grid.innerHTML = renderEmergencyRedirectPrompt();
+      document.getElementById('id_describeMatches').classList.remove('hidden');
+      setLang(localStorage.getItem('owm-lang') || 'en');
+      return;
+    }
     // An empty description has no signal to match on — show nothing rather
     // than an arbitrary default top-3 (that was the previous behaviour and
     // it made it look like a blank box always "finds" an animal).
@@ -3289,8 +3298,16 @@ function init_identify() {
   // AC 1.4.1 — matches scientific_name, malay_name, english_name and
   // id_keywords; "ular" (and other snake terms) must trigger the snake path
   // rather than ever surfacing a snake candidate card (AC 1.1.2).
-  var SNAKE_TERMS = ['ular', 'snake', 'cobra'];
-  var SNAKE_TERM_RE = new RegExp('\\b(' + SNAKE_TERMS.join('|') + ')\\b', 'i');
+  // Widened after a live report: "a reticulated python in my roof" and "I saw
+  // a viper" matched nothing, and "a long reptile in my bathroom" matched
+  // Water Monitor Lizard — a snake described without the word "snake" was
+  // coming back as a harmless lizard. "reptile" is included deliberately:
+  // it's ambiguous with the water monitor (also a reptile), but routing an
+  // ambiguous case to the snake safety gate is the safe failure mode, while
+  // routing it to a wrong species card is not. Trailing "s?" catches plurals
+  // ("vipers", "pythons") that a bare \b...\b boundary would otherwise miss.
+  var SNAKE_TERMS = ['ular', 'snake', 'cobra', 'python', 'sawa', 'viper', 'tedung', 'serpent', 'reptile'];
+  var SNAKE_TERM_RE = new RegExp('\\b(' + SNAKE_TERMS.join('|') + ')s?\\b', 'i');
   function renderSnakeRedirectPrompt() {
     return '<div class="rounded-xl border border-rose-200 bg-rose-50 px-5 py-4">' +
       '<p class="text-sm font-bold text-rose-700 mb-1"><span data-en>Sounds like a snake</span><span data-bm>Bunyi macam ular</span></p>' +
@@ -3298,11 +3315,40 @@ function init_identify() {
       '<button type="button" onclick="goTo(\'snakewhattodo\');" class="rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2.5"><span data-en>See what to do now</span><span data-bm>Lihat apa perlu dibuat</span></button>' +
     '</div>';
   }
+
+  // Live report: "something bit me and I feel dizzy" matched no species and
+  // just sat there, when a person describing a bite plus a symptom needs
+  // routing to safety guidance immediately, not species identification.
+  // This is a routing fix only — no first-aid content is added here; it
+  // reuses the general/unconfirmed-species What To Do page's existing
+  // authority guidance, which already tells the reader to call 999 if
+  // anyone is in immediate danger (same page "None of these" already
+  // routes to). Requires a bite word AND a symptom word together, so an
+  // unrelated mention of an animal biting something ("it bit into the
+  // fruit") doesn't get flagged as a person-injury emergency.
+  var BITE_RE = /\b(bit|bitten|gigit(?:kan)?|digigit|scratch(?:ed)?|cakar(?:kan)?|clawed|attacked me|attacked us)\b/i;
+  var SYMPTOM_RE = /\b(dizzy|dizziness|faint(?:ed|ing)?|bleeding|blood|swelling|swollen|vomit(?:ing)?|breathless|difficulty breathing|numb(?:ness)?|pening|pengsan|berdarah|bengkak|muntah|sesak(?: nafas)?)\b/i;
+  function isBiteEmergencyText(t) {
+    return BITE_RE.test(t) && SYMPTOM_RE.test(t);
+  }
+  function renderEmergencyRedirectPrompt() {
+    return '<div class="rounded-xl border border-rose-200 bg-rose-50 px-5 py-4">' +
+      '<p class="text-sm font-bold text-rose-700 mb-1"><span data-en>This may need urgent attention</span><span data-bm>Ini mungkin memerlukan perhatian segera</span></p>' +
+      '<p class="text-sm text-rose-900/80 mb-3"><span data-en>A bite or scratch with symptoms like this is a safety priority — skip identification and go straight to what to do, including when to call 999.</span><span data-bm>Gigitan atau calar dengan gejala begini adalah keutamaan keselamatan — langkau pengenalan dan terus ke apa perlu dibuat, termasuk bila perlu hubungi 999.</span></p>' +
+      '<button type="button" onclick="goTo(\'whattodo\', {id: \'general\'});" class="rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2.5"><span data-en>See what to do now</span><span data-bm>Lihat apa perlu dibuat</span></button>' +
+    '</div>';
+  }
   function renderKeywordRow(a) {
     return renderMatchCard(a);
   }
   function renderKeywordList(filter) {
     var f = (filter || '').toLowerCase().trim();
+    if (f && isBiteEmergencyText(f)) {
+      var emergencyList = document.getElementById('id_keywordList');
+      emergencyList.innerHTML = renderEmergencyRedirectPrompt();
+      setLang(localStorage.getItem('owm-lang') || 'en');
+      return;
+    }
     if (f && SNAKE_TERM_RE.test(f)) {
       var snakeCandidate = SPECIES.filter(function (a) { return a.id === 'snake'; })[0];
       var snakeList = document.getElementById('id_keywordList');
@@ -4015,7 +4061,7 @@ function render_about() {
     snakeRow.setAttribute('data-static-snake-photo', '1');
     snakeRow.className = 'flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3';
     snakeRow.innerHTML =
-      '<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-white">' + snakeStaticImageHtml() + '</div>' +
+      '<div class="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-white"><img src="' + STATIC_SNAKE_PHOTO + '" alt="Snake" class="w-full h-full object-cover"></div>' +
       '<div class="min-w-0 flex-1">' +
         '<div class="font-display font-bold text-sm text-slate-900">Snake <span class="font-normal italic text-slate-400">/ Ular</span></div>' +
         '<div class="text-xs text-slate-500 mt-0.5"><i>Naja sumatrana</i> · iNaturalist</div>' +
