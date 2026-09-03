@@ -155,9 +155,9 @@
   function removePrintableGuidanceCard() {
     var button = document.getElementById('auth_printBtn');
     if (!button) return;
-    var wrapper = button.closest('.no-print') || button.parentElement;
-    if (wrapper && wrapper !== document.body) wrapper.remove();
-    else button.remove();
+    button.classList.add('hidden');
+    button.setAttribute('aria-hidden', 'true');
+    button.setAttribute('tabindex', '-1');
   }
 
   function refreshLanguageSensitiveUi() {
