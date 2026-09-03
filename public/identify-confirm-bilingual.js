@@ -6,20 +6,17 @@
     if (!page) return;
 
     page.querySelectorAll('.confirm-btn').forEach(function (btn) {
-      var en = btn.querySelector('[data-en]');
-      var bm = btn.querySelector('[data-bm]');
+      var svg = btn.querySelector('svg');
+      var labels = Array.prototype.slice.call(btn.querySelectorAll('span'));
 
-      if (en) {
-        en.removeAttribute('data-en');
-        if (en.textContent !== 'Confirm / Sahkan') en.textContent = 'Confirm / Sahkan';
-      } else if (!btn.querySelector('[data-bilingual-confirm-label]')) {
-        var label = document.createElement('span');
-        label.setAttribute('data-bilingual-confirm-label', '1');
-        label.textContent = 'Confirm / Sahkan';
-        btn.insertBefore(label, btn.firstChild);
-      }
+      labels.forEach(function (span) { span.remove(); });
 
-      if (bm) bm.remove();
+      var label = document.createElement('span');
+      label.setAttribute('data-bilingual-confirm-label', '1');
+      label.textContent = 'Confirm / Sahkan';
+
+      if (svg) btn.insertBefore(label, svg);
+      else btn.appendChild(label);
     });
   }
 
