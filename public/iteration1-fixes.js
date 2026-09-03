@@ -138,7 +138,9 @@
     var describeTab = document.querySelector('.route-tab[data-route="describe"]');
     if (!describeTab) return;
     var sub = describeTab.querySelector('.route-tab-sub');
-    if (sub) sub.textContent = currentLang() === 'bm' ? 'Teks bebas' : 'Free text';
+    if (!sub) return;
+    var desired = currentLang() === 'bm' ? 'Teks bebas' : 'Free text';
+    if (sub.textContent !== desired) sub.textContent = desired;
   }
 
   function removeGeneralGuidanceFromAboutPhotos() {
@@ -161,7 +163,8 @@
   function refreshLanguageSensitiveUi() {
     var select = document.getElementById('home_stateSelect');
     if (select && select.options.length) {
-      select.options[0].textContent = currentLang() === 'bm' ? 'Pilih negeri…' : 'Select state…';
+      var desiredPlaceholder = currentLang() === 'bm' ? 'Pilih negeri…' : 'Select state…';
+      if (select.options[0].textContent !== desiredPlaceholder) select.options[0].textContent = desiredPlaceholder;
     }
     localiseFreeTextControls();
     removeGeneralGuidanceFromAboutPhotos();
@@ -190,7 +193,10 @@
             var original = node.nodeValue || '';
             var trimmed = original.trim();
             if (/^(NA|N\/A)$/i.test(trimmed)) node.nodeValue = original.replace(trimmed, '');
-            else node.nodeValue = localiseDatesInText(original);
+            else {
+              var updated = localiseDatesInText(original);
+              if (updated !== original) node.nodeValue = updated;
+            }
           } else if (node.nodeType === Node.ELEMENT_NODE) {
             scrubVisibleText(node);
           }
