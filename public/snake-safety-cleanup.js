@@ -1,18 +1,14 @@
 (function () {
   'use strict';
 
-  // Use a neutral, non-venomous Malaysian/Southeast Asian snake as the
-  // representative image for the generic snake-safety route. The page must
-  // not imply that an unidentified snake is this species; this is display-only.
+  // Display-only representative snake photo. This must never be presented as
+  // the identity of an unknown snake reported by a user.
   var INAT_TAXON_ID = 26644; // Painted Bronzeback — Dendrelaphis pictus
   var INAT_TAXON_URL = 'https://www.inaturalist.org/taxa/' + INAT_TAXON_ID;
-  var FALLBACK_PHOTO = '';
   var cachedPhotoUrl = '';
 
-  function isSnakeImage(img) {
-    var src = String(img.getAttribute('src') || '');
-    var alt = String(img.getAttribute('alt') || '');
-    return /naja-sumatrana|snake|ular/i.test(src + ' ' + alt);
+  function neutralSnakeImage(photoUrl, className) {
+    return '<img src="' + photoUrl + '" alt="Representative non-venomous snake — Painted Bronzeback (Dendrelaphis pictus)" class="' + (className || 'w-full h-full object-cover') + '" data-neutral-snake-photo="true">';
   }
 
   function updateSnakeCopy(root) {
@@ -21,10 +17,12 @@
     while (walker.nextNode()) nodes.push(walker.currentNode);
     nodes.forEach(function (node) {
       var text = String(node.nodeValue || '');
-      if (/Naja\s+sumatrana|no species photo shown|tiada foto spesies ditunjukkan/i.test(text)) {
+      if (/Naja\s+sumatrana|no species photo shown|tiada foto spesies ditunjukkan|No species name or photo shown for snakes|Tiada nama spesies atau foto ditunjukkan untuk ular/i.test(text)) {
         node.nodeValue = text
           .replace(/representative\s+Naja\s+sumatrana\s+photo/gi, 'representative non-venomous snake photo')
           .replace(/foto\s+wakil\s+Naja\s+sumatrana/gi, 'foto wakil ular tidak berbisa')
+          .replace(/No species name or photo shown for snakes\s*[—-]\s*safety first/gi, 'Representative non-venomous snake photo — safety guidance only')
+          .replace(/Tiada nama spesies atau foto ditunjukkan untuk ular\s*[—-]\s*keselamatan diutamakan/gi, 'Foto wakil ular tidak berbisa — untuk panduan keselamatan sahaja')
           .replace(/no species photo shown/gi, 'representative non-venomous snake photo')
           .replace(/tiada foto spesies ditunjukkan/gi, 'foto wakil ular tidak berbisa')
           .replace(/Naja\s+sumatrana/gi, 'Dendrelaphis pictus');
@@ -40,38 +38,72 @@
     });
   }
 
-  function applyPhoto(root, photoUrl) {
-    if (!photoUrl) return;
-    (root || document).querySelectorAll('img').forEach(function (img) {
-      if (!isSnakeImage(img)) return;
-      img.src = photoUrl;
-      img.alt = 'Representative non-venomous snake — Painted Bronzeback (Dendrelaphis pictus)';
-      img.dataset.neutralSnakePhoto = 'true';
-    });
+  function ancestorLooksSnake(el) {
+    var cur = el;
+    for (var i = 0; cur && i < 7; i++, cur = cur.parentElement) {
+      var id = String(cur.id || '');
+      var onclick = String(cur.getAttribute && cur.getAttribute('onclick') || '');
+      var speciesId = String(cur.getAttribute && cur.getAttribute('data-species-id') || '');
+      var text = String(cur.textContent || '');
+      if (/snake/i.test(id) || speciesId === 'snake' || /snake|ular/i.test(onclick) || /snake|ular/i.test(text)) return true;
+    }
+    return false;
+  }
 
-    // Restore any snake image boxes that the previous cleanup version replaced
-    // with an alert icon. The box can be identified by nearby snake-route copy.
+  function replaceAlertGlyphs(root, photoUrl) {
+    if (!photoUrl) return;
     (root || document).querySelectorAll('svg').forEach(function (svg) {
+      var triangle = svg.querySelector('path[d="M12 3 2 20h20L12 3z"]');
+      if (!triangle || !ancestorLooksSnake(svg)) return;
       var box = svg.parentElement;
       if (!box) return;
-      var context = String((box.parentElement && box.parentElement.textContent) || '');
-      if (!/snake|ular/i.test(context)) return;
-      if (!svg.querySelector('path[d="M12 3 2 20h20L12 3z"]')) return;
-      var img = document.createElement('img');
+      box.innerHTML = neutralSnakeImage(photoUrl);
+      box.classList.remove('text-amber-300', 'text-amber-500');
+    });
+  }
+
+  function replaceKnownSnakeBoxes(root, photoUrl) {
+    if (!photoUrl) return;
+
+    // Dynamic identity headers on snake pages.
+    (root || document).querySelectorAll('[id*="snake"][id$="_iconBox"], [data-species-id="snake"] .relative').forEach(function (box) {
+      if (box.querySelector('[data-neutral-snake-photo="true"]')) return;
+      box.innerHTML = neutralSnakeImage(photoUrl);
+      box.classList.remove('text-amber-300', 'text-amber-500');
+    });
+
+    // Any remaining actual snake images, including old Naja asset references.
+    (root || document).querySelectorAll('img').forEach(function (img) {
+      var src = String(img.getAttribute('src') || '');
+      var alt = String(img.getAttribute('alt') || '');
+      if (!/naja-sumatrana|snake|ular/i.test(src + ' ' + alt) && !ancestorLooksSnake(img)) return;
       img.src = photoUrl;
       img.alt = 'Representative non-venomous snake — Painted Bronzeback (Dendrelaphis pictus)';
-      img.className = 'w-full h-full object-cover';
       img.dataset.neutralSnakePhoto = 'true';
-      box.innerHTML = '';
-      box.appendChild(img);
-      box.classList.remove('text-amber-500');
     });
+  }
+
+  function exposePhotoToExistingRuntime(photoUrl) {
+    if (!photoUrl) return;
+    try {
+      if (typeof STATIC_SNAKE_PHOTO !== 'undefined') STATIC_SNAKE_PHOTO = photoUrl;
+      if (typeof STATIC_SNAKE_SOURCE !== 'undefined') STATIC_SNAKE_SOURCE = INAT_TAXON_URL;
+      if (typeof ICONS !== 'undefined' && ICONS) ICONS.alert = neutralSnakeImage(photoUrl);
+      if (typeof snakeStaticImageHtml === 'function') {
+        // Future home/Identify renders will use the neutral photo through ICONS.alert.
+      }
+    } catch (e) {
+      console.warn('[RoomForBoth] Could not expose neutral snake image to page runtime', e);
+    }
   }
 
   function refresh(root) {
     updateSnakeCopy(root || document.body);
     updateSnakeSourceLinks(root || document);
-    applyPhoto(root || document, cachedPhotoUrl || FALLBACK_PHOTO);
+    if (!cachedPhotoUrl) return;
+    exposePhotoToExistingRuntime(cachedPhotoUrl);
+    replaceKnownSnakeBoxes(root || document, cachedPhotoUrl);
+    replaceAlertGlyphs(root || document, cachedPhotoUrl);
   }
 
   async function loadINaturalistPhoto() {
@@ -97,6 +129,9 @@
           if (node.nodeType === Node.ELEMENT_NODE) refresh(node);
         });
       });
+      // Dynamic route rendering may replace an existing iconBox without adding
+      // a snake-labelled wrapper, so also rescan the document after each batch.
+      refresh(document);
     });
     observer.observe(document.body, { childList: true, subtree: true });
   }
