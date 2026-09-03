@@ -156,24 +156,39 @@
     }
   }
 
+  function removeGeneralGuidanceFromAboutPhotos() {
+    var photoList = document.getElementById('about_photoList');
+    if (!photoList) return;
+
+    Array.prototype.slice.call(photoList.children).forEach(function (card) {
+      var label = String(card.textContent || '').toLowerCase();
+      if (label.indexOf('general guidance') !== -1 || label.indexOf('panduan am') !== -1) {
+        card.remove();
+      }
+    });
+  }
+
   function refreshLanguageSensitiveUi() {
     var select = document.getElementById('home_stateSelect');
     if (select && select.options.length) {
       select.options[0].textContent = currentLang() === 'bm' ? 'Pilih negeri…' : 'Select state…';
     }
     localiseFreeTextControls();
+    removeGeneralGuidanceFromAboutPhotos();
     scrubVisibleText(document.body);
   }
 
   function init() {
     hidePrintableGuidanceCard();
     localiseFreeTextControls();
+    removeGeneralGuidanceFromAboutPhotos();
     scrubVisibleText(document.body);
 
     setTimeout(function () {
       populateHomeStates().then(function () {
         setTimeout(populateHomeStates, 300);
       });
+      removeGeneralGuidanceFromAboutPhotos();
     }, 0);
 
     var bodyObserver = new MutationObserver(function (mutations) {
@@ -189,6 +204,7 @@
           }
         });
       });
+      removeGeneralGuidanceFromAboutPhotos();
     });
     bodyObserver.observe(document.body, { childList: true, subtree: true });
 
