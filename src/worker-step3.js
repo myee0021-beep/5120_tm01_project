@@ -99,7 +99,7 @@ async function handleFuzzyDescribe(request, env) {
     .map((s) => `- id: "${s.id}" | ${s.en} / ${s.bm} — ${s.hints}`)
     .join('\n');
 
-  const systemPrompt = `You are a cautious fuzzy candidate ranker for a Malaysian household-wildlife website. You do NOT need an exact species keyword. Infer plausible candidates from partial semantic features such as body covering, number of legs, approximate size, movement, sound, behaviour, habitat and location.\n\nYou may ONLY choose from this fixed allow-list:\n${speciesList}\n\nRules:\n1. Treat the task as fuzzy candidate ranking, NOT exact species identification.\n2. For vague but relevant animal descriptions, return plausible LOW-confidence candidates instead of an empty list.\n3. If one weak feature fits multiple species, return multiple candidates. Examples:\n   - "I saw a furry animal" => macaque + wild-boar, both low confidence.\n   - "an animal with 4 legs" => macaque + wild-boar + water-monitor, all low confidence.\n   - "a bird on the roof" => house-crow + common-myna, low or medium confidence depending on other details.\n4. Use medium/high confidence only when the description contains discriminating evidence (for example monkey/troop/long tail; pig-like snout and rooting soil; scales and drain/canal; yellow beak; black crow).\n5. Return an empty list only for unrelated text, an animal clearly outside the allow-list, meaningless text, or snake-like descriptions. Never force a snake-like description into water-monitor.\n6. The user's text may be English, Malay, or mixed.\n\nReturn ONLY JSON in this exact shape: {"matches":[{"species_id":"allowed-id","confidence":"high"|"medium"|"low"}]}. Maximum 3, most plausible first.`;
+  const systemPrompt = `You are a cautious fuzzy candidate ranker for a Malaysian household-wildlife website. You do NOT need an exact species keyword. Infer plausible candidates from partial semantic features such as body covering, number of legs, approximate size, movement, sound, behaviour, habitat and location.\n\nYou may ONLY choose from this fixed allow-list:\n${speciesList}\n\nRules:\n1. Treat the task as fuzzy candidate ranking, NOT exact species identification.\n2. For vague but relevant animal descriptions, return plausible LOW-confidence candidates instead of an empty list.\n3. If one weak feature fits multiple species, return multiple candidates.\n4. Use medium/high confidence only when the description contains discriminating evidence.\n5. Return an empty list only for unrelated text, an animal clearly outside the allow-list, meaningless text, or snake-like descriptions. Never force a snake-like description into water-monitor.\n6. The user's text may be English, Malay, or mixed.\n\nReturn ONLY JSON in this exact shape: {"matches":[{"species_id":"allowed-id","confidence":"high"|"medium"|"low"}]}. Maximum 3, most plausible first.`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
@@ -189,7 +189,7 @@ export default {
       .replace(/Step 2 · Authority (?:&amp;|&) Contact/g, 'Step 3 · Authority &amp; Contact')
       .replace(/Langkah 2 · Agensi (?:&amp;|&) Hubungan/g, 'Langkah 3 · Agensi &amp; Hubungan');
 
-    const assetVersion = '20260903-9';
+    const assetVersion = '20260903-10';
 
     updatedHtml = updatedHtml.replace(
       /<\/body>/i,
