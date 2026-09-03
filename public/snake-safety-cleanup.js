@@ -38,13 +38,11 @@
 
   function replaceSnakeHomeOption(root, photoUrl) {
     if (!photoUrl) return;
-    // Homepage custom dropdown rows use data-value, not data-species-id.
     (root || document).querySelectorAll('#home_animalList [data-value="snake"], [role="option"][data-value="snake"]').forEach(function (row) {
       var thumb = row.querySelector('span.w-7, span[class*="w-7"]');
       if (thumb) thumb.innerHTML = neutralSnakeImage(photoUrl);
     });
 
-    // If Snake is currently selected, update the button thumbnail too.
     var select = document.getElementById('home_animalSelect');
     var selectedThumb = document.getElementById('home_animalBtnThumb');
     if (select && selectedThumb && select.value === 'snake') {
@@ -54,19 +52,41 @@
     }
   }
 
+  function ensureSnakeCardNavigation(root) {
+    (root || document).querySelectorAll('.id-card[data-species-id="snake"]').forEach(function (row) {
+      var confirm = row.querySelector('.confirm-btn');
+      if (!confirm) {
+        confirm = document.createElement('a');
+        confirm.href = '#';
+        confirm.className = 'confirm-btn shrink-0 items-center gap-1.5 rounded-full bg-forest-950 hover:bg-black transition-colors text-white text-xs font-bold px-4 py-2';
+        confirm.innerHTML = '<span data-en>Confirm</span><span data-bm>Sahkan</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+        row.appendChild(confirm);
+      }
+      if (confirm.dataset.snakeNavBound === 'true') return;
+      confirm.dataset.snakeNavBound = 'true';
+      confirm.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+          if (typeof APP !== 'undefined' && APP) APP.speciesId = 'snake';
+        } catch (_) {}
+        goTo('snakewhattodo');
+      });
+    });
+  }
+
   function replaceSnakeCandidateCards(root, photoUrl) {
     if (!photoUrl) return;
     (root || document).querySelectorAll('[data-species-id="snake"]').forEach(function (row) {
       var holder = row.querySelector('.relative, [class*="w-11"]');
       if (holder) holder.innerHTML = neutralSnakeImage(photoUrl);
     });
+    ensureSnakeCardNavigation(root || document);
   }
 
   function replaceSnakePageHero(root, photoUrl) {
     if (!photoUrl) return;
 
-    // Static Snake at your home hero: find its exact heading, then replace only
-    // the adjacent thumbnail box. This avoids touching unrelated warning icons.
     (root || document).querySelectorAll('h1').forEach(function (heading) {
       var text = String(heading.textContent || '').trim();
       if (!/Snake at your home|Ular di rumah anda/i.test(text)) return;
@@ -79,7 +99,6 @@
       }
     });
 
-    // Dynamic snake identity boxes on downstream pages.
     (root || document).querySelectorAll('[id*="snake"][id$="_iconBox"], #snake_iconBox').forEach(function (box) {
       box.innerHTML = neutralSnakeImage(photoUrl);
       box.classList.remove('text-amber-300', 'text-amber-500');
@@ -100,7 +119,6 @@
     try {
       if (typeof STATIC_SNAKE_PHOTO !== 'undefined') STATIC_SNAKE_PHOTO = photoUrl;
       if (typeof STATIC_SNAKE_SOURCE !== 'undefined') STATIC_SNAKE_SOURCE = INAT_TAXON_URL;
-      // Homepage uses this helper every time it renders the snake option.
       if (typeof window.snakeStaticImageHtml === 'function') {
         window.snakeStaticImageHtml = function () { return neutralSnakeImage(photoUrl); };
       } else if (typeof snakeStaticImageHtml === 'function') {
@@ -114,6 +132,7 @@
   function refresh(root) {
     updateSnakeCopy(root || document.body);
     updateSnakeSourceLinks(root || document);
+    ensureSnakeCardNavigation(root || document);
     if (!cachedPhotoUrl) return;
     exposePhotoToPageRuntime(cachedPhotoUrl);
     replaceSnakeHomeOption(root || document, cachedPhotoUrl);
