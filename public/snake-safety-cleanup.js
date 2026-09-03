@@ -1,8 +1,6 @@
 (function () {
   'use strict';
 
-  // Display-only representative snake photo. This must never be presented as
-  // the identity of an unknown snake reported by a user.
   var INAT_TAXON_ID = 26644; // Painted Bronzeback — Dendrelaphis pictus
   var INAT_TAXON_URL = 'https://www.inaturalist.org/taxa/' + INAT_TAXON_ID;
   var cachedPhotoUrl = '';
@@ -38,48 +36,45 @@
     });
   }
 
-  function ancestorLooksSnake(el) {
-    var cur = el;
-    for (var i = 0; cur && i < 7; i++, cur = cur.parentElement) {
-      var id = String(cur.id || '');
-      var onclick = String(cur.getAttribute && cur.getAttribute('onclick') || '');
-      var speciesId = String(cur.getAttribute && cur.getAttribute('data-species-id') || '');
-      var text = String(cur.textContent || '');
-      if (/snake/i.test(id) || speciesId === 'snake' || /snake|ular/i.test(onclick) || /snake|ular/i.test(text)) return true;
-    }
-    return false;
+  function replaceExplicitSnakeNodes(root, photoUrl) {
+    if (!photoUrl) return;
+
+    // Candidate cards / dropdown rows explicitly labelled as snake.
+    (root || document).querySelectorAll('[data-species-id="snake"]').forEach(function (row) {
+      var img = row.querySelector('img');
+      if (img) {
+        img.src = photoUrl;
+        img.alt = 'Representative non-venomous snake — Painted Bronzeback (Dendrelaphis pictus)';
+        img.dataset.neutralSnakePhoto = 'true';
+        return;
+      }
+      var iconBox = row.querySelector('.relative, .shrink-0, [class*="w-11"], [class*="w-20"]');
+      if (iconBox) iconBox.innerHTML = neutralSnakeImage(photoUrl);
+    });
+
+    // Snake page identity boxes use ids that include snake.
+    (root || document).querySelectorAll('[id*="snake"][id$="_iconBox"], #snake_iconBox, #snakeWhatToDo_iconBox, #snakeAuthority_iconBox, #snakeFindable_iconBox').forEach(function (box) {
+      box.innerHTML = neutralSnakeImage(photoUrl);
+      box.classList.remove('text-amber-300', 'text-amber-500');
+    });
+
+    // Old explicit snake assets only. Do NOT infer from ancestor text because
+    // dropdown containers contain all animal names and would contaminate every row.
+    (root || document).querySelectorAll('img[src*="naja-sumatrana"], img[alt="Snake"], img[alt="Ular"]').forEach(function (img) {
+      img.src = photoUrl;
+      img.alt = 'Representative non-venomous snake — Painted Bronzeback (Dendrelaphis pictus)';
+      img.dataset.neutralSnakePhoto = 'true';
+    });
   }
 
-  function replaceAlertGlyphs(root, photoUrl) {
+  function replaceSnakeAlertGlyphs(root, photoUrl) {
     if (!photoUrl) return;
-    (root || document).querySelectorAll('svg').forEach(function (svg) {
-      var triangle = svg.querySelector('path[d="M12 3 2 20h20L12 3z"]');
-      if (!triangle || !ancestorLooksSnake(svg)) return;
+    (root || document).querySelectorAll('[data-species-id="snake"] svg, [id*="snake"] svg').forEach(function (svg) {
+      if (!svg.querySelector('path[d="M12 3 2 20h20L12 3z"]')) return;
       var box = svg.parentElement;
       if (!box) return;
       box.innerHTML = neutralSnakeImage(photoUrl);
       box.classList.remove('text-amber-300', 'text-amber-500');
-    });
-  }
-
-  function replaceKnownSnakeBoxes(root, photoUrl) {
-    if (!photoUrl) return;
-
-    // Dynamic identity headers on snake pages.
-    (root || document).querySelectorAll('[id*="snake"][id$="_iconBox"], [data-species-id="snake"] .relative').forEach(function (box) {
-      if (box.querySelector('[data-neutral-snake-photo="true"]')) return;
-      box.innerHTML = neutralSnakeImage(photoUrl);
-      box.classList.remove('text-amber-300', 'text-amber-500');
-    });
-
-    // Any remaining actual snake images, including old Naja asset references.
-    (root || document).querySelectorAll('img').forEach(function (img) {
-      var src = String(img.getAttribute('src') || '');
-      var alt = String(img.getAttribute('alt') || '');
-      if (!/naja-sumatrana|snake|ular/i.test(src + ' ' + alt) && !ancestorLooksSnake(img)) return;
-      img.src = photoUrl;
-      img.alt = 'Representative non-venomous snake — Painted Bronzeback (Dendrelaphis pictus)';
-      img.dataset.neutralSnakePhoto = 'true';
     });
   }
 
@@ -88,10 +83,6 @@
     try {
       if (typeof STATIC_SNAKE_PHOTO !== 'undefined') STATIC_SNAKE_PHOTO = photoUrl;
       if (typeof STATIC_SNAKE_SOURCE !== 'undefined') STATIC_SNAKE_SOURCE = INAT_TAXON_URL;
-      if (typeof ICONS !== 'undefined' && ICONS) ICONS.alert = neutralSnakeImage(photoUrl);
-      if (typeof snakeStaticImageHtml === 'function') {
-        // Future home/Identify renders will use the neutral photo through ICONS.alert.
-      }
     } catch (e) {
       console.warn('[RoomForBoth] Could not expose neutral snake image to page runtime', e);
     }
@@ -102,8 +93,8 @@
     updateSnakeSourceLinks(root || document);
     if (!cachedPhotoUrl) return;
     exposePhotoToExistingRuntime(cachedPhotoUrl);
-    replaceKnownSnakeBoxes(root || document, cachedPhotoUrl);
-    replaceAlertGlyphs(root || document, cachedPhotoUrl);
+    replaceExplicitSnakeNodes(root || document, cachedPhotoUrl);
+    replaceSnakeAlertGlyphs(root || document, cachedPhotoUrl);
   }
 
   async function loadINaturalistPhoto() {
@@ -129,9 +120,6 @@
           if (node.nodeType === Node.ELEMENT_NODE) refresh(node);
         });
       });
-      // Dynamic route rendering may replace an existing iconBox without adding
-      // a snake-labelled wrapper, so also rescan the document after each batch.
-      refresh(document);
     });
     observer.observe(document.body, { childList: true, subtree: true });
   }
