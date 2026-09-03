@@ -18,7 +18,7 @@ export default {
 
     // Version injected assets so a fresh deployment bypasses stale browser/edge cache.
     // Increment this value whenever these patch assets need an explicit cache-bust.
-    const assetVersion = '20260903-4';
+    const assetVersion = '20260903-5';
 
     // general-guidance-db-fixes.js is intentionally no longer injected. It used
     // to overwrite the page hero background. The General Guidance thumbnail is
@@ -26,7 +26,7 @@ export default {
     // Taman Negara rainforest hero defined by the page remains untouched.
     updatedHtml = updatedHtml.replace(
       /<\/body>/i,
-      `<script src="/iteration1-fixes.js?v=${assetVersion}"></script><script src="/bilingual-fallback.js?v=${assetVersion}"></script><script src="/provenance-links.js?v=${assetVersion}"></script><script src="/hide-prevention-source-summary.js?v=${assetVersion}"></script><script src="/state-occurrence-data.js?v=${assetVersion}"></script><script src="/species-state-occurrence.js?v=${assetVersion}"></script><script src="/general-guidance-image-fix.js?v=${assetVersion}"></script><script src="/authority-db.js?v=${assetVersion}"></script><script src="/snake-safety-cleanup.js?v=${assetVersion}"></script><script src="/mentor-review-fixes.js?v=${assetVersion}"></script></body>`
+      `<script src="/iteration1-fixes.js?v=${assetVersion}"></script><script src="/bilingual-fallback.js?v=${assetVersion}"></script><script src="/provenance-links.js?v=${assetVersion}"></script><script src="/hide-prevention-source-summary.js?v=${assetVersion}"></script><script src="/state-occurrence-data.js?v=${assetVersion}"></script><script src="/species-state-occurrence.js?v=${assetVersion}"></script><script src="/general-guidance-image-fix.js?v=${assetVersion}"></script><script src="/authority-db.js?v=${assetVersion}"></script><script src="/snake-safety-cleanup.js?v=${assetVersion}"></script><script src="/mentor-review-fixes.js?v=${assetVersion}"></script><script src="/identify-confirm-bilingual.js?v=${assetVersion}"></script></body>`
     );
 
     const headers = new Headers(response.headers);
