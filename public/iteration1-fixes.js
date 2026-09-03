@@ -134,23 +134,53 @@
       });
   }
 
+  function localiseFreeTextControls() {
+    var describeTab = document.querySelector('.route-tab[data-route="describe"]');
+    if (!describeTab) return;
+    var sub = describeTab.querySelector('.route-tab-sub');
+    if (sub) sub.textContent = currentLang() === 'bm' ? 'Teks bebas' : 'Free text';
+  }
+
+  function removeGeneralGuidanceFromAboutPhotos() {
+    var photoList = document.getElementById('about_photoList');
+    if (!photoList) return;
+    Array.prototype.slice.call(photoList.children).forEach(function (card) {
+      var label = String(card.textContent || '').toLowerCase();
+      if (label.indexOf('general guidance') !== -1 || label.indexOf('panduan am') !== -1) card.remove();
+    });
+  }
+
+  function removePrintableGuidanceCard() {
+    var button = document.getElementById('auth_printBtn');
+    if (!button) return;
+    var wrapper = button.closest('.no-print') || button.parentElement;
+    if (wrapper && wrapper !== document.body) wrapper.remove();
+    else button.remove();
+  }
+
   function refreshLanguageSensitiveUi() {
     var select = document.getElementById('home_stateSelect');
     if (select && select.options.length) {
       select.options[0].textContent = currentLang() === 'bm' ? 'Pilih negeri…' : 'Select state…';
     }
+    localiseFreeTextControls();
+    removeGeneralGuidanceFromAboutPhotos();
+    removePrintableGuidanceCard();
     scrubVisibleText(document.body);
   }
 
   function init() {
+    localiseFreeTextControls();
+    removeGeneralGuidanceFromAboutPhotos();
+    removePrintableGuidanceCard();
     scrubVisibleText(document.body);
 
-    // Populate after the page's own scripts have finished initialising, then retry once
-    // to prevent older hard-coded initialisation from overwriting the database result.
     setTimeout(function () {
       populateHomeStates().then(function () {
         setTimeout(populateHomeStates, 300);
       });
+      removeGeneralGuidanceFromAboutPhotos();
+      removePrintableGuidanceCard();
     }, 0);
 
     var bodyObserver = new MutationObserver(function (mutations) {
@@ -166,6 +196,9 @@
           }
         });
       });
+      localiseFreeTextControls();
+      removeGeneralGuidanceFromAboutPhotos();
+      removePrintableGuidanceCard();
     });
     bodyObserver.observe(document.body, { childList: true, subtree: true });
 
