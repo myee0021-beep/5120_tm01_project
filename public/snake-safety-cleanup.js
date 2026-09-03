@@ -36,30 +36,58 @@
     });
   }
 
-  function replaceExplicitSnakeNodes(root, photoUrl) {
+  function replaceSnakeHomeOption(root, photoUrl) {
     if (!photoUrl) return;
-
-    // Candidate cards / dropdown rows explicitly labelled as snake.
-    (root || document).querySelectorAll('[data-species-id="snake"]').forEach(function (row) {
-      var img = row.querySelector('img');
-      if (img) {
-        img.src = photoUrl;
-        img.alt = 'Representative non-venomous snake — Painted Bronzeback (Dendrelaphis pictus)';
-        img.dataset.neutralSnakePhoto = 'true';
-        return;
-      }
-      var iconBox = row.querySelector('.relative, .shrink-0, [class*="w-11"], [class*="w-20"]');
-      if (iconBox) iconBox.innerHTML = neutralSnakeImage(photoUrl);
+    // Homepage custom dropdown rows use data-value, not data-species-id.
+    (root || document).querySelectorAll('#home_animalList [data-value="snake"], [role="option"][data-value="snake"]').forEach(function (row) {
+      var thumb = row.querySelector('span.w-7, span[class*="w-7"]');
+      if (thumb) thumb.innerHTML = neutralSnakeImage(photoUrl);
     });
 
-    // Snake page identity boxes use ids that include snake.
-    (root || document).querySelectorAll('[id*="snake"][id$="_iconBox"], #snake_iconBox, #snakeWhatToDo_iconBox, #snakeAuthority_iconBox, #snakeFindable_iconBox').forEach(function (box) {
+    // If Snake is currently selected, update the button thumbnail too.
+    var select = document.getElementById('home_animalSelect');
+    var selectedThumb = document.getElementById('home_animalBtnThumb');
+    if (select && selectedThumb && select.value === 'snake') {
+      selectedThumb.innerHTML = neutralSnakeImage(photoUrl);
+      selectedThumb.classList.remove('hidden');
+      selectedThumb.classList.add('flex');
+    }
+  }
+
+  function replaceSnakeCandidateCards(root, photoUrl) {
+    if (!photoUrl) return;
+    (root || document).querySelectorAll('[data-species-id="snake"]').forEach(function (row) {
+      var holder = row.querySelector('.relative, [class*="w-11"]');
+      if (holder) holder.innerHTML = neutralSnakeImage(photoUrl);
+    });
+  }
+
+  function replaceSnakePageHero(root, photoUrl) {
+    if (!photoUrl) return;
+
+    // Static Snake at your home hero: find its exact heading, then replace only
+    // the adjacent thumbnail box. This avoids touching unrelated warning icons.
+    (root || document).querySelectorAll('h1').forEach(function (heading) {
+      var text = String(heading.textContent || '').trim();
+      if (!/Snake at your home|Ular di rumah anda/i.test(text)) return;
+      var wrap = heading.closest('.flex.items-start') || heading.parentElement && heading.parentElement.parentElement;
+      if (!wrap) return;
+      var box = wrap.querySelector('.w-20.h-20, .sm\\:w-24.sm\\:h-24, div[class*="w-20"][class*="h-20"]');
+      if (box) {
+        box.innerHTML = neutralSnakeImage(photoUrl);
+        box.classList.remove('text-amber-300', 'text-amber-500');
+      }
+    });
+
+    // Dynamic snake identity boxes on downstream pages.
+    (root || document).querySelectorAll('[id*="snake"][id$="_iconBox"], #snake_iconBox').forEach(function (box) {
       box.innerHTML = neutralSnakeImage(photoUrl);
       box.classList.remove('text-amber-300', 'text-amber-500');
     });
+  }
 
-    // Old explicit snake assets only. Do NOT infer from ancestor text because
-    // dropdown containers contain all animal names and would contaminate every row.
+  function replaceOldExplicitSnakeImages(root, photoUrl) {
+    if (!photoUrl) return;
     (root || document).querySelectorAll('img[src*="naja-sumatrana"], img[alt="Snake"], img[alt="Ular"]').forEach(function (img) {
       img.src = photoUrl;
       img.alt = 'Representative non-venomous snake — Painted Bronzeback (Dendrelaphis pictus)';
@@ -67,22 +95,17 @@
     });
   }
 
-  function replaceSnakeAlertGlyphs(root, photoUrl) {
-    if (!photoUrl) return;
-    (root || document).querySelectorAll('[data-species-id="snake"] svg, [id*="snake"] svg').forEach(function (svg) {
-      if (!svg.querySelector('path[d="M12 3 2 20h20L12 3z"]')) return;
-      var box = svg.parentElement;
-      if (!box) return;
-      box.innerHTML = neutralSnakeImage(photoUrl);
-      box.classList.remove('text-amber-300', 'text-amber-500');
-    });
-  }
-
-  function exposePhotoToExistingRuntime(photoUrl) {
+  function exposePhotoToPageRuntime(photoUrl) {
     if (!photoUrl) return;
     try {
       if (typeof STATIC_SNAKE_PHOTO !== 'undefined') STATIC_SNAKE_PHOTO = photoUrl;
       if (typeof STATIC_SNAKE_SOURCE !== 'undefined') STATIC_SNAKE_SOURCE = INAT_TAXON_URL;
+      // Homepage uses this helper every time it renders the snake option.
+      if (typeof window.snakeStaticImageHtml === 'function') {
+        window.snakeStaticImageHtml = function () { return neutralSnakeImage(photoUrl); };
+      } else if (typeof snakeStaticImageHtml === 'function') {
+        snakeStaticImageHtml = function () { return neutralSnakeImage(photoUrl); };
+      }
     } catch (e) {
       console.warn('[RoomForBoth] Could not expose neutral snake image to page runtime', e);
     }
@@ -92,9 +115,11 @@
     updateSnakeCopy(root || document.body);
     updateSnakeSourceLinks(root || document);
     if (!cachedPhotoUrl) return;
-    exposePhotoToExistingRuntime(cachedPhotoUrl);
-    replaceExplicitSnakeNodes(root || document, cachedPhotoUrl);
-    replaceSnakeAlertGlyphs(root || document, cachedPhotoUrl);
+    exposePhotoToPageRuntime(cachedPhotoUrl);
+    replaceSnakeHomeOption(root || document, cachedPhotoUrl);
+    replaceSnakeCandidateCards(root || document, cachedPhotoUrl);
+    replaceSnakePageHero(root || document, cachedPhotoUrl);
+    replaceOldExplicitSnakeImages(root || document, cachedPhotoUrl);
   }
 
   async function loadINaturalistPhoto() {
