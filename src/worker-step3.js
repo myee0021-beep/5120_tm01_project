@@ -43,15 +43,11 @@ function deterministicFuzzyFallback(text) {
     if (!matches.some((m) => m.species_id === id)) matches.push({ species_id: id, confidence: 'low' });
   };
 
-  // Broad mammal appearance: deliberately return alternatives rather than
-  // pretending one species is confirmed from a weak feature.
   if (/\b(furry|fur|hairy|berbulu)\b/i.test(lower)) {
     add('macaque');
     add('wild-boar');
   }
 
-  // Four legs is useful only as a broad body-shape feature in this tiny
-  // allow-list. Keep several plausible candidates and let the resident confirm.
   if (/\b(4|four|empat)\s*[- ]?leg(?:s|ged)?\b/i.test(lower) || /\bfour[- ]legged\b/i.test(lower)) {
     add('macaque');
     add('wild-boar');
@@ -83,9 +79,6 @@ async function handleFuzzyDescribe(request, env) {
   const text = String(body?.text || '').trim().slice(0, 500);
   if (!text) return fuzzyJson({ ok: false, error: 'text is required.' }, 400);
 
-  // Defence in depth. The browser normally catches these first and routes to
-  // snake safety, but the AI fuzzy layer must never turn snake-like text into
-  // a lizard or mammal guess.
   if (SNAKE_LIKE_RE.test(text)) {
     return fuzzyJson({ ok: true, status: 'snake_safety', species_ids: [], matches: [] });
   }
@@ -154,8 +147,6 @@ async function handleFuzzyDescribe(request, env) {
       }
     }
 
-    // If the model is still over-conservative on a broad but meaningful
-    // feature, use the deterministic candidates as a safety net.
     const matches = aiMatches.length ? aiMatches : fallback;
     const lowOnly = matches.length > 0 && matches.every((m) => m.confidence === 'low');
     const status = matches.length === 0 ? 'no_match' : (lowOnly || matches.length > 1 ? 'needs_clarification' : 'candidate');
@@ -192,17 +183,13 @@ export default {
 
     if (!contentType.includes('text/html')) return response;
 
-    // Keep HTML delivery non-blocking. The homepage state dropdown is populated
-    // asynchronously by iteration1-fixes.js from /api/states after the page renders.
-    // Do not make the initial HTML response wait on Neon.
     const html = await response.text();
 
     let updatedHtml = html
       .replace(/Step 2 · Authority (?:&amp;|&) Contact/g, 'Step 3 · Authority &amp; Contact')
       .replace(/Langkah 2 · Agensi (?:&amp;|&) Hubungan/g, 'Langkah 3 · Agensi &amp; Hubungan');
 
-    // Version injected assets so a fresh deployment bypasses stale browser/edge cache.
-    const assetVersion = '20260903-8';
+    const assetVersion = '20260903-9';
 
     updatedHtml = updatedHtml.replace(
       /<\/body>/i,
