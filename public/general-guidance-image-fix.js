@@ -1,11 +1,9 @@
 (function () {
   'use strict';
 
-  var TAXON_ID = 346360;
-  var SOURCE_URL = 'https://www.inaturalist.org/taxa/346360-Dillenia-suffruticosa';
-  var imageUrl = '';
-  var creditEn = 'iNaturalist';
-  var creditBm = 'iNaturalist';
+  // User-provided generic wildlife illustration for the General Guidance route.
+  // This is not a species photo, so no iNaturalist credit/source is shown.
+  var IMAGE_URL = '/assets/general-guidance-wildlife.jpg';
 
   function isGeneralRoute() {
     try {
@@ -15,92 +13,64 @@
     }
   }
 
-  function getGeneralSpecies() {
-    if (!Array.isArray(window.SPECIES)) return null;
-    return window.SPECIES.find(function (s) { return s && s.id === 'general'; }) || null;
+  function imageHtml() {
+    return '<img src="' + IMAGE_URL + '" alt="General wildlife guidance illustration" class="w-full h-full object-cover" data-general-guidance-image="true">';
   }
 
-  function patchGeneralSpecies() {
-    if (!imageUrl) return;
-    var general = getGeneralSpecies();
-    if (!general) return;
-    general.photo = general.photo || {};
-    general.photo.dataUri = imageUrl;
-    general.photo.creditEn = creditEn;
-    general.photo.creditBm = creditBm;
-    general.photo.sourceUrl = SOURCE_URL;
+  function patchIconBox(id) {
+    var box = document.getElementById(id);
+    if (!box) return;
+    if (box.querySelector('img[data-general-guidance-image="true"]')) return;
+    box.innerHTML = imageHtml();
+  }
+
+  function hidePhotoCredits() {
+    ['wtd_photoCredit', 'auth_photoCredit', 'sp_photoCredit', 'kif_photoCredit'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('hidden');
+      el.style.display = 'none';
+    });
+
+    ['wtd_photoSourceLink', 'auth_photoSourceLink', 'sp_photoSourceLink', 'kif_photoSourceLink'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.removeAttribute('href');
+      el.style.display = 'none';
+    });
   }
 
   function patchVisibleGeneralImage() {
-    if (!isGeneralRoute() || !imageUrl) return;
+    if (!isGeneralRoute()) return;
 
-    var selectors = [
-      '#auth_iconBox img',
-      '#sp_iconBox img',
-      '#kif_iconBox img',
-      'img[alt="General guidance"]',
-      'img[alt="Panduan Am"]'
-    ];
+    // Replace the old flower/species-photo slot everywhere the General Guidance
+    // identity header appears, without changing the rainforest hero background.
+    ['wtd_iconBox', 'auth_iconBox', 'sp_iconBox', 'kif_iconBox'].forEach(patchIconBox);
 
-    document.querySelectorAll(selectors.join(',')).forEach(function (img) {
-      img.src = imageUrl;
-      img.alt = 'Dillenia suffruticosa';
+    document.querySelectorAll('img[alt="General guidance"], img[alt="Panduan Am"], img[alt="Dillenia suffruticosa"]').forEach(function (img) {
+      img.src = IMAGE_URL;
+      img.alt = 'General wildlife guidance illustration';
+      img.dataset.generalGuidanceImage = 'true';
       img.onerror = null;
     });
 
-    ['auth_photoCredit', 'sp_photoCredit', 'kif_photoCredit'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.classList.remove('hidden');
-      var en = el.querySelector('[data-en]');
-      var bm = el.querySelector('[data-bm]');
-      if (en) en.textContent = creditEn;
-      if (bm) bm.textContent = creditBm;
-      if (!en && !bm) el.textContent = 'iNaturalist';
-    });
-
-    ['auth_photoSourceLink', 'sp_photoSourceLink', 'kif_photoSourceLink'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.href = SOURCE_URL;
-      el.target = '_blank';
-      el.rel = 'noopener';
-      el.style.display = '';
-    });
+    hidePhotoCredits();
   }
 
   function apply() {
-    patchGeneralSpecies();
     patchVisibleGeneralImage();
   }
 
-  function loadPhoto() {
-    return fetch('https://api.inaturalist.org/v1/taxa/' + TAXON_ID, {
-      headers: { Accept: 'application/json' }
-    })
-      .then(function (res) {
-        if (!res.ok) throw new Error('iNaturalist HTTP ' + res.status);
-        return res.json();
-      })
-      .then(function (payload) {
-        var taxon = payload && payload.results && payload.results[0];
-        var photo = taxon && taxon.default_photo;
-        if (!photo) throw new Error('No default photo returned');
-
-        imageUrl = photo.medium_url || photo.url || photo.square_url || '';
-        if (!imageUrl) throw new Error('No usable photo URL returned');
-        apply();
-      })
-      .catch(function (err) {
-        console.warn('[Room for Both] General Guidance iNaturalist photo could not be loaded:', err.message);
-      });
-  }
-
   function init() {
-    loadPhoto();
+    apply();
     document.addEventListener('click', function () { setTimeout(apply, 0); }, true);
     window.addEventListener('hashchange', function () { setTimeout(apply, 0); });
     window.addEventListener('roomforboth:db-ready', function () { setTimeout(apply, 0); });
+
+    var observer = new MutationObserver(function () {
+      setTimeout(apply, 0);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
