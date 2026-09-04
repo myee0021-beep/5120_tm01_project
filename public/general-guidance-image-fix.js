@@ -1,8 +1,9 @@
 (function () {
   'use strict';
 
-  // User-provided generic wildlife illustration for the General Guidance route.
-  // This is not a species photo, so no iNaturalist credit/source is shown.
+  // Square wildlife illustration optimized for the General Guidance route.
+  // It is a generic illustration, not a species photo, so no iNaturalist
+  // credit/source is shown underneath it.
   var IMAGE_URL = '/assets/general-guidance-wildlife.jpg';
 
   function isGeneralRoute() {
@@ -14,13 +15,12 @@
   }
 
   function imageHtml() {
-    return '<img src="' + IMAGE_URL + '" alt="General wildlife guidance illustration" class="w-full h-full object-cover" data-general-guidance-image="true">';
+    return '<img src="' + IMAGE_URL + '" alt="General wildlife guidance illustration" class="w-full h-full object-contain" style="padding:3px;background:#f7f5ef" data-general-guidance-image="true">';
   }
 
   function patchIconBox(id) {
     var box = document.getElementById(id);
     if (!box) return;
-    if (box.querySelector('img[data-general-guidance-image="true"]')) return;
     box.innerHTML = imageHtml();
   }
 
@@ -43,13 +43,15 @@
   function patchVisibleGeneralImage() {
     if (!isGeneralRoute()) return;
 
-    // Replace the old flower/species-photo slot everywhere the General Guidance
-    // identity header appears, without changing the rainforest hero background.
     ['wtd_iconBox', 'auth_iconBox', 'sp_iconBox', 'kif_iconBox'].forEach(patchIconBox);
 
-    document.querySelectorAll('img[alt="General guidance"], img[alt="Panduan Am"], img[alt="Dillenia suffruticosa"]').forEach(function (img) {
+    document.querySelectorAll('img[alt="General guidance"], img[alt="Panduan Am"], img[alt="Dillenia suffruticosa"], img[data-general-guidance-image="true"]').forEach(function (img) {
       img.src = IMAGE_URL;
       img.alt = 'General wildlife guidance illustration';
+      img.classList.remove('object-cover');
+      img.classList.add('object-contain');
+      img.style.padding = '3px';
+      img.style.background = '#f7f5ef';
       img.dataset.generalGuidanceImage = 'true';
       img.onerror = null;
     });
