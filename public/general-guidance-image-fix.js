@@ -1,10 +1,10 @@
 (function () {
   'use strict';
 
-  // Square wildlife illustration optimized for the General Guidance route.
-  // It is a generic illustration, not a species photo, so no iNaturalist
-  // credit/source is shown underneath it.
-  var IMAGE_URL = '/assets/general-guidance-wildlife.jpg';
+  // Generic square wildlife illustration for the General Guidance route.
+  // Load from GitHub raw so the image still renders even if the current
+  // Cloudflare static-asset bundle has not picked up the binary correctly.
+  var IMAGE_URL = 'https://raw.githubusercontent.com/myee0021-beep/5120_tm01_project/main/public/assets/general-guidance-wildlife.jpg';
 
   function isGeneralRoute() {
     try {
@@ -14,19 +14,33 @@
     }
   }
 
+  function styleImage(img) {
+    if (!img) return;
+    img.src = IMAGE_URL;
+    img.alt = 'General wildlife guidance illustration';
+    img.classList.remove('object-cover');
+    img.classList.add('object-contain');
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.objectFit = 'contain';
+    img.style.padding = '2px';
+    img.style.background = '#f7f5ef';
+    img.dataset.generalGuidanceImage = 'true';
+  }
+
   function imageHtml() {
-    return '<img src="' + IMAGE_URL + '" alt="General wildlife guidance illustration" class="w-full h-full object-contain" style="padding:3px;background:#f7f5ef" data-general-guidance-image="true">';
+    return '<img src="' + IMAGE_URL + '" alt="General wildlife guidance illustration" class="w-full h-full object-contain" style="width:100%;height:100%;object-fit:contain;padding:2px;background:#f7f5ef" data-general-guidance-image="true">';
   }
 
   function patchIconBox(id) {
     var box = document.getElementById(id);
     if (!box) return;
 
-    // Important: do not recreate the <img> on every MutationObserver pass.
-    // Replacing it repeatedly can restart the request before the image finishes
-    // loading and leaves the card looking blank.
     var existing = box.querySelector('img[data-general-guidance-image="true"]');
-    if (existing) return;
+    if (existing) {
+      styleImage(existing);
+      return;
+    }
 
     box.innerHTML = imageHtml();
   }
@@ -52,17 +66,7 @@
 
     ['wtd_iconBox', 'auth_iconBox', 'sp_iconBox', 'kif_iconBox'].forEach(patchIconBox);
 
-    document.querySelectorAll('img[alt="General guidance"], img[alt="Panduan Am"], img[alt="Dillenia suffruticosa"]').forEach(function (img) {
-      if (img.dataset.generalGuidanceImage === 'true') return;
-      img.src = IMAGE_URL;
-      img.alt = 'General wildlife guidance illustration';
-      img.classList.remove('object-cover');
-      img.classList.add('object-contain');
-      img.style.padding = '3px';
-      img.style.background = '#f7f5ef';
-      img.dataset.generalGuidanceImage = 'true';
-      img.onerror = null;
-    });
+    document.querySelectorAll('img[alt="General guidance"], img[alt="Panduan Am"], img[alt="Dillenia suffruticosa"], img[data-general-guidance-image="true"]').forEach(styleImage);
 
     hidePhotoCredits();
   }
