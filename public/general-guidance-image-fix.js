@@ -21,6 +21,13 @@
   function patchIconBox(id) {
     var box = document.getElementById(id);
     if (!box) return;
+
+    // Important: do not recreate the <img> on every MutationObserver pass.
+    // Replacing it repeatedly can restart the request before the image finishes
+    // loading and leaves the card looking blank.
+    var existing = box.querySelector('img[data-general-guidance-image="true"]');
+    if (existing) return;
+
     box.innerHTML = imageHtml();
   }
 
@@ -45,7 +52,8 @@
 
     ['wtd_iconBox', 'auth_iconBox', 'sp_iconBox', 'kif_iconBox'].forEach(patchIconBox);
 
-    document.querySelectorAll('img[alt="General guidance"], img[alt="Panduan Am"], img[alt="Dillenia suffruticosa"], img[data-general-guidance-image="true"]').forEach(function (img) {
+    document.querySelectorAll('img[alt="General guidance"], img[alt="Panduan Am"], img[alt="Dillenia suffruticosa"]').forEach(function (img) {
+      if (img.dataset.generalGuidanceImage === 'true') return;
       img.src = IMAGE_URL;
       img.alt = 'General wildlife guidance illustration';
       img.classList.remove('object-cover');
