@@ -4,7 +4,7 @@
   // Generic square wildlife illustration for the General Guidance route.
   // Load from GitHub raw so the image still renders even if the current
   // Cloudflare static-asset bundle has not picked up the binary correctly.
-  var IMAGE_URL = 'https://raw.githubusercontent.com/myee0021-beep/5120_tm01_project/main/public/assets/general-guidance-wildlife.jpg';
+  var IMAGE_URL = 'https://raw.githubusercontent.com/myee0021-beep/5120_tm01_project/main/public/assets/general-guidance-wildlife.jpg?v=20260904-1401';
 
   function isGeneralRoute() {
     try {
