@@ -14,12 +14,24 @@
     window.goTo('whattodo', { id: speciesId });
   }
 
-  function prepareCard(card) {
-    if (!card || !card.dataset || !card.dataset.speciesId) return;
-    card.setAttribute('role', 'link');
-    card.setAttribute('tabindex', '0');
-    card.style.cursor = 'pointer';
-    card.setAttribute('aria-label', 'Open guidance for ' + card.dataset.speciesId);
+  function prepareConfirmButton(btn) {
+    if (!btn || btn.getAttribute('data-full-confirm-click') === '1') return;
+
+    btn.setAttribute('data-full-confirm-click', '1');
+    btn.style.cursor = 'pointer';
+
+    // Make every pixel of the Confirm / Sahkan pill trigger the same route.
+    // Previously the existing behaviour could feel like only the arrow icon
+    // was actionable. This explicit handler makes label, empty padding and
+    // arrow all behave identically.
+    btn.addEventListener('click', function (event) {
+      var card = btn.closest('.id-card[data-species-id]');
+      if (!card) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      navigateCard(card);
+    }, true);
   }
 
   function apply() {
@@ -38,42 +50,15 @@
 
       if (svg) btn.insertBefore(label, svg);
       else btn.appendChild(label);
-    });
 
-    page.querySelectorAll('.id-card[data-species-id]').forEach(prepareCard);
+      prepareConfirmButton(btn);
+    });
   }
 
   function init() {
     apply();
     var page = document.getElementById('page-identify');
     if (!page) return;
-
-    // Make the whole species result card clickable, not just the arrow/
-    // Confirm control. Keep photo-credit links and other interactive controls
-    // working normally.
-    page.addEventListener('click', function (event) {
-      var card = event.target && event.target.closest
-        ? event.target.closest('.id-card[data-species-id]')
-        : null;
-      if (!card) return;
-
-      if (event.target.closest('a, button, input, select, textarea')) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      navigateCard(card);
-    }, true);
-
-    page.addEventListener('keydown', function (event) {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      var card = event.target && event.target.closest
-        ? event.target.closest('.id-card[data-species-id]')
-        : null;
-      if (!card) return;
-
-      event.preventDefault();
-      navigateCard(card);
-    });
 
     var scheduled = false;
     var observer = new MutationObserver(function () {
