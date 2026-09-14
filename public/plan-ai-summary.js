@@ -15,17 +15,53 @@
 
   function actionsHost(){return document.getElementById('plan-result__preventionActions');}
 
-  function rowsFromActions(){
-    var host=actionsHost();
-    if(!host)return[];
+  function stripMeta(text){
+    text=clean(text).replace(/^\d+\.\s*/,'');
+    // Legacy rows put the citation after the action in the same text block.
+    // Keep only the resident-facing action as AI input.
+    text=text.replace(/\s+Source:\s+.*$/i,'');
+    text=text.replace(/\s+(?:Verified|Disahkan)\s+\d{4}[-/]\d{1,2}[-/]\d{1,2}.*$/i,'');
+    return clean(text);
+  }
+
+  function rowsFromDatabase(host){
     return Array.prototype.map.call(host.querySelectorAll('[data-plan-row="database"]'),function(row){
       var text=clean(row.getAttribute('data-action-text')||'');
       if(!text){
         var first=row.querySelector('.text-forest-950');
-        text=clean(first&&first.textContent).replace(/^\d+\.\s*/,'');
+        text=clean(first&&first.textContent);
       }
+      text=stripMeta(text);
       return text?{action:text,prevention_id:row.getAttribute('data-prevention-id')||null}:null;
-    }).filter(Boolean).slice(0,20);
+    }).filter(Boolean);
+  }
+
+  function rowsFromVisiblePlan(host){
+    var seen={};
+    var rows=[];
+    var controls=host.querySelectorAll('input[type="checkbox"],button[role="checkbox"],[role="checkbox"],.checkbox-btn');
+    Array.prototype.forEach.call(controls,function(control,index){
+      var row=control.closest('[data-plan-row],.flex,.action-row,li');
+      if(!row || !host.contains(row)) return;
+      var clone=row.cloneNode(true);
+      clone.querySelectorAll('[data-plan-source-line],a,.text-slate-400,.text-slate-500,.text-slate-600').forEach(function(el){
+        var t=clean(el.textContent);
+        if(/^Source:/i.test(t)||/Verified/i.test(t)||/^Disahkan/i.test(t))el.remove();
+      });
+      var text=stripMeta(clone.innerText||clone.textContent||'');
+      if(!text || seen[text]) return;
+      seen[text]=true;
+      rows.push({action:text,prevention_id:row.getAttribute('data-prevention-id')||String(index+1)});
+    });
+    return rows;
+  }
+
+  function rowsFromActions(){
+    var host=actionsHost();
+    if(!host)return[];
+    var rows=rowsFromDatabase(host);
+    if(!rows.length)rows=rowsFromVisiblePlan(host);
+    return rows.slice(0,20);
   }
 
   function ensureBox(){
@@ -108,8 +144,12 @@
   window.addEventListener('popstate',scan);
   document.addEventListener('roomforboth:pageshow',scan);
 
-  new MutationObserver(function(){
+  // The Plan page can be rendered by either the DB client or the legacy merged
+  // renderer. Watch only the prevention-action host and retry when its rows
+  // change; do not require DB-specific data attributes.
+  var observer=new MutationObserver(function(){
     var host=actionsHost();
-    if(host&&host.querySelector('[data-plan-row="database"]'))scan();
-  }).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['lang','class','hidden']});
+    if(host&&host.querySelector('input[type="checkbox"],button[role="checkbox"],[role="checkbox"],.checkbox-btn,[data-plan-row]'))scan();
+  });
+  observer.observe(document.documentElement,{subtree:true,childList:true});
 })();
