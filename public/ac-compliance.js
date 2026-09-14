@@ -119,17 +119,32 @@
     ['index__home_stateSelect','plan__plan_stateSelect'].forEach(function(id){
       var sel=document.getElementById(id);
       if(!sel) return;
+
+      var desired=currentLanguage()==='bm'?'Pilih negeri…':'Select state…';
+      var emptyOptions=Array.prototype.filter.call(sel.options,function(o){return o.value==='';});
+      var first=emptyOptions[0] || null;
+
+      // Important: do not rebuild an already-correct native select. The broad
+      // MutationObserver below reruns this function after DOM changes, so
+      // removing/reinserting the same placeholder on every pass causes the
+      // browser's native dropdown to close/reopen repeatedly on Home and Plan.
+      if(emptyOptions.length===1 && first===sel.options[0] && first.disabled && clean(first.textContent)===desired){
+        return;
+      }
+
       var current=sel.value;
-      Array.prototype.slice.call(sel.options).forEach(function(o){
-        if(o.value==='') o.remove();
-      });
+      emptyOptions.forEach(function(o){ o.remove(); });
+
       var opt=document.createElement('option');
       opt.value='';
       opt.disabled=true;
-      opt.textContent=currentLanguage()==='bm'?'Pilih negeri…':'Select state…';
+      opt.textContent=desired;
       if(!current) opt.selected=true;
       sel.insertBefore(opt,sel.firstChild);
-      if(current && Array.prototype.some.call(sel.options,function(o){return o.value===current;})) sel.value=current;
+
+      if(current && Array.prototype.some.call(sel.options,function(o){return o.value===current;})){
+        sel.value=current;
+      }
     });
   }
 
