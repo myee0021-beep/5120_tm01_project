@@ -2,25 +2,16 @@
   'use strict';
 
   var STATE_LABELS = {
-    johor: 'Johor',
-    kedah: 'Kedah',
-    kelantan: 'Kelantan',
-    melaka: 'Melaka',
-    'negeri-sembilan': 'Negeri Sembilan',
-    pahang: 'Pahang',
-    perak: 'Perak',
-    perlis: 'Perlis',
-    penang: 'Pulau Pinang',
-    'pulau-pinang': 'Pulau Pinang',
-    sabah: 'Sabah',
-    sarawak: 'Sarawak',
-    selangor: 'Selangor',
-    terengganu: 'Terengganu',
-    kl: 'Kuala Lumpur',
-    'kuala-lumpur': 'Kuala Lumpur',
-    labuan: 'Labuan',
-    putrajaya: 'Putrajaya'
+    johor: 'Johor', kedah: 'Kedah', kelantan: 'Kelantan', melaka: 'Melaka',
+    'negeri-sembilan': 'Negeri Sembilan', pahang: 'Pahang', perak: 'Perak',
+    perlis: 'Perlis', penang: 'Pulau Pinang', 'pulau-pinang': 'Pulau Pinang',
+    sabah: 'Sabah', sarawak: 'Sarawak', selangor: 'Selangor',
+    terengganu: 'Terengganu', kl: 'Kuala Lumpur', 'kuala-lumpur': 'Kuala Lumpur',
+    labuan: 'Labuan', putrajaya: 'Putrajaya'
   };
+
+  var running = false;
+  var queued = false;
 
   function normaliseState(value) {
     var raw = String(value || '').trim();
@@ -65,40 +56,58 @@
 
   function removeCardFromChild(id) {
     var child = document.getElementById(id);
-    if (!child) return;
+    if (!child) return false;
     var card = child.closest('.card');
-    if (card) card.remove();
+    if (!card || !card.parentNode) return false;
+    card.parentNode.removeChild(card);
+    return true;
   }
 
   function cleanPlanResult() {
-    // Do not depend on the SPA hash format. If Plan Result DOM is present,
-    // clean it. This also makes the patch resilient to future router changes.
-    var heading = document.getElementById('plan-result__stateHeading');
-    var notice = document.getElementById('plan-result__dataNotice');
-    var neighbour = document.getElementById('plan-result__neighbourCard');
-    var encountersBadge = document.getElementById('plan-result__encountersBadge');
-    if (!heading && !notice && !neighbour && !encountersBadge) return;
+    if (running) return;
+    running = true;
+    try {
+      var heading = document.getElementById('plan-result__stateHeading');
+      var notice = document.getElementById('plan-result__dataNotice');
+      var neighbour = document.getElementById('plan-result__neighbourCard');
+      var encountersBadge = document.getElementById('plan-result__encountersBadge');
+      if (!heading && !notice && !neighbour && !encountersBadge) return;
 
-    if (notice) {
-      notice.classList.add('hidden');
-      notice.setAttribute('aria-hidden', 'true');
-      notice.style.display = 'none';
+      if (notice) {
+        if (!notice.classList.contains('hidden')) notice.classList.add('hidden');
+        if (notice.getAttribute('aria-hidden') !== 'true') notice.setAttribute('aria-hidden', 'true');
+        if (notice.style.display !== 'none') notice.style.display = 'none';
+      }
+
+      var rawState = readState();
+      var key = normaliseState(rawState);
+      var label = rawState ? (STATE_LABELS[key] || rawState) : '';
+      if (heading && label) {
+        if (heading.textContent !== label) heading.textContent = label;
+        if (heading.getAttribute('data-live-state') !== (key || rawState)) {
+          heading.setAttribute('data-live-state', key || rawState);
+        }
+      }
+
+      if (neighbour && neighbour.parentNode) neighbour.parentNode.removeChild(neighbour);
+
+      if (!removeCardFromChild('plan-result__encountersBadge')) {
+        if (!removeCardFromChild('plan-result__encountersDescription')) {
+          removeCardFromChild('plan-result__encountersBtn');
+        }
+      }
+    } finally {
+      running = false;
     }
+  }
 
-    var rawState = readState();
-    var key = normaliseState(rawState);
-    if (heading && rawState) {
-      heading.textContent = STATE_LABELS[key] || rawState;
-      heading.dataset.liveState = key || rawState;
-    }
-
-    if (neighbour) neighbour.remove();
-
-    // Remove the full Iteration 3 card as soon as any of its known children
-    // exists in the DOM.
-    removeCardFromChild('plan-result__encountersBadge');
-    removeCardFromChild('plan-result__encountersDescription');
-    removeCardFromChild('plan-result__encountersBtn');
+  function scheduleClean() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () {
+      queued = false;
+      cleanPlanResult();
+    });
   }
 
   function runSoon() {
@@ -106,7 +115,6 @@
     setTimeout(cleanPlanResult, 0);
     setTimeout(cleanPlanResult, 120);
     setTimeout(cleanPlanResult, 500);
-    setTimeout(cleanPlanResult, 1200);
   }
 
   if (document.readyState === 'loading') {
@@ -119,8 +127,6 @@
   window.addEventListener('popstate', runSoon);
   document.addEventListener('roomforboth:pageshow', runSoon);
 
-  var observer = new MutationObserver(function () {
-    cleanPlanResult();
-  });
+  var observer = new MutationObserver(scheduleClean);
   observer.observe(document.documentElement, { childList: true, subtree: true });
 })();
