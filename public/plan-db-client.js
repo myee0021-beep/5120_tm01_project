@@ -95,7 +95,7 @@
     if(progress) progress.textContent = '0 of 0 done';
   }
 
-  function renderActions(host, progress, actions, lang){
+  function renderActions(host, progress, actions, lang, fallbackUsed){
     var checked = actions.map(function(){ return false; });
 
     function draw(){
@@ -137,6 +137,16 @@
 
       var done = checked.filter(Boolean).length;
       if(progress) progress.textContent = done + ' of ' + actions.length + ' done';
+
+      if(fallbackUsed){
+        var note = document.createElement('div');
+        note.className = 'text-xs text-slate-400 pt-1';
+        note.setAttribute('data-plan-fallback-note', '');
+        note.textContent = lang === 'bm'
+          ? 'Tiada padanan tepat untuk jawapan ini; ini ialah panduan umum bagi spesies/kategori berkenaan daripada pangkalan data.'
+          : 'No exact match for these answers; these are general prevention actions for that species/category from the database.';
+        host.appendChild(note);
+      }
     }
 
     host.setAttribute('data-plan-source', 'prevention_action');
@@ -201,7 +211,7 @@
           return;
         }
 
-        renderActions(host, progress, actions, lang);
+        renderActions(host, progress, actions, lang, !!body.fallback_used);
       })
       .catch(function(error){
         if(error && error.name === 'AbortError') return;
