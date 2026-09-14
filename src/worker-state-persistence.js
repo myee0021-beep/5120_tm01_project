@@ -1,4 +1,5 @@
 import planSummaryWorker from './worker-plan-summary.js';
+import legacyWorker from './worker.js';
 
 const STATE_PERSISTENCE_CLIENT = String.raw`
 <script id="room-for-both-state-persistence">
@@ -126,6 +127,16 @@ class BodyInjector {
 
 export default {
   async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    // The merged Iteration 2 entry point used to bypass the existing
+    // MiniMax-powered Describe-it identification endpoint in worker.js.
+    // Route only that endpoint back through the original handler so the
+    // existing MINIMAX_API_KEY secret is used without exposing it client-side.
+    if (request.method === 'POST' && url.pathname === '/api/identify-describe') {
+      return legacyWorker.fetch(request, env, ctx);
+    }
+
     const response = await planSummaryWorker.fetch(request, env, ctx);
     const type = response.headers.get('content-type') || '';
     if (!type.toLowerCase().includes('text/html')) return response;
