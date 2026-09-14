@@ -20,25 +20,39 @@ function filterRows(rows,url){const state=url.searchParams.get('state');const sp
 async function insertFailure(sql,table,payload){if(!table||!safeIdent(table))return {logged:false,reason:'failure_table_not_found'};const cols=await columns(sql,table);const names=new Set(cols.map(c=>c.column_name));const values=[];const outCols=[];const add=(aliases,val)=>{const c=aliases.find(x=>names.has(x));if(c&&val!=null){outCols.push(c);values.push(val)}};add(['kind','lookup_kind','event_type','type'],String(payload.kind||'lookup').slice(0,80));add(['query_text','query','search_term','term','lookup_value'],String(payload.query||'').slice(0,200));add(['failure_reason','reason','error','status'],String(payload.reason||'no_match').slice(0,120));add(['page','route','path'],String(payload.page||payload.route||'').slice(0,160));if(!outCols.length){try{await sql.query(`INSERT INTO public."${table}" DEFAULT VALUES`);return {logged:true,table,columns:[]}}catch(e){return {logged:false,table,error:e.message}}}const quoted=outCols.map(c=>`"${c}"`).join(',');const params=values.map((_,i)=>`$${i+1}`).join(',');try{await sql.query(`INSERT INTO public."${table}" (${quoted}) VALUES (${params})`,values);return {logged:true,table,columns:outCols}}catch(e){return {logged:false,table,error:e.message}}}
 async function api(request,env){const url=new URL(request.url);const sql=getSql(env);const existing=await existingTables(sql);const found={complaints:choose(existing,TABLES.complaints,/complain/i),attractants:choose(existing,TABLES.attractants,/attract/i),failures:choose(existing,TABLES.failures,/(fail|error).*(search|lookup)|(search|lookup).*(fail|error)/i)};if(request.method==='GET'&&url.pathname==='/api/health')return json({ok:true,service:'room-for-both-iteration2',database:'connected',tables:found});if(request.method==='GET'&&url.pathname==='/api/i2/status')return json({ok:true,tables:found,columns:{complaints:await columns(sql,found.complaints),attractants:await columns(sql,found.attractants),failures:await columns(sql,found.failures)}});if(request.method==='GET'&&url.pathname==='/api/i2/complaints'){const rows=filterRows(await rowsFrom(sql,found.complaints),url);return json({ok:true,table:found.complaints,count:rows.length,rows})}if(request.method==='GET'&&url.pathname==='/api/i2/attractants'){const rows=filterRows(await rowsFrom(sql,found.attractants),url);return json({ok:true,table:found.attractants,count:rows.length,rows})}if(request.method==='POST'&&url.pathname==='/api/i2/search-failure'){let payload={};try{payload=await request.json()}catch{};const result=await insertFailure(sql,found.failures,payload);return json({ok:true,...result},result.logged?201:202)}if(request.method==='POST'&&url.pathname==='/api/identify-describe')return json({ok:false,error:'AI backend is not enabled in the Iteration 2 branch; frontend fallback remains active.'},501);if(url.pathname.startsWith('/api/'))return json({ok:false,error:'API route not found'},404);return null}
 
-async function serveHtmlWithPatches(request,env,url){
+async function injectGeneralGuidanceFix(request,env,url){
   const assetResp=await env.ASSETS.fetch(new Request(url.toString(),request));
   const type=assetResp.headers.get('content-type')||'';
-  if(!type.includes('text/html'))return assetResp;
+  if(!type.includes('text/html')) return assetResp;
+
   let html=await assetResp.text();
-  const tag='<script src="/general-guidance-image-fix.js?v=20260914"></script>';
+  const tag='<script src="/general-guidance-image-fix.js?v=20260914-3"></script>';
+
   if(!html.includes('/general-guidance-image-fix.js')){
-    html=html.includes('</body>')?html.replace('</body>',tag+'\n</body>'):html+tag;
+    if(html.includes('</body>')) html=html.replace('</body>',tag+'\n</body>');
+    else html+=tag;
   }
+
   const headers=new Headers(assetResp.headers);
   headers.delete('content-length');
-  headers.set('cache-control','no-store');
+  headers.set('cache-control','no-store, no-cache, must-revalidate');
+  headers.set('x-iteration2-patch','general-guidance-image-fix');
   return new Response(html,{status:assetResp.status,statusText:assetResp.statusText,headers});
 }
 
 async function serveFrontend(request,env){
   const url=new URL(request.url);
-  if(request.method==='GET' && (url.pathname==='/' || url.pathname==='/index.html')) url.pathname='/index0914.html';
-  if(request.method==='GET' && (url.pathname==='/index0914' || url.pathname==='/index0914.html')) return serveHtmlWithPatches(request,env,url);
+
+  if(request.method==='GET' && (url.pathname==='/' || url.pathname==='/index.html')){
+    url.pathname='/index0914.html';
+    return injectGeneralGuidanceFix(request,env,url);
+  }
+
+  if(request.method==='GET' && (url.pathname==='/index0914' || url.pathname==='/index0914.html')){
+    if(url.pathname==='/index0914') url.pathname='/index0914.html';
+    return injectGeneralGuidanceFix(request,env,url);
+  }
+
   return env.ASSETS.fetch(request);
 }
 
