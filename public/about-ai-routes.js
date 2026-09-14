@@ -1,0 +1,14 @@
+(function(){
+  'use strict';
+  function page(){return String(location.hash||'#index').replace(/^#/,'').split('?')[0]||'index';}
+  function lang(){var l=String(document.documentElement.lang||'').toLowerCase();return(l==='bm'||l==='ms')?'bm':'en';}
+  function apply(){
+    if(page()!=='about-the-data')return;
+    var root=document.querySelector('#page-about-the-data main');if(!root||document.getElementById('i2-ai-routes-about'))return;
+    var l=lang(),box=document.createElement('section');box.id='i2-ai-routes-about';box.className='mt-8 rounded-2xl border border-slate-200 bg-white p-6';
+    if(l==='bm')box.innerHTML='<h2 class="font-display text-xl font-bold text-forest-950">Cara ciri AI digunakan</h2><div class="mt-4 space-y-4 text-sm text-slate-700"><div><strong>Describe it.</strong> Input: penerangan teks penduduk. Model hanya boleh memulangkan pengecam daripada lima spesies bukan ular yang diliputi. Istilah ular memintas model ke laluan ular. Teks tidak disimpan. Laluan tanpa model: Keyword atau Guided Q&amp;A. Kegagalan/8 saat: permintaan dibatalkan dan Guided Q&amp;A ditawarkan; hanya kiraan kegagalan dan cap masa disimpan pada peranti.</div><div><strong>Plan in plain words.</strong> Input: hanya baris tindakan pencegahan bersumber yang sudah dipaparkan pada halaman. Model tidak menerima teks bebas penduduk. Output 4–6 ayat; spesies, nombor atau tindakan yang tiada pada baris ditolak dan dijana semula sekali. Jika semakan gagal kali kedua, ringkasan disembunyikan. Laluan tanpa model: Read the table instead.</div></div>';
+    else box.innerHTML='<h2 class="font-display text-xl font-bold text-forest-950">How AI features are used</h2><div class="mt-4 space-y-4 text-sm text-slate-700"><div><strong>Describe it.</strong> Input: the resident’s typed description. The model may return only identifiers from the five covered non-snake species. Snake terms bypass the model to the snake path. The text is not stored. Route without the model: Keyword or Guided Q&amp;A. Failure/8 seconds: the request is abandoned and Guided Q&amp;A is offered; only a failure count and timestamp are kept on this device.</div><div><strong>Plan in plain words.</strong> Input: only sourced prevention rows already displayed on the page. The model receives no resident free text. Output is 4–6 sentences; any species, number or action not present in those rows causes rejection and one regeneration. If validation fails a second time, the summary is hidden. Route without the model: Read the table instead.</div></div>';
+    root.appendChild(box);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();window.addEventListener('hashchange',function(){setTimeout(apply,0);});document.addEventListener('roomforboth:pageshow',function(){setTimeout(apply,0);});
+})();
