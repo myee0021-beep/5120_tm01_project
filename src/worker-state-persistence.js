@@ -35,7 +35,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();window.addEventListener('hashchange',run);document.addEventListener('roomforboth:pageshow',run);
 })();
 </script>
-<script src="/plan-db-client.js?v=20260914-5"></script>
+<script src="/plan-db-client.js?v=20260914-6"></script>
 <script src="/plan-signals-client.js?v=20260914-1"></script>
 <script src="/plan-snapshot-sync.js?v=20260914-1"></script>
 <script src="/home-live-data.js?v=20260914-1"></script>
