@@ -36,6 +36,22 @@
     });
   }
 
+  function replaceVisibleTextRegex(root, replacements){
+    root = root || document.body;
+    if(!root) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    var nodes=[];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(node){
+      var parent=node.parentElement;
+      if(!parent || parent.closest('script,style,noscript')) return;
+      var value=node.nodeValue||'';
+      var next=value;
+      replacements.forEach(function(pair){ next=next.replace(pair[0],pair[1]); });
+      if(next!==value) node.nodeValue=next;
+    });
+  }
+
   function applyDataCorrections(){
     replaceVisibleText(document.body, [
       ['5,807', '5,153'],
@@ -43,6 +59,105 @@
       ['1960 hingga 2026', '1860 hingga 2026'],
       [' and now fines feeding birds up to RM2,000', ''],
       [' dan kini mendenda pemberian makanan sehingga RM2,000', '']
+    ]);
+  }
+
+  function cleanResidentFacingCopy(){
+    document.title = 'Room for Both — Coexistence Planning';
+
+    var methodBadge=document.getElementById('plan-result__methodBadge');
+    if(methodBadge) methodBadge.style.display='none';
+
+    var preventionDescription=document.getElementById('plan-result__preventionDescription');
+    if(preventionDescription){
+      preventionDescription.textContent=currentLanguage()==='bm'
+        ? 'Disusun mengikut bahaya kemudian kekerapan. Setiap tindakan mempunyai sumber Malaysia dan tarikh pengesahan. Tiada tindakan meminta anda mengendalikan atau mencederakan haiwan.'
+        : 'Ordered by harm then frequency. Every action has a Malaysian source and a verified date. Nothing asks you to handle or harm an animal.';
+    }
+
+    var signalsDescription=document.getElementById('plan-result__signalsDescription');
+    if(signalsDescription){
+      signalsDescription.textContent=currentLanguage()==='bm'
+        ? 'Tiga penunjuk berasingan: pemerhatian direkodkan di negeri anda, aduan di negeri anda, dan faktor rumah yang didokumenkan. Tahap gabungan ialah jumlah isyarat yang didokumenkan, bukan kebarangkalian bagi alamat anda.'
+        : 'Three separate indicators: recorded observations in your state, complaints in your state, and documented factors at your home. The combined level is the sum of documented signals, not a probability for your address.';
+    }
+
+    document.querySelectorAll('#invasive__entryView p').forEach(function(p){
+      var t=clean(p.textContent);
+      if(/file an invasive sighting in Community|memfailkan penampakan invasif di Komuniti/i.test(t)){
+        p.innerHTML=currentLanguage()==='bm'
+          ? '<span>Disemak berdasarkan GRIIS Malaysia, Daftar Global Spesies Diperkenalkan dan Invasif.</span>'
+          : '<span>Checked against GRIIS Malaysia, the Global Register of Introduced and Invasive Species.</span>';
+      }
+    });
+
+    var aliasHelp=document.querySelector('#invasive__nameInput + p');
+    if(aliasHelp){
+      aliasHelp.innerHTML=currentLanguage()==='bm'
+        ? '<span>Anda boleh mencari menggunakan nama Inggeris, Melayu atau saintifik. Nama di luar tujuh spesies yang diliputi akan dipaparkan sebagai “tidak diliputi” dengan pautan GRIIS.</span>'
+        : '<span>You can search using an English, Malay or scientific name. Names outside the seven covered species are shown as “not covered” with a GRIIS link.</span>';
+    }
+
+    replaceVisibleTextRegex(document.body,[
+      [/\s*·\s*E\d+(?:\s*(?:to|hingga|-)\s*E?\d+)?(?:\s*,\s*E\d+)*/g,''],
+      [/\bE\d+(?:\s*(?:to|hingga|-)\s*E?\d+)?(?:\s*,\s*E\d+)*\b/g,''],
+      [/\s*\(E\d+ profile\)/g,''],
+      [/\s*\(profil E\d+\)/g,'']
+    ]);
+
+    replaceVisibleText(document.body,[
+      ['attractant_rule table, one Malaysian source per row','documented home factors, each with a Malaysian source'],
+      ['attractant_rule: Room for Both table, every row sourced and dated','Documented home factors: every item is sourced and dated'],
+      ['attractant_rule','documented home factors'],
+      ['prevention_action row','verified prevention action'],
+      ['prevention_action rows','verified prevention actions'],
+      ['Method v1','']
+    ]);
+  }
+
+  function fixStatePlaceholders(){
+    ['index__home_stateSelect','plan__plan_stateSelect'].forEach(function(id){
+      var sel=document.getElementById(id);
+      if(!sel) return;
+      var current=sel.value;
+      Array.prototype.slice.call(sel.options).forEach(function(o){
+        if(o.value==='') o.remove();
+      });
+      var opt=document.createElement('option');
+      opt.value='';
+      opt.disabled=true;
+      opt.textContent=currentLanguage()==='bm'?'Pilih negeri…':'Select state…';
+      if(!current) opt.selected=true;
+      sel.insertBefore(opt,sel.firstChild);
+      if(current && Array.prototype.some.call(sel.options,function(o){return o.value===current;})) sel.value=current;
+    });
+  }
+
+  function removeIteration3Leakage(){
+    document.querySelectorAll('a[href*="community-how-review-works"]').forEach(function(a){
+      var t=clean(a.textContent).toLowerCase();
+      if(t.indexOf('read reports')!==-1 || t.indexOf('baca laporan')!==-1){
+        var card=a.closest('.reveal, .card, [class*="rounded-2xl"]');
+        if(card) card.style.display='none'; else a.style.display='none';
+      }
+      if(t.indexOf('share what turned up')!==-1 || t.indexOf('kongsi apa yang muncul')!==-1 || t.indexOf('community: report a sighting')!==-1){
+        a.style.display='none';
+      }
+    });
+
+    var speciesCommunity=document.getElementById('species__communityLink');
+    if(speciesCommunity) speciesCommunity.style.display='none';
+
+    replaceVisibleText(document.body,[
+      ['Structured, anonymous reports from your district: what turned up, what worked, invasive species seen.',''],
+      ['Laporan berstruktur dan tanpa nama daripada daerah anda: apa yang muncul, apa yang berkesan, spesies invasif dilihat.',''],
+      ['before you file an invasive sighting in Community, so the sighting means something.',''],
+      ['sebelum anda memfailkan penampakan invasif di Komuniti, supaya laporan itu bermakna.',''],
+      ['Share what turned up (Community)',''],
+      ['Share what turned up',''],
+      ['Community: report a sighting so it goes on record',''],
+      ['Kongsi apa yang muncul',''],
+      ['Komuniti: laporkan penampakan supaya ia direkodkan','']
     ]);
   }
 
@@ -259,6 +374,9 @@
 
   function apply(){
     applyDataCorrections();
+    cleanResidentFacingCopy();
+    fixStatePlaceholders();
+    removeIteration3Leakage();
     enforceAttractantOptions();
     renderPrintFromSnapshot();
     ensureNeighbourPrintButton();
