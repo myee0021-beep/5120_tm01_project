@@ -37,12 +37,13 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 </script>
 <script src="/plan-db-client.js?v=20260914-5"></script>
 <script src="/plan-signals-client.js?v=20260914-1"></script>
+<script src="/plan-snapshot-sync.js?v=20260914-1"></script>
 <script src="/home-live-data.js?v=20260914-1"></script>
 <script src="/plan-ai-summary.js?v=20260914-2"></script>
 <script src="/plan-result-cleanup.js?v=20260914-1"></script>
 <script src="/ac-observer-guard.js?v=20260914-1"></script>
 <script src="/ac-compliance.js?v=20260914-3"></script>
-<script src="/print-selected-actions.js?v=20260914-1"></script>
+<script src="/print-selected-actions.js?v=20260914-2"></script>
 <script src="/describe-ai.js?v=20260914-3"></script>`;
 
 class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}}
@@ -51,7 +52,6 @@ export default{
   async fetch(request,env,ctx){
     const url=new URL(request.url);
     if(request.method==='POST'&&url.pathname==='/api/identify-describe')return legacyWorker.fetch(request,env,ctx);
-
     let upstreamRequest=request;
     if(request.method==='GET'&&SPA_ROUTES.has(url.pathname)&&url.pathname!=='/index.html'){
       const rewritten=new URL(request.url);rewritten.pathname='/index0914.html';
