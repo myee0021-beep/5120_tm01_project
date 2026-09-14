@@ -3,14 +3,8 @@
 var KEY='roomForBoth.currentPlanSnapshot';
 function clean(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
 function page(){return String(location.hash||'').replace(/^#/,'').split('?')[0];}
-function existing(){try{var x=JSON.parse(sessionStorage.getItem(KEY)||'null');return x&&Array.isArray(x.actions)&&x.actions.length?x:null;}catch(e){return null;}}
-function rowAction(row){
- var text=clean(row.getAttribute('data-action-text'));
- if(!text){var el=row.querySelector('.text-forest-950');text=clean(el&&el.textContent).replace(/^\d+\.\s*/,'');}
- return text;
-}
-function recover(){
- if(page()!=='plan-print'||existing())return false;
+function rowAction(row){var text=clean(row.getAttribute('data-action-text'));if(!text){var el=row.querySelector('.text-forest-950');text=clean(el&&el.textContent).replace(/^\d+\.\s*/,'');}return text;}
+function capture(){
  var host=document.getElementById('plan-result__preventionActions');
  if(!host)return false;
  var rows=Array.from(host.querySelectorAll('[data-plan-row="database"]'));
@@ -28,25 +22,12 @@ function recover(){
  var summary=document.getElementById('plan-result__summaryLine');
  var signals=document.getElementById('plan-result__speciesList');
  var season=document.getElementById('plan-result__seasonDescription');
- var snap={
-   version:5,
-   recovered_from:'current-plan-dom',
-   stateLabel:clean(state&&state.textContent),
-   summaryLine:clean(summary&&summary.textContent),
-   signalsText:clean(signals&&signals.innerText),
-   seasonText:clean(season&&season.innerText),
-   actions:actions
- };
- try{sessionStorage.setItem(KEY,JSON.stringify(snap));}catch(e){return false;}
- document.dispatchEvent(new CustomEvent('roomforboth:pageshow',{detail:{page:'plan-print',recovered:true}}));
- return true;
+ var snap={version:6,captured_from:'plan-result-before-print',stateLabel:clean(state&&state.textContent),summaryLine:clean(summary&&summary.textContent),signalsText:clean(signals&&signals.innerText),seasonText:clean(season&&season.innerText),actions:actions};
+ try{sessionStorage.setItem(KEY,JSON.stringify(snap));return true;}catch(e){return false;}
 }
-function run(){
- if(page()!=='plan-print')return;
- if(recover())return;
- setTimeout(recover,80);setTimeout(recover,250);
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
-window.addEventListener('hashchange',run);
-document.addEventListener('roomforboth:db-plan-ready',function(){setTimeout(run,50);});
+function onPrintClick(e){var btn=e.target&&e.target.closest?e.target.closest('#plan-result__printPlanBtn'):null;if(btn)capture();}
+document.addEventListener('click',onPrintClick,true);
+window.addEventListener('roomforboth:db-plan-ready',function(){setTimeout(capture,60);});
+window.addEventListener('roomforboth:signals-ready',function(){setTimeout(capture,60);});
+window.addEventListener('hashchange',function(){if(page()==='plan-result')setTimeout(capture,100);});
 })();
