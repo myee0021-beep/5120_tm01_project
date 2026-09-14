@@ -46,12 +46,18 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
     try { sessionStorage.setItem(KEY, state); } catch (e) {}
   }
 
-  function resolveState(){
-    return readQueryState() || readAnswersState() || readStoredState() || '';
-  }
-
   function currentPage(){
     return String(location.hash || '#index').replace(/^#/, '').split('?')[0] || 'index';
+  }
+
+  function resolveState(){
+    var query = readQueryState();
+    if (query) return query;
+    var stored = readStoredState();
+    if (stored) return stored;
+    var page = currentPage();
+    if (page === 'plan-result' || page === 'plan-print' || page === 'plan-how-computed') return readAnswersState() || '';
+    return '';
   }
 
   function syncSelect(){
@@ -105,7 +111,8 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   window.addEventListener('hashchange', run);
   document.addEventListener('roomforboth:pageshow', run);
 })();
-</script>`;
+</script>
+<script src="/plan-db-client.js?v=20260914-1"></script>`;
 
 class BodyInjector {
   element(el) {
