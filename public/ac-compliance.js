@@ -105,11 +105,29 @@
     catch(e){ return null; }
   }
 
+  function ensurePrintInteractionStyle(){
+    if(document.getElementById('i2-print-action-style')) return;
+    var style = document.createElement('style');
+    style.id = 'i2-print-action-style';
+    style.textContent = [
+      '#plan-print__sheetActions .action-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none}',
+      '#plan-print__sheetActions .action-box{width:20px;height:20px;min-width:20px;border:2px solid #cbd5e1;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;margin-top:2px;background:#fff}',
+      '#plan-print__sheetActions .action-row[data-checked="true"] .action-box{background:#166534;border-color:#166534;color:#fff}',
+      '#plan-print__sheetActions .action-row[data-checked="true"] .action-box:after{content:"✓";font-size:13px;font-weight:700;line-height:1}',
+      '#plan-print__sheetActions .action-main{min-width:0;line-height:1.5}',
+      '#plan-print__sheetActions .action-meta{font-size:10px;color:#94a3b8;margin-left:5px;white-space:normal}',
+      '@media print{#plan-print__sheetActions .action-row{cursor:default}.action-meta{font-size:8.5pt!important;color:#64748b!important}}'
+    ].join('');
+    document.head.appendChild(style);
+  }
+
   function renderPrintFromSnapshot(){
     if(currentPage() !== 'plan-print') return;
     var actionsWrap = document.getElementById('plan-print__sheetActions');
     var speciesWrap = document.getElementById('plan-print__sheetSpecies');
     if(!actionsWrap || !speciesWrap) return;
+
+    ensurePrintInteractionStyle();
 
     var snapshot = readSnapshot();
     actionsWrap.innerHTML = '';
@@ -158,12 +176,29 @@
       var row = document.createElement('div');
       row.className = 'action-row';
       row.setAttribute('data-print-prevention-id', clean(a.prevention_id));
-      row.innerHTML = '<span class="action-box"></span><span>' + esc(text) +
-        '<br><span class="action-source">Source: ' + esc(source) + ' · Verified ' + esc(verified) + '</span></span>';
+      row.setAttribute('data-checked', 'false');
+      row.setAttribute('role', 'checkbox');
+      row.setAttribute('aria-checked', 'false');
+      row.setAttribute('tabindex', '0');
+      row.innerHTML = '<span class="action-box" aria-hidden="true"></span>' +
+        '<span class="action-main">' + esc(text) +
+        '<span class="action-meta">' + esc(source) + ' · ' + esc(verified) + '</span></span>';
+
+      function toggle(){
+        var checked = row.getAttribute('data-checked') === 'true';
+        row.setAttribute('data-checked', checked ? 'false' : 'true');
+        row.setAttribute('aria-checked', checked ? 'false' : 'true');
+      }
+      row.addEventListener('click', toggle);
+      row.addEventListener('keydown', function(e){
+        if(e.key === ' ' || e.key === 'Enter'){
+          e.preventDefault();
+          toggle();
+        }
+      });
       actionsWrap.appendChild(row);
     });
 
-    // AC 2.2.1: do not introduce a print-only emergency instruction.
     if(emergencyHeading && emergencyHeading.parentElement) emergencyHeading.parentElement.style.display = 'none';
     if(emergencyLine) emergencyLine.textContent = '';
   }
