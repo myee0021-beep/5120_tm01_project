@@ -30,9 +30,7 @@
   function readState() {
     var candidates = [];
     try {
-      if (window.AppNav && AppNav.currentQuery) {
-        candidates.push(new URLSearchParams(AppNav.currentQuery).get('state'));
-      }
+      if (window.AppNav && AppNav.currentQuery) candidates.push(new URLSearchParams(AppNav.currentQuery).get('state'));
     } catch (e) {}
     try { candidates.push(new URLSearchParams(location.search).get('state')); } catch (e) {}
     try {
@@ -43,7 +41,6 @@
     var answers = readHomeAnswers();
     candidates.push(answers.state);
     try { candidates.push(sessionStorage.getItem('roomForBoth.selectedState')); } catch (e) {}
-
     for (var i = 0; i < candidates.length; i++) {
       var value = String(candidates[i] || '').trim();
       if (value) return value;
@@ -58,26 +55,23 @@
     el.style.display = 'none';
   }
 
-  function hideCardFromChild(id) {
-    var child = document.getElementById(id);
-    if (!child) return;
-    var card = child.closest('.card');
-    if (card) hideElement(card);
-  }
-
   function apply() {
     var heading = document.getElementById('plan-result__stateHeading');
     var notice = document.getElementById('plan-result__dataNotice');
-    var neighbour = document.getElementById('plan-result__neighbourCard');
-    var encounters = document.getElementById('plan-result__encountersBadge');
-    if (!heading && !notice && !neighbour && !encounters) return;
+    var encountersBadge = document.getElementById('plan-result__encountersBadge');
 
-    // Keep the nodes in the DOM because the original page initialiser still
-    // writes into them. We only hide them from the user.
+    // Hide only the generic demo notice. Leave all Plan Result content,
+    // neighbour card, prevention rows and buttons untouched.
     hideElement(notice);
-    hideElement(neighbour);
-    hideCardFromChild('plan-result__encountersBadge');
 
+    // Hide the Iteration 3 card while preserving its DOM for the legacy
+    // initialiser to write into safely.
+    if (encountersBadge) {
+      var encountersCard = encountersBadge.closest('.card');
+      if (encountersCard) hideElement(encountersCard);
+    }
+
+    // Keep the resident's actual selected state visible.
     var rawState = readState();
     var key = normaliseState(rawState);
     var label = rawState ? (STATE_LABELS[key] || rawState) : '';
@@ -86,17 +80,12 @@
 
   function runSoon() {
     apply();
-    setTimeout(apply, 50);
-    setTimeout(apply, 250);
-    setTimeout(apply, 800);
+    setTimeout(apply, 80);
+    setTimeout(apply, 300);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', runSoon, { once: true });
-  } else {
-    runSoon();
-  }
-
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', runSoon, { once: true });
+  else runSoon();
   window.addEventListener('hashchange', runSoon);
   window.addEventListener('popstate', runSoon);
   document.addEventListener('roomforboth:pageshow', runSoon);
