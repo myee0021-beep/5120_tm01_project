@@ -1,5 +1,32 @@
 import iteration2Worker from './worker-iteration2.js';
 
+function json(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}})}
+function extractNumbers(text){return String(text||'').match(/\b\d+(?:[.,]\d+)?%?\b/g)||[]}
+function flatten(value,out=[]){if(value==null)return out;if(Array.isArray(value)){value.forEach(v=>flatten(v,out));return out}if(typeof value==='object'){Object.values(value).forEach(v=>flatten(v,out));return out}var s=String(value).trim();if(s)out.push(s);return out}
+function validate(summary,rows){var text=String(summary||'').trim();if(!text)return false;var sentences=text.split(/(?<=[.!?])\s+/).map(s=>s.trim()).filter(Boolean);if(sentences.length<4||sentences.length>6)return false;var allowed=new Set(extractNumbers(flatten(rows).join(' ')));return extractNumbers(text).every(n=>allowed.has(n))}
+async function askMiniMax(env,rows,language,retryNote=''){
+  if(!env.MINIMAX_API_KEY)throw new Error('MINIMAX_API_KEY is not configured');
+  var langName=language==='bm'?'Bahasa Melayu':'English';
+  var prompt=`You write a short resident-facing summary for the Room for Both wildlife plan page.\n- Write exactly 4 to 6 short sentences in ${langName}.\n- Use ONLY facts already present in the supplied rows.\n- Do not introduce any new species, number, level, signal, action, recommendation, date, place, cause, prediction or advice.\n- Do not infer anything not explicitly present.\n- The table is authoritative.\n- Return only the paragraph text, no heading, bullets, markdown or disclaimer.${retryNote}`;
+  var c=new AbortController();var timeout=setTimeout(()=>c.abort(),10000);
+  try{
+    var res=await fetch('https://api.minimax.io/v1/text/chatcompletion_v2',{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${env.MINIMAX_API_KEY}`},body:JSON.stringify({model:'MiniMax-Text-01',temperature:0.1,max_tokens:450,messages:[{role:'system',content:prompt},{role:'user',content:'Rows already displayed on the page:\n'+JSON.stringify(rows,null,2)}]}),signal:c.signal});
+    if(!res.ok)throw new Error('MiniMax API '+res.status);
+    var payload=await res.json();var text=String(payload?.choices?.[0]?.message?.content||'').trim();if(!text)throw new Error('empty completion');return text;
+  }finally{clearTimeout(timeout)}
+}
+async function handlePlanSummary(request,env){
+  if(!env.MINIMAX_API_KEY)return json({ok:false,hidden:true,error:'AI summary is not configured.'},501);
+  var body;try{body=await request.json()}catch{return json({ok:false,hidden:true,error:'Request body must be JSON.'},400)}
+  var rows=Array.isArray(body?.rows)?body.rows.slice(0,100):[];var language=body?.language==='bm'?'bm':'en';
+  if(!rows.length)return json({ok:false,hidden:true,error:'rows is required.'},400);
+  var disclaimer=language==='bm'?'Ringkasan ini ditulis daripada jadual di bawah dan tidak menambah apa-apa kepadanya. Jika ayat dan jadual tidak sepadan, jadual adalah betul.':'This summary is written from the table below and adds nothing to it. If a sentence and the table disagree, the table is correct.';
+  for(var attempt=1;attempt<=2;attempt++){
+    try{var text=await askMiniMax(env,rows,language,attempt===2?'\nPrevious output failed validation. Be more literal.':'');if(validate(text,rows))return json({ok:true,hidden:false,language,summary:text,disclaimer,attempts:attempt})}catch(e){console.error('[plan-summary]',attempt,e?.message||e)}
+  }
+  return json({ok:false,hidden:true,notice:language==='bm'?'Ringkasan AI tidak dapat dipaparkan. Sila gunakan jadual dan penunjuk tahap di bawah.':'The AI summary could not be displayed. Please use the table and level indicators below.',disclaimer});
+}
+
 const PLAN_SUMMARY_CLIENT = String.raw`
 <script id="room-for-both-plan-summary-worker-client">
 (function(){
@@ -21,11 +48,12 @@ const PLAN_SUMMARY_CLIENT = String.raw`
   window.addEventListener('roomforboth:db-ready',scan);window.addEventListener('hashchange',scan);window.addEventListener('popstate',scan);
 })();
 </script>`;
-
 class BodyInjector{element(el){el.append(PLAN_SUMMARY_CLIENT,{html:true})}}
 
 export default{
   async fetch(request,env,ctx){
+    var url=new URL(request.url);
+    if(request.method==='POST'&&url.pathname==='/api/i2/plan-summary')return handlePlanSummary(request,env);
     const response=await iteration2Worker.fetch(request,env,ctx);
     const type=response.headers.get('content-type')||'';
     if(!type.toLowerCase().includes('text/html'))return response;
