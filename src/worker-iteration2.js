@@ -24,15 +24,88 @@ function arr(v){if(v==null)return[];return Array.isArray(v)?v:[v]}
 function flattenStrings(v,out=[]){if(v==null)return out;if(Array.isArray(v)){v.forEach(x=>flattenStrings(x,out));return out}if(typeof v==='object'){Object.values(v).forEach(x=>flattenStrings(x,out));return out}const s=String(v).trim();if(s)out.push(s);return out}
 function tokenSet(values){const out=new Set();flattenStrings(values).forEach(v=>{const n=norm(v);if(!n)return;out.add(n);n.split('-').filter(x=>x.length>2).forEach(x=>out.add(x))});return out}
 function addSynonyms(tokens){const add=(...xs)=>xs.forEach(x=>tokens.add(norm(x)));const has=(...xs)=>xs.some(x=>tokens.has(norm(x)));
-  if(has('open-bins','open-bin','uncovered-bin','unsecured-bin','rubbish','garbage','waste','bin'))add('waste','food-waste','rubbish','garbage','bin','bins');
-  if(has('fruit-trees','fruit-tree','fruit','ripe-fruit'))add('fruit','fruit-tree','fruit-trees','garden-fruit');
-  if(has('pet-food','petfood'))add('pet-food','petfood','feeding');
-  if(has('yes','neighbours-feed','neighbors-feed','feeding','feed'))add('feeding','feed','intentional-feeding','neighbour-feeding','neighbor-feeding');
+  if(has('open-bins','open-bin','uncovered-bin','unsecured-bin','rubbish','garbage','waste','bin'))add('waste','food-waste','rubbish','garbage','bin','bins','food-waste-and-bins');
+  if(has('fruit-trees','fruit-tree','fruit','ripe-fruit'))add('fruit','fruit-tree','fruit-trees','garden-fruit','fruit-trees');
+  if(has('pet-food','petfood'))add('pet-food','petfood','feeding','food-waste-and-bins');
+  if(has('yes','neighbours-feed','neighbors-feed','feeding','feed'))add('feeding','feed','intentional-feeding','neighbour-feeding','neighbor-feeding','deliberate-feeding');
+  if(has('door','doors','window','windows','open-door','open-doors','open-window','open-windows'))add('open-doors-windows');
+  if(has('clutter','pile','piles','shelter','debris'))add('clutter-and-shelter');
+  if(has('report','reporting','authority','perhilitan'))add('reporting');
   return tokens;
 }
+
+const SPECIES_ALIASES={
+  1:['long-tailed-macaque','macaque','monkey','kera','macaca-fascicularis'],
+  2:['wild-boar','boar','babi-hutan','sus-scrofa'],
+  3:['common-myna','myna','tiong-gembala-kerbau','acridotheres-tristis'],
+  4:['reticulated-python','python','ular-sawa-batik','malayopython-reticulatus'],
+  5:['house-crow','crow','gagak-rumah','corvus-splendens'],
+  6:['common-water-monitor','water-monitor','monitor-lizard','biawak','biawak-air','varanus-salvator'],
+  7:['equatorial-spitting-cobra','spitting-cobra','cobra','ular-senduk-sembur','naja-sumatrana']
+};
+function requestedSpeciesIds(requested,speciesById){
+  const req=arr(requested).map(norm).filter(Boolean);
+  const ids=new Set();
+  for(const token of req){
+    if(token==='snake'||token==='ular'){ids.add('4');ids.add('7');continue}
+    for(const [id,aliases] of Object.entries(SPECIES_ALIASES)){
+      if(aliases.some(a=>a===token||a.includes(token)||token.includes(a)))ids.add(String(id));
+    }
+    for(const [id,s] of speciesById.entries()){
+      const names=[s.english_name,s.malay_name,s.scientific_name,s.order_family_species].map(norm).filter(Boolean);
+      if(names.some(n=>n===token||n.includes(token)||token.includes(n)))ids.add(String(id));
+    }
+  }
+  return ids;
+}
+function isSnakeRequest(requested,speciesIds){
+  const req=arr(requested).map(norm);
+  return speciesIds.has('4')||speciesIds.has('7')||req.some(x=>x==='snake'||x==='ular'||x.includes('python')||x.includes('cobra'));
+}
 function rowSpeciesNames(row,speciesById){const direct=[pick(row,['species','species_name','english_name','malay_name','scientific_name','species_key'])];const id=pick(row,['species_id']);const s=id!=null?speciesById.get(String(id)):null;if(s)direct.push(s.english_name,s.malay_name,s.scientific_name,s.order_family_species);return direct.filter(Boolean)}
-function speciesMatches(row,requested,speciesById){const req=arr(requested).map(norm).filter(Boolean);if(!req.length)return true;const names=rowSpeciesNames(row,speciesById).map(norm).filter(Boolean);if(!names.length)return true;return req.some(r=>names.some(n=>n===r||n.includes(r)||r.includes(n)))}
-function causeMatches(row,tokens){if(!tokens.size)return true;const cause=norm(pick(row,['cause_group','trigger_key','signal_key','cause','reason','action_kind']));if(!cause)return true;if(tokens.has(cause))return true;const parts=cause.split('-').filter(x=>x.length>2);return parts.some(x=>tokens.has(x))||Array.from(tokens).some(t=>t.length>3&&(cause.includes(t)||t.includes(cause)))}
+function speciesMatches(row,requested,speciesById){
+  const req=arr(requested).map(norm).filter(Boolean);
+  if(!req.length)return true;
+  const requestedIds=requestedSpeciesIds(requested,speciesById);
+  const rowId=pick(row,['species_id']);
+  if(rowId==null)return isSnakeRequest(requested,requestedIds);
+  if(requestedIds.size)return requestedIds.has(String(rowId));
+  const names=rowSpeciesNames(row,speciesById).map(norm).filter(Boolean);
+  return req.some(r=>names.some(n=>n===r||n.includes(r)||r.includes(n)));
+}
+
+const DB_CAUSE_GROUPS=['food-waste-and-bins','clutter-and-shelter','personal-protection','deliberate-feeding','fruit-trees','open-doors-windows','reporting'];
+function deriveCauseGroups(payload={}){
+  const groups=new Set();
+  const add=x=>groups.add(norm(x));
+  const raw={
+    foodSources:payload.foodSources,
+    wasteStorage:payload.wasteStorage,
+    neighboursFeed:payload.neighboursFeed,
+    attractants:payload.attractants,
+    signals:payload.signals,
+    doorsWindows:payload.doorsWindows??payload.openDoorsWindows??payload.open_doors_windows,
+    clutter:payload.clutter??payload.shelter??payload.clutterShelter,
+    reporting:payload.reporting??payload.report
+  };
+  const tokens=addSynonyms(tokenSet(raw));
+  const has=(...xs)=>xs.some(x=>tokens.has(norm(x)));
+  if(has('food-waste-and-bins','open-bins','open-bin','uncovered-bin','unsecured-bin','rubbish','garbage','waste','bin','bins','food-waste','pet-food','petfood','food'))add('food_waste_and_bins');
+  if(has('deliberate-feeding','feeding','feed','intentional-feeding','neighbour-feeding','neighbor-feeding','neighbours-feed','neighbors-feed'))add('deliberate_feeding');
+  if(has('fruit-trees','fruit-tree','fruit','ripe-fruit','garden-fruit'))add('fruit_trees');
+  if(has('open-doors-windows','door','doors','window','windows','open-door','open-doors','open-window','open-windows'))add('open_doors_windows');
+  if(has('clutter-and-shelter','clutter','pile','piles','shelter','debris'))add('clutter_and_shelter');
+  if(has('reporting','report','authority','perhilitan'))add('reporting');
+  if(has('personal-protection','shoes','floor','sleeping-floor','car'))add('personal_protection');
+  flattenStrings(payload.cause_group??payload.causeGroups??payload.causes).forEach(v=>{const n=norm(v);if(DB_CAUSE_GROUPS.includes(n))groups.add(n)});
+  return groups;
+}
+function causeMatches(row,causeGroups){
+  if(!causeGroups.size)return true;
+  const cause=norm(pick(row,['cause_group','trigger_key','signal_key','cause','reason']));
+  if(!cause)return false;
+  return causeGroups.has(cause);
+}
 function housingMatches(row,housingType){const h=norm(housingType);if(!h)return true;const r=norm(pick(row,['housing_type','housing','home_type']));if(!r||r==='all'||r==='any'||r==='general')return true;return r===h||r.includes(h)||h.includes(r)}
 function publicAction(row,speciesById,language='en'){
   const id=pick(row,['prevention_id','action_id','id']);
@@ -70,15 +143,22 @@ async function buildPlan(sql,found,payload={}){
   const {preventionRows,speciesById}=await getPreventionContext(sql,found);
   const speciesSeen=payload.speciesSeen??payload.species??[];
   const housingType=payload.housingType??payload.housing_type??null;
-  const answerSignals={foodSources:payload.foodSources,wasteStorage:payload.wasteStorage,neighboursFeed:payload.neighboursFeed,attractants:payload.attractants,signals:payload.signals};
-  const tokens=addSynonyms(tokenSet(answerSignals));
+  const causeGroups=deriveCauseGroups(payload);
   const language=(payload.language==='bm'||payload.language==='ms')?'bm':'en';
-  let matched=preventionRows.filter(r=>speciesMatches(r,speciesSeen,speciesById)&&causeMatches(r,tokens)&&housingMatches(r,housingType));
-  matched.sort((a,b)=>(Number(pick(a,['harm_rank','priority','rank']))||999)-(Number(pick(b,['harm_rank','priority','rank']))||999));
+  const requestedIds=requestedSpeciesIds(speciesSeen,speciesById);
+  let matched=preventionRows.filter(r=>speciesMatches(r,speciesSeen,speciesById)&&causeMatches(r,causeGroups)&&housingMatches(r,housingType));
+  matched.sort((a,b)=>{
+    const ar=Number(pick(a,['harm_rank','priority','rank']));
+    const br=Number(pick(b,['harm_rank','priority','rank']));
+    const av=Number.isFinite(ar)&&ar>0?ar:999;
+    const bv=Number.isFinite(br)&&br>0?br:999;
+    if(av!==bv)return av-bv;
+    return (Number(pick(a,['prevention_id','action_id','id']))||999999)-(Number(pick(b,['prevention_id','action_id','id']))||999999);
+  });
   const seen=new Set();
   const actions=[];
   for(const r of matched){const a=publicAction(r,speciesById,language);const key=norm(a.action_text)||String(a.prevention_id||'');if(!key||seen.has(key))continue;seen.add(key);actions.push(a);if(actions.length>=12)break}
-  return {ok:true,table:found.prevention,count:actions.length,state:payload.state||null,language,matched_signals:Array.from(tokens),actions};
+  return {ok:true,table:found.prevention,count:actions.length,state:payload.state||null,language,species_ids:Array.from(requestedIds),matched_cause_groups:Array.from(causeGroups),actions};
 }
 async function insertFailure(sql,table,payload){if(!table||!safeIdent(table))return {logged:false,reason:'failure_table_not_found'};const cols=await columns(sql,table);const names=new Set(cols.map(c=>c.column_name));const values=[];const outCols=[];const add=(aliases,val)=>{const c=aliases.find(x=>names.has(x));if(c&&val!=null){outCols.push(c);values.push(val)}};add(['kind','lookup_kind','event_type','type'],String(payload.kind||'lookup').slice(0,80));add(['query_text','query','search_term','term','lookup_value'],String(payload.query||'').slice(0,200));add(['failure_reason','reason','error','status'],String(payload.reason||'no_match').slice(0,120));add(['page','route','path'],String(payload.page||payload.route||'').slice(0,160));if(!outCols.length){try{await sql.query(`INSERT INTO public."${table}" DEFAULT VALUES`);return {logged:true,table,columns:[]}}catch(e){return {logged:false,table,error:e.message}}}const quoted=outCols.map(c=>`"${c}"`).join(',');const params=values.map((_,i)=>`$${i+1}`).join(',');try{await sql.query(`INSERT INTO public."${table}" (${quoted}) VALUES (${params})`,values);return {logged:true,table,columns:outCols}}catch(e){return {logged:false,table,error:e.message}}}
 async function api(request,env){
@@ -101,10 +181,10 @@ async function api(request,env){
     const species=url.searchParams.getAll('species');
     const cause=url.searchParams.getAll('cause');
     const housingType=url.searchParams.get('housing_type')||url.searchParams.get('housing');
-    const tokens=addSynonyms(tokenSet(cause));
+    const causeGroups=new Set(cause.map(norm).filter(Boolean));
     const language=(url.searchParams.get('language')==='bm'||url.searchParams.get('language')==='ms')?'bm':'en';
-    const filtered=preventionRows.filter(r=>speciesMatches(r,species,speciesById)&&causeMatches(r,tokens)&&housingMatches(r,housingType));
-    const rows=filtered.map(r=>publicAction(r,speciesById,language)).sort((a,b)=>(a.harm_rank||999)-(b.harm_rank||999));
+    const filtered=preventionRows.filter(r=>speciesMatches(r,species,speciesById)&&causeMatches(r,causeGroups)&&housingMatches(r,housingType));
+    const rows=filtered.map(r=>publicAction(r,speciesById,language)).sort((a,b)=>((a.harm_rank||999)-(b.harm_rank||999))||((Number(a.prevention_id)||999999)-(Number(b.prevention_id)||999999)));
     return json({ok:true,table:found.prevention,count:rows.length,rows});
   }
   if(request.method==='POST'&&url.pathname==='/api/i2/plan'){
