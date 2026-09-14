@@ -110,13 +110,13 @@
     var style = document.createElement('style');
     style.id = 'i2-print-action-style';
     style.textContent = [
-      '#plan-print__sheetActions .action-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer;user-select:none}',
-      '#plan-print__sheetActions .action-box{width:20px;height:20px;min-width:20px;border:2px solid #cbd5e1;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;margin-top:2px;background:#fff}',
-      '#plan-print__sheetActions .action-row[data-checked="true"] .action-box{background:#166534;border-color:#166534;color:#fff}',
-      '#plan-print__sheetActions .action-row[data-checked="true"] .action-box:after{content:"✓";font-size:13px;font-weight:700;line-height:1}',
+      '#plan-print__sheetActions .action-row{display:flex;align-items:flex-start;gap:10px}',
+      '#plan-print__sheetActions .print-action-check{width:20px;height:20px;min-width:20px;margin-top:3px;cursor:pointer;accent-color:#166534}',
       '#plan-print__sheetActions .action-main{min-width:0;line-height:1.5}',
       '#plan-print__sheetActions .action-meta{font-size:10px;color:#94a3b8;margin-left:5px;white-space:normal}',
-      '@media print{#plan-print__sheetActions .action-row{cursor:default}.action-meta{font-size:8.5pt!important;color:#64748b!important}}'
+      '#plan-print__sheetActions .action-meta a{color:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}',
+      '#plan-print__sheetActions .action-meta a:hover{color:#047857}',
+      '@media print{#plan-print__sheetActions .print-action-check{cursor:default}.action-meta{font-size:8.5pt!important;color:#64748b!important}.action-meta a{text-decoration:none!important;color:#64748b!important}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -166,7 +166,8 @@
 
     snapshot.actions.forEach(function(a){
       var text = clean(a.action_text);
-      var source = clean(a.source_person || a.source_institution || a.source_url);
+      var sourceUrl = clean(a.source_url);
+      var source = clean(a.source_person || a.source_institution || sourceUrl);
       if(a.source_person && a.source_institution && clean(a.source_person)!==clean(a.source_institution)){
         source = clean(a.source_person) + ' · ' + clean(a.source_institution);
       }
@@ -176,26 +177,33 @@
       var row = document.createElement('div');
       row.className = 'action-row';
       row.setAttribute('data-print-prevention-id', clean(a.prevention_id));
-      row.setAttribute('data-checked', 'false');
-      row.setAttribute('role', 'checkbox');
-      row.setAttribute('aria-checked', 'false');
-      row.setAttribute('tabindex', '0');
-      row.innerHTML = '<span class="action-box" aria-hidden="true"></span>' +
-        '<span class="action-main">' + esc(text) +
-        '<span class="action-meta">' + esc(source) + ' · ' + esc(verified) + '</span></span>';
 
-      function toggle(){
-        var checked = row.getAttribute('data-checked') === 'true';
-        row.setAttribute('data-checked', checked ? 'false' : 'true');
-        row.setAttribute('aria-checked', checked ? 'false' : 'true');
+      var checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'print-action-check';
+      checkbox.setAttribute('aria-label', text);
+
+      var main = document.createElement('span');
+      main.className = 'action-main';
+      main.appendChild(document.createTextNode(text));
+
+      var meta = document.createElement('span');
+      meta.className = 'action-meta';
+      if(sourceUrl){
+        var link = document.createElement('a');
+        link.href = sourceUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = source;
+        meta.appendChild(link);
+      }else{
+        meta.appendChild(document.createTextNode(source));
       }
-      row.addEventListener('click', toggle);
-      row.addEventListener('keydown', function(e){
-        if(e.key === ' ' || e.key === 'Enter'){
-          e.preventDefault();
-          toggle();
-        }
-      });
+      meta.appendChild(document.createTextNode(' · ' + verified));
+      main.appendChild(meta);
+
+      row.appendChild(checkbox);
+      row.appendChild(main);
       actionsWrap.appendChild(row);
     });
 
