@@ -10,9 +10,6 @@
     labuan: 'Labuan', putrajaya: 'Putrajaya'
   };
 
-  var running = false;
-  var queued = false;
-
   function normaliseState(value) {
     var raw = String(value || '').trim();
     if (!raw) return '';
@@ -54,67 +51,44 @@
     return '';
   }
 
-  function removeCardFromChild(id) {
+  function hideElement(el) {
+    if (!el) return;
+    el.classList.add('hidden');
+    el.setAttribute('aria-hidden', 'true');
+    el.style.display = 'none';
+  }
+
+  function hideCardFromChild(id) {
     var child = document.getElementById(id);
-    if (!child) return false;
+    if (!child) return;
     var card = child.closest('.card');
-    if (!card || !card.parentNode) return false;
-    card.parentNode.removeChild(card);
-    return true;
+    if (card) hideElement(card);
   }
 
-  function cleanPlanResult() {
-    if (running) return;
-    running = true;
-    try {
-      var heading = document.getElementById('plan-result__stateHeading');
-      var notice = document.getElementById('plan-result__dataNotice');
-      var neighbour = document.getElementById('plan-result__neighbourCard');
-      var encountersBadge = document.getElementById('plan-result__encountersBadge');
-      if (!heading && !notice && !neighbour && !encountersBadge) return;
+  function apply() {
+    var heading = document.getElementById('plan-result__stateHeading');
+    var notice = document.getElementById('plan-result__dataNotice');
+    var neighbour = document.getElementById('plan-result__neighbourCard');
+    var encounters = document.getElementById('plan-result__encountersBadge');
+    if (!heading && !notice && !neighbour && !encounters) return;
 
-      if (notice) {
-        if (!notice.classList.contains('hidden')) notice.classList.add('hidden');
-        if (notice.getAttribute('aria-hidden') !== 'true') notice.setAttribute('aria-hidden', 'true');
-        if (notice.style.display !== 'none') notice.style.display = 'none';
-      }
+    // Keep the nodes in the DOM because the original page initialiser still
+    // writes into them. We only hide them from the user.
+    hideElement(notice);
+    hideElement(neighbour);
+    hideCardFromChild('plan-result__encountersBadge');
 
-      var rawState = readState();
-      var key = normaliseState(rawState);
-      var label = rawState ? (STATE_LABELS[key] || rawState) : '';
-      if (heading && label) {
-        if (heading.textContent !== label) heading.textContent = label;
-        if (heading.getAttribute('data-live-state') !== (key || rawState)) {
-          heading.setAttribute('data-live-state', key || rawState);
-        }
-      }
-
-      if (neighbour && neighbour.parentNode) neighbour.parentNode.removeChild(neighbour);
-
-      if (!removeCardFromChild('plan-result__encountersBadge')) {
-        if (!removeCardFromChild('plan-result__encountersDescription')) {
-          removeCardFromChild('plan-result__encountersBtn');
-        }
-      }
-    } finally {
-      running = false;
-    }
-  }
-
-  function scheduleClean() {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(function () {
-      queued = false;
-      cleanPlanResult();
-    });
+    var rawState = readState();
+    var key = normaliseState(rawState);
+    var label = rawState ? (STATE_LABELS[key] || rawState) : '';
+    if (heading && label && heading.textContent !== label) heading.textContent = label;
   }
 
   function runSoon() {
-    cleanPlanResult();
-    setTimeout(cleanPlanResult, 0);
-    setTimeout(cleanPlanResult, 120);
-    setTimeout(cleanPlanResult, 500);
+    apply();
+    setTimeout(apply, 50);
+    setTimeout(apply, 250);
+    setTimeout(apply, 800);
   }
 
   if (document.readyState === 'loading') {
@@ -126,7 +100,4 @@
   window.addEventListener('hashchange', runSoon);
   window.addEventListener('popstate', runSoon);
   document.addEventListener('roomforboth:pageshow', runSoon);
-
-  var observer = new MutationObserver(scheduleClean);
-  observer.observe(document.documentElement, { childList: true, subtree: true });
 })();
