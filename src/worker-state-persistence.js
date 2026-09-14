@@ -112,7 +112,8 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   document.addEventListener('roomforboth:pageshow', run);
 })();
 </script>
-<script src="/plan-db-client.js?v=20260914-2"></script>`;
+<script src="/plan-db-client.js?v=20260914-2"></script>
+<script src="/plan-result-cleanup.js?v=20260914-1"></script>`;
 
 class BodyInjector {
   element(el) {
