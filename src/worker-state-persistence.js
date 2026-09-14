@@ -45,10 +45,24 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/ac-compliance.js?v=20260914-3"></script>
 <script src="/print-selected-actions.js?v=20260914-3"></script>
 <script src="/emergency-flow-ac.js?v=20260915-3"></script>
-<script src="/emergency-identify-fix.js?v=20260915-1"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>`;
 
+const EMERGENCY_SRCDOC_SCRIPTS = String.raw`
+<script src="/main-identify-runtime.js?v=20260915-1"></script>
+<script src="/identify-confirm-bilingual.js?v=20260915-1"></script>
+<script src="/describe-fuzzy-guidance.js?v=20260915-1"></script>`;
+
 class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}}
+class EmergencySrcdocInjector{
+  element(el){
+    const srcdoc=el.getAttribute('srcdoc');
+    if(!srcdoc||srcdoc.includes('main-identify-runtime.js'))return;
+    const patched=srcdoc.includes('</body>')
+      ? srcdoc.replace('</body>',EMERGENCY_SRCDOC_SCRIPTS+'</body>')
+      : srcdoc+EMERGENCY_SRCDOC_SCRIPTS;
+    el.setAttribute('srcdoc',patched);
+  }
+}
 
 export default{
   async fetch(request,env,ctx){
@@ -64,6 +78,9 @@ export default{
     const response=await planSummaryWorker.fetch(upstreamRequest,env,ctx);
     const type=response.headers.get('content-type')||'';
     if(!type.toLowerCase().includes('text/html'))return response;
-    return new HTMLRewriter().on('body',new BodyInjector()).transform(response);
+    return new HTMLRewriter()
+      .on('iframe#emergency__frame',new EmergencySrcdocInjector())
+      .on('body',new BodyInjector())
+      .transform(response);
   }
 };
