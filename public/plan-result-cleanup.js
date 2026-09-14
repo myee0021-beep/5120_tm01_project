@@ -63,10 +63,6 @@
     return '';
   }
 
-  function currentPage() {
-    return String(location.hash || '#index').replace(/^#/, '').split('?')[0] || 'index';
-  }
-
   function removeCardFromChild(id) {
     var child = document.getElementById(id);
     if (!child) return;
@@ -75,35 +71,34 @@
   }
 
   function cleanPlanResult() {
-    if (currentPage() !== 'plan-result') return;
-
-    // The old generic fallback notice is demo-only and should never appear
-    // on the live Iteration 2 plan result.
+    // Do not depend on the SPA hash format. If Plan Result DOM is present,
+    // clean it. This also makes the patch resilient to future router changes.
+    var heading = document.getElementById('plan-result__stateHeading');
     var notice = document.getElementById('plan-result__dataNotice');
+    var neighbour = document.getElementById('plan-result__neighbourCard');
+    var encountersBadge = document.getElementById('plan-result__encountersBadge');
+    if (!heading && !notice && !neighbour && !encountersBadge) return;
+
     if (notice) {
       notice.classList.add('hidden');
       notice.setAttribute('aria-hidden', 'true');
       notice.style.display = 'none';
     }
 
-    // Show the state that the resident actually selected instead of the
-    // generic fallback heading "Your state".
     var rawState = readState();
     var key = normaliseState(rawState);
-    var heading = document.getElementById('plan-result__stateHeading');
     if (heading && rawState) {
       heading.textContent = STATE_LABELS[key] || rawState;
       heading.dataset.liveState = key || rawState;
     }
 
-    // This card is the old hand-built NEIGHBOUR_CARD fallback. The real
-    // prevention actions now come from prevention_action via /api/i2/plan.
-    var neighbour = document.getElementById('plan-result__neighbourCard');
     if (neighbour) neighbour.remove();
 
-    // Iteration 3 is out of scope for the current delivery. Remove the whole
-    // card, not just its text, so there is no blank space left behind.
+    // Remove the full Iteration 3 card as soon as any of its known children
+    // exists in the DOM.
     removeCardFromChild('plan-result__encountersBadge');
+    removeCardFromChild('plan-result__encountersDescription');
+    removeCardFromChild('plan-result__encountersBtn');
   }
 
   function runSoon() {
@@ -111,6 +106,7 @@
     setTimeout(cleanPlanResult, 0);
     setTimeout(cleanPlanResult, 120);
     setTimeout(cleanPlanResult, 500);
+    setTimeout(cleanPlanResult, 1200);
   }
 
   if (document.readyState === 'loading') {
@@ -124,7 +120,7 @@
   document.addEventListener('roomforboth:pageshow', runSoon);
 
   var observer = new MutationObserver(function () {
-    if (currentPage() === 'plan-result') cleanPlanResult();
+    cleanPlanResult();
   });
   observer.observe(document.documentElement, { childList: true, subtree: true });
 })();
