@@ -19,7 +19,55 @@ function norm(v){return String(v??'').trim().toLowerCase().replace(/[^a-z0-9]+/g
 function pick(row,keys){for(const k of keys)if(row&&row[k]!=null&&row[k]!=='')return row[k];return null}
 function stateValue(r){return pick(r,['state_key','state','state_name','statecode','state_code','jurisdiction','region'])}
 function speciesValue(r){return pick(r,['species_key','species','species_name','common_name','english_name','animal','animal_name','category'])}
+const STATE_CODE_BY_KEY={
+  johor:1,kedah:2,kelantan:3,melaka:4,'negeri-sembilan':5,pahang:6,perak:7,perlis:8,penang:9,'pulau-pinang':9,
+  sabah:10,sarawak:11,selangor:12,terengganu:13,kl:14,'kuala-lumpur':14,'w-p-kuala-lumpur':14,labuan:15,'w-p-labuan':15,putrajaya:16,'w-p-putrajaya':16
+};
+function resolveStateCode(value){const n=norm(value);if(!n)return null;if(/^\d+$/.test(n))return Number(n);return STATE_CODE_BY_KEY[n]??null}
+function resolveSpeciesId(value){const n=norm(value);if(!n)return null;if(/^\d+$/.test(n))return Number(n);for(const [id,aliases] of Object.entries(SPECIES_ALIASES)){if(aliases.some(a=>a===n||a.includes(n)||n.includes(a)))return Number(id)}return null}
 function filterRows(rows,url){const state=url.searchParams.get('state');const species=url.searchParams.get('species');let out=rows;if(state){const n=norm(state);out=out.filter(r=>{const s=norm(stateValue(r));return !s||s===n||s.includes(n)||n.includes(s)})}if(species){const n=norm(species);out=out.filter(r=>{const s=norm(speciesValue(r));return !s||s===n||s.includes(n)||n.includes(s)})}return out}
+function filterComplaintRows(rows,url){
+  let out=rows;
+  const state=url.searchParams.get('state');
+  const year=url.searchParams.get('year');
+  const species=url.searchParams.get('species');
+  if(state){
+    const code=resolveStateCode(state);
+    if(code!=null)out=out.filter(r=>Number(pick(r,['state_code','statecode']))===code);
+    else {const n=norm(state);out=out.filter(r=>{const s=norm(stateValue(r));return s===n||s.includes(n)||n.includes(s)})}
+  }
+  if(year&&/^\d{4}$/.test(year))out=out.filter(r=>Number(pick(r,['year']))===Number(year));
+  if(species){
+    const id=resolveSpeciesId(species);
+    if(id!=null)out=out.filter(r=>Number(pick(r,['species_id']))===id);
+    else {const n=norm(species);out=out.filter(r=>{const s=norm(speciesValue(r));return s===n||s.includes(n)||n.includes(s)})}
+  }
+  return out;
+}
+function summarizeComplaintRows(rows,url){
+  if(!rows.length)return {year:null,total_cases:0,top_species_id:null,top_species_cases:0,source_url:null,date_verified:null,has_explicit_total:false};
+  const requestedYear=url.searchParams.get('year');
+  const years=rows.map(r=>Number(pick(r,['year']))).filter(Number.isFinite);
+  const year=requestedYear&&/^\d{4}$/.test(requestedYear)?Number(requestedYear):(years.length?Math.max(...years):null);
+  const scoped=year==null?rows:rows.filter(r=>Number(pick(r,['year']))===year);
+  const totals=scoped.filter(r=>pick(r,['species_id'])==null);
+  const speciesRows=scoped.filter(r=>pick(r,['species_id'])!=null);
+  const sumSpecies=speciesRows.reduce((sum,r)=>sum+(Number(pick(r,['cases']))||0),0);
+  const explicitTotal=totals.length?Math.max(...totals.map(r=>Number(pick(r,['cases']))||0)):null;
+  const totalCases=explicitTotal!=null?explicitTotal:sumSpecies;
+  let top=null;
+  for(const r of speciesRows){const c=Number(pick(r,['cases']))||0;if(!top||c>top.cases)top={species_id:Number(pick(r,['species_id'])),cases:c}}
+  const sourceRow=totals[0]||speciesRows[0]||scoped[0]||null;
+  return {
+    year,
+    total_cases:totalCases,
+    top_species_id:top?top.species_id:null,
+    top_species_cases:top?top.cases:0,
+    source_url:sourceRow?pick(sourceRow,['source_url','url','reference_url']):null,
+    date_verified:sourceRow?pick(sourceRow,['date_verified','verified_date','last_verified']):null,
+    has_explicit_total:explicitTotal!=null
+  };
+}
 function arr(v){if(v==null)return[];return Array.isArray(v)?v:[v]}
 function flattenStrings(v,out=[]){if(v==null)return out;if(Array.isArray(v)){v.forEach(x=>flattenStrings(x,out));return out}if(typeof v==='object'){Object.values(v).forEach(x=>flattenStrings(x,out));return out}const s=String(v).trim();if(s)out.push(s);return out}
 function tokenSet(values){const out=new Set();flattenStrings(values).forEach(v=>{const n=norm(v);if(!n)return;out.add(n);n.split('-').filter(x=>x.length>2).forEach(x=>out.add(x))});return out}
@@ -138,6 +186,16 @@ async function getPreventionContext(sql,found){
   speciesRows.forEach(s=>{const id=pick(s,['species_id','id']);if(id!=null)speciesById.set(String(id),s)});
   return {preventionRows,speciesRows,speciesById};
 }
+function sortPreventionRows(rows){
+  return rows.slice().sort((a,b)=>{
+    const ar=Number(pick(a,['harm_rank','priority','rank']));
+    const br=Number(pick(b,['harm_rank','priority','rank']));
+    const av=Number.isFinite(ar)&&ar>0?ar:999;
+    const bv=Number.isFinite(br)&&br>0?br:999;
+    if(av!==bv)return av-bv;
+    return (Number(pick(a,['prevention_id','action_id','id']))||999999)-(Number(pick(b,['prevention_id','action_id','id']))||999999);
+  });
+}
 async function buildPlan(sql,found,payload={}){
   if(!found.prevention)return {ok:false,error:'prevention_action table not found',actions:[]};
   const {preventionRows,speciesById}=await getPreventionContext(sql,found);
@@ -146,19 +204,19 @@ async function buildPlan(sql,found,payload={}){
   const causeGroups=deriveCauseGroups(payload);
   const language=(payload.language==='bm'||payload.language==='ms')?'bm':'en';
   const requestedIds=requestedSpeciesIds(speciesSeen,speciesById);
+
   let matched=preventionRows.filter(r=>speciesMatches(r,speciesSeen,speciesById)&&causeMatches(r,causeGroups)&&housingMatches(r,housingType));
-  matched.sort((a,b)=>{
-    const ar=Number(pick(a,['harm_rank','priority','rank']));
-    const br=Number(pick(b,['harm_rank','priority','rank']));
-    const av=Number.isFinite(ar)&&ar>0?ar:999;
-    const bv=Number.isFinite(br)&&br>0?br:999;
-    if(av!==bv)return av-bv;
-    return (Number(pick(a,['prevention_id','action_id','id']))||999999)-(Number(pick(b,['prevention_id','action_id','id']))||999999);
-  });
+  let tier='exact';
+  if(!matched.length){
+    matched=preventionRows.filter(r=>speciesMatches(r,speciesSeen,speciesById));
+    tier='species_general';
+  }
+
+  matched=sortPreventionRows(matched);
   const seen=new Set();
   const actions=[];
   for(const r of matched){const a=publicAction(r,speciesById,language);const key=norm(a.action_text)||String(a.prevention_id||'');if(!key||seen.has(key))continue;seen.add(key);actions.push(a);if(actions.length>=12)break}
-  return {ok:true,table:found.prevention,count:actions.length,state:payload.state||null,language,species_ids:Array.from(requestedIds),matched_cause_groups:Array.from(causeGroups),actions};
+  return {ok:true,table:found.prevention,count:actions.length,state:payload.state||null,language,species_ids:Array.from(requestedIds),matched_cause_groups:Array.from(causeGroups),tier,fallback_used:tier!=='exact',actions};
 }
 async function insertFailure(sql,table,payload){if(!table||!safeIdent(table))return {logged:false,reason:'failure_table_not_found'};const cols=await columns(sql,table);const names=new Set(cols.map(c=>c.column_name));const values=[];const outCols=[];const add=(aliases,val)=>{const c=aliases.find(x=>names.has(x));if(c&&val!=null){outCols.push(c);values.push(val)}};add(['kind','lookup_kind','event_type','type'],String(payload.kind||'lookup').slice(0,80));add(['query_text','query','search_term','term','lookup_value'],String(payload.query||'').slice(0,200));add(['failure_reason','reason','error','status'],String(payload.reason||'no_match').slice(0,120));add(['page','route','path'],String(payload.page||payload.route||'').slice(0,160));if(!outCols.length){try{await sql.query(`INSERT INTO public."${table}" DEFAULT VALUES`);return {logged:true,table,columns:[]}}catch(e){return {logged:false,table,error:e.message}}}const quoted=outCols.map(c=>`"${c}"`).join(',');const params=values.map((_,i)=>`$${i+1}`).join(',');try{await sql.query(`INSERT INTO public."${table}" (${quoted}) VALUES (${params})`,values);return {logged:true,table,columns:outCols}}catch(e){return {logged:false,table,error:e.message}}}
 async function api(request,env){
@@ -173,7 +231,12 @@ async function api(request,env){
   };
   if(request.method==='GET'&&url.pathname==='/api/health')return json({ok:true,service:'room-for-both-iteration2',database:'connected',tables:found});
   if(request.method==='GET'&&url.pathname==='/api/i2/status')return json({ok:true,tables:found,columns:{complaints:await columns(sql,found.complaints),attractants:await columns(sql,found.attractants),prevention:await columns(sql,found.prevention),species:await columns(sql,found.species),categories:await columns(sql,found.categories),failures:await columns(sql,found.failures)}});
-  if(request.method==='GET'&&url.pathname==='/api/i2/complaints'){const rows=filterRows(await rowsFrom(sql,found.complaints),url);return json({ok:true,table:found.complaints,count:rows.length,rows})}
+  if(request.method==='GET'&&url.pathname==='/api/i2/complaints'){
+    if(!found.complaints)return json({ok:false,error:'complaint_series table not found',rows:[],summary:null},404);
+    const rows=filterComplaintRows(await rowsFrom(sql,found.complaints),url);
+    const summary=summarizeComplaintRows(rows,url);
+    return json({ok:true,table:found.complaints,count:rows.length,summary,rows});
+  }
   if(request.method==='GET'&&url.pathname==='/api/i2/attractants'){const rows=filterRows(await rowsFrom(sql,found.attractants),url);return json({ok:true,table:found.attractants,count:rows.length,rows})}
   if(request.method==='GET'&&url.pathname==='/api/i2/prevention-actions'){
     if(!found.prevention)return json({ok:false,error:'prevention_action table not found',rows:[]},404);
@@ -203,10 +266,17 @@ async function injectGeneralGuidanceFix(request,env,url){
   const type=assetResp.headers.get('content-type')||'';
   if(!type.includes('text/html')) return assetResp;
   let html=await assetResp.text();
-  const tag='<script src="/general-guidance-image-fix.js?v=20260914-3"></script>';
-  if(!html.includes('/general-guidance-image-fix.js')){
-    if(html.includes('</body>')) html=html.replace('</body>',tag+'\n</body>');
-    else html+=tag;
+  const patches=[
+    '<script src="/general-guidance-image-fix.js?v=20260914-3"></script>',
+    '<script src="/complaint-db-client.js?v=20260914-1"></script>',
+    '<script src="/plan-db-client.js?v=20260914-2"></script>'
+  ];
+  for(const tag of patches){
+    const src=(tag.match(/src="([^"]+)/)||[])[1];
+    if(src && !html.includes(src)){
+      if(html.includes('</body>')) html=html.replace('</body>',tag+'\n</body>');
+      else html+=tag;
+    }
   }
   const headers=new Headers(assetResp.headers);
   headers.delete('content-length');
