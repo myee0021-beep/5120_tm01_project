@@ -41,4 +41,14 @@ async function api(request,env){const url=new URL(request.url);const sql=getSql(
   if(url.pathname.startsWith('/api/'))return json({ok:false,error:'API route not found'},404);
   return null;
 }
-export default{async fetch(request,env){try{const r=await api(request,env);if(r)return r}catch(err){console.error('[iteration2 worker]',err);if(new URL(request.url).pathname.startsWith('/api/'))return json({ok:false,error:'Database/API request failed',detail:err?.message||String(err)},500)}return env.ASSETS.fetch(request)}};
+
+async function serveFrontend(request,env){
+  const url=new URL(request.url);
+  if(request.method==='GET' && (url.pathname==='/' || url.pathname==='/index.html')){
+    url.pathname='/index0914.html';
+    return env.ASSETS.fetch(new Request(url.toString(),request));
+  }
+  return env.ASSETS.fetch(request);
+}
+
+export default{async fetch(request,env){try{const r=await api(request,env);if(r)return r}catch(err){console.error('[iteration2 worker]',err);if(new URL(request.url).pathname.startsWith('/api/'))return json({ok:false,error:'Database/API request failed',detail:err?.message||String(err)},500)}return serveFrontend(request,env)}};
