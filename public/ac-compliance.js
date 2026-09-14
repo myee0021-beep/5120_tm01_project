@@ -13,6 +13,12 @@
     try { if(!l) l = String(localStorage.getItem('owm-lang') || '').toLowerCase(); } catch(e) {}
     return (l === 'bm' || l === 'ms') ? 'bm' : 'en';
   }
+  function hashText(text){
+    var h=2166136261;
+    text=String(text||'');
+    for(var i=0;i<text.length;i++){ h^=text.charCodeAt(i); h=Math.imul(h,16777619); }
+    return (h>>>0).toString(16);
+  }
 
   function replaceVisibleText(root, replacements){
     root = root || document.body;
@@ -111,10 +117,10 @@
     style.id = 'i2-print-action-style';
     style.textContent = [
       '#plan-print__sheetActions .action-row{display:flex;align-items:flex-start;gap:10px}',
-      '#plan-print__sheetActions .print-action-check{width:20px;height:20px;min-width:20px;margin-top:3px;cursor:pointer;accent-color:#166534}',
+      '#plan-print__sheetActions .print-action-check{width:20px;height:20px;min-width:20px;margin-top:3px;cursor:pointer;accent-color:#166534;pointer-events:auto!important}',
       '#plan-print__sheetActions .action-main{min-width:0;line-height:1.5}',
       '#plan-print__sheetActions .action-meta{font-size:10px;color:#94a3b8;margin-left:5px;white-space:normal}',
-      '#plan-print__sheetActions .action-meta a{color:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}',
+      '#plan-print__sheetActions .action-meta a{color:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer;pointer-events:auto!important}',
       '#plan-print__sheetActions .action-meta a:hover{color:#047857}',
       '@media print{#plan-print__sheetActions .print-action-check{cursor:default}.action-meta{font-size:8.5pt!important;color:#64748b!important}.action-meta a{text-decoration:none!important;color:#64748b!important}}'
     ].join('');
@@ -130,6 +136,10 @@
     ensurePrintInteractionStyle();
 
     var snapshot = readSnapshot();
+    var fingerprint = hashText(JSON.stringify(snapshot || null));
+    if(actionsWrap.getAttribute('data-snapshot-fingerprint') === fingerprint) return;
+    actionsWrap.setAttribute('data-snapshot-fingerprint', fingerprint);
+
     actionsWrap.innerHTML = '';
     speciesWrap.innerHTML = '';
 
@@ -195,6 +205,7 @@
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         link.textContent = source;
+        link.addEventListener('click', function(e){ e.stopPropagation(); });
         meta.appendChild(link);
       }else{
         meta.appendChild(document.createTextNode(source));
