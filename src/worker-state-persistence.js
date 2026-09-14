@@ -1,5 +1,5 @@
 import planSummaryWorker from './worker-plan-summary.js';
-import legacyWorker from './worker.js';
+import { handleIdentifyDescribe } from './identify-describe.js';
 
 const SPA_ROUTES = new Set([
   '/index.html','/plan.html','/plan-result.html','/plan-how-computed.html',
@@ -44,7 +44,6 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/ac-observer-guard.js?v=20260914-1"></script>
 <script src="/ac-compliance.js?v=20260914-3"></script>
 <script src="/print-selected-actions.js?v=20260914-3"></script>
-<script src="/describe-ai.js?v=20260914-5"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>`;
 
 class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}}
@@ -52,7 +51,9 @@ class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}
 export default{
   async fetch(request,env,ctx){
     const url=new URL(request.url);
-    if(request.method==='POST'&&url.pathname==='/api/identify-describe')return legacyWorker.fetch(request,env,ctx);
+    if(request.method==='POST'&&url.pathname==='/api/identify-describe'){
+      return handleIdentifyDescribe(request,env);
+    }
     let upstreamRequest=request;
     if(request.method==='GET'&&SPA_ROUTES.has(url.pathname)&&url.pathname!=='/index.html'){
       const rewritten=new URL(request.url);rewritten.pathname='/index0914.html';
