@@ -19,7 +19,11 @@
     var host=actionsHost();
     if(!host)return[];
     return Array.prototype.map.call(host.querySelectorAll('[data-plan-row="database"]'),function(row){
-      var text=clean(row.innerText).replace(/^\d+\.\s*/,'');
+      var text=clean(row.getAttribute('data-action-text')||'');
+      if(!text){
+        var first=row.querySelector('.text-forest-950');
+        text=clean(first&&first.textContent).replace(/^\d+\.\s*/,'');
+      }
       return text?{action:text,prevention_id:row.getAttribute('data-prevention-id')||null}:null;
     }).filter(Boolean).slice(0,20);
   }
