@@ -41,19 +41,16 @@
   }
 
   function renderActions(host,progress,actions,lang,fallbackUsed){
-    // AC 6.1.1: display four to eight sourced rows. If fewer than four valid
-    // sourced rows are available, do not pad with invented or foreign guidance.
     actions=actions.slice(0,8);
     var checked=actions.map(function(){return false;});
     function draw(){
       host.innerHTML='';
       actions.forEach(function(action,i){
         var textValue=clean(action.action_text||action.action_text_en||action.action_text_ms||'');
-        var source=sourceLabel(action);var sourceUrl=clean(action.source_url);var verified=clean(action.date_verified);
+        var source=sourceLabel(action),sourceUrl=clean(action.source_url),verified=clean(action.date_verified);
         var row=document.createElement('div');row.className='flex items-start gap-3';row.setAttribute('data-plan-row','database');row.setAttribute('data-prevention-id',clean(action.prevention_id||''));row.setAttribute('data-action-text',textValue);row.setAttribute('data-source-person',clean(action.source_person));row.setAttribute('data-source-institution',clean(action.source_institution));row.setAttribute('data-source-url',sourceUrl);row.setAttribute('data-date-verified',verified);
         var box=document.createElement('button');box.type='button';box.className='checkbox-btn'+(checked[i]?' checked':'');box.setAttribute('aria-pressed',checked[i]?'true':'false');box.setAttribute('aria-label',(lang==='bm'?'Tandakan tindakan: ':'Mark action done: ')+textValue);box.innerHTML=checked[i]?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>':'';box.addEventListener('click',function(){checked[i]=!checked[i];draw();});
-        var text=document.createElement('div');text.className='text-sm min-w-0';
-        var sourceHtml=sourceUrl?'<a class="underline underline-offset-2 hover:text-emerald-700" href="'+esc(sourceUrl)+'" target="_blank" rel="noopener">'+esc(source||sourceUrl)+'</a>':esc(source);
+        var text=document.createElement('div');text.className='text-sm min-w-0';var sourceHtml=sourceUrl?'<a class="underline underline-offset-2 hover:text-emerald-700" href="'+esc(sourceUrl)+'" target="_blank" rel="noopener">'+esc(source||sourceUrl)+'</a>':esc(source);
         text.innerHTML='<div class="text-forest-950">'+esc((i+1)+'. '+textValue)+'</div><div class="mt-1 text-xs text-slate-400" data-plan-source-line>Source: '+sourceHtml+' · Verified '+esc(verified)+'</div>';
         row.appendChild(box);row.appendChild(text);host.appendChild(row);
       });
@@ -66,8 +63,8 @@
 
   function loadPlan(){
     if(currentPage()!=='plan-result')return;
-    var host=document.getElementById('plan-result__preventionActions');var progress=document.getElementById('plan-result__preventionProgress');if(!host)return;
-    var payload=buildPayload();var fp=JSON.stringify(payload);
+    var host=document.getElementById('plan-result__preventionActions'),progress=document.getElementById('plan-result__preventionProgress');if(!host)return;
+    var payload=buildPayload(),fp=JSON.stringify(payload);
     if(fp===lastFingerprint&&host.getAttribute('data-plan-source')==='prevention_action')return;
     if(fp===inFlight)return;
     if(controller){controller.abort();controller=null;}
@@ -75,13 +72,19 @@
     fetch('/api/i2/plan',{method:'POST',headers:{'content-type':'application/json','accept':'application/json'},cache:'no-store',body:JSON.stringify(payload),signal:controller.signal})
       .then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});})
       .then(function(result){
-        if(inFlight!==fp)return;inFlight='';controller=null;lastFingerprint=fp;
-        var body=result.body||{};if(!result.ok||!body.ok)throw new Error(body.error||'Plan API failed');
+        if(inFlight!==fp)return;
+        var body=result.body||{};
+        if(!result.ok||!body.ok){inFlight='';controller=null;lastFingerprint=fp;renderFailure(host,progress,lang,body.error||null);return;}
         var actions=Array.isArray(body.actions)?body.actions.filter(valid):[];
+        inFlight='';controller=null;lastFingerprint=fp;
         if(!actions.length){renderFailure(host,progress,lang);return;}
         renderActions(host,progress,actions,lang,!!body.fallback_used);
       })
-      .catch(function(error){if(error&&error.name==='AbortError')return;if(inFlight===fp){inFlight='';controller=null;lastFingerprint=fp;renderFailure(host,progress,lang);}console.error('[plan-db-client]',error&&error.message?error.message:error);});
+      .catch(function(error){
+        if(error&&error.name==='AbortError')return;
+        if(inFlight===fp){inFlight='';controller=null;lastFingerprint=fp;renderFailure(host,progress,lang);}
+        console.error('[plan-db-client]',error&&error.message?error.message:error);
+      });
   }
 
   function schedule(){setTimeout(loadPlan,0);}
