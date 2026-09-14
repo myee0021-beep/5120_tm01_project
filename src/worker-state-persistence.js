@@ -41,9 +41,9 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/home-live-data.js?v=20260914-1"></script>
 <script src="/plan-ai-summary.js?v=20260914-2"></script>
 <script src="/plan-result-cleanup.js?v=20260914-1"></script>
-<script src="/ac-observer-guard.js?v=20260914-1"></script>
 <script src="/ac-compliance.js?v=20260914-3"></script>
 <script src="/print-selected-actions.js?v=20260914-3"></script>
+<script src="/describe-id-compat.js?v=20260914-1"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>`;
 
 class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}}
