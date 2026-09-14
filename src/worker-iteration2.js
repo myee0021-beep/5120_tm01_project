@@ -268,8 +268,7 @@ async function injectGeneralGuidanceFix(request,env,url){
   let html=await assetResp.text();
   const patches=[
     '<script src="/general-guidance-image-fix.js?v=20260914-3"></script>',
-    '<script src="/complaint-db-client.js?v=20260914-1"></script>',
-    '<script src="/plan-db-client.js?v=20260914-2"></script>'
+    '<script src="/complaint-db-client.js?v=20260914-1"></script>'
   ];
   for(const tag of patches){
     const src=(tag.match(/src="([^"]+)/)||[])[1];
