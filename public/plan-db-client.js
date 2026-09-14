@@ -63,27 +63,6 @@
     return payload;
   }
 
-  function sourceText(action, lang){
-    var who = clean(action.source_institution || action.source_person || '');
-    var verified = clean(action.date_verified || '');
-    if(verified){
-      var m = verified.match(/^\d{4}-\d{2}-\d{2}/);
-      if(m) verified = m[0];
-    }
-
-    if(lang === 'bm'){
-      if(who && verified) return 'Sumber: ' + who + ' · Disahkan: ' + verified;
-      if(who) return 'Sumber: ' + who;
-      if(verified) return 'Disahkan: ' + verified;
-      return 'Sumber: pangkalan data prevention_action';
-    }
-
-    if(who && verified) return 'Source: ' + who + ' · Verified: ' + verified;
-    if(who) return 'Source: ' + who;
-    if(verified) return 'Verified: ' + verified;
-    return 'Source: prevention_action database';
-  }
-
   function renderFailure(host, progress, lang, message){
     if(!host) return;
     host.setAttribute('data-plan-source', 'prevention_action-error');
@@ -120,15 +99,7 @@
 
         var text = document.createElement('div');
         text.className = 'text-sm';
-        var source = sourceText(action, lang);
-        var sourceUrl = clean(action.source_url || '');
-        var sourceHtml = esc(source);
-        if(sourceUrl){
-          sourceHtml = '<a href="' + esc(sourceUrl) + '" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2">' + esc(source) + '</a>';
-        }
-        text.innerHTML =
-          '<div class="text-forest-950">' + esc((i + 1) + '. ' + textValue) + '</div>' +
-          '<div class="mt-0.5 text-xs text-slate-400">' + sourceHtml + '</div>';
+        text.innerHTML = '<div class="text-forest-950">' + esc((i + 1) + '. ' + textValue) + '</div>';
 
         row.appendChild(box);
         row.appendChild(text);
