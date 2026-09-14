@@ -1,2 +1,0 @@
-/* Iteration 2 placeholder occurrence data. Replace with the shipped occurrence extract when ready. */
-var ECOSYSTEM_OCCURRENCES={meta:{generatedBy:'iteration2-placeholder',note:'Occurrence dataset is not connected yet.',sourceFile:null,totalRecords:0,recordsWithNoMonth:0,recordsWithNoYear:0,speciesCodes:['crow','myna','macaque','monitor','python','boar','cobra'],snakeCodes:['python','cobra'],yearRange:[null,null]},rows:[]};
