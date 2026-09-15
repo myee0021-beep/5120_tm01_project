@@ -12,7 +12,6 @@
   };
   var ID_TO_CODE={1:'macaque',2:'boar',3:'myna',4:'python',5:'crow',6:'monitor',7:'cobra'};
   var STATE_LABELS={johor:'Johor',kedah:'Kedah',kelantan:'Kelantan',melaka:'Melaka','negeri-sembilan':'Negeri Sembilan',pahang:'Pahang',perak:'Perak',perlis:'Perlis',penang:'Pulau Pinang','pulau-pinang':'Pulau Pinang',sabah:'Sabah',sarawak:'Sarawak',selangor:'Selangor',terengganu:'Terengganu',kl:'Kuala Lumpur','kuala-lumpur':'Kuala Lumpur',labuan:'Labuan',putrajaya:'Putrajaya'};
-  var incompleteYears={2025:true,2026:true};
   var runToken=0;
 
   function clean(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
@@ -39,7 +38,7 @@
     var d=window.ECOSYSTEM_OCCURRENCES;if(!d||!Array.isArray(d.rows))return[];return d.rows;
   }
   function occurrenceFor(st,code){
-    var rows=occurrenceRows().filter(function(r){return norm(r[0])===st&&r[1]===code&&!incompleteYears[Number(r[2])];});
+    var rows=occurrenceRows().filter(function(r){return norm(r[0])===st&&r[1]===code&&Number(r[2])>0&&Number(r[3])>=1&&Number(r[3])<=12;});
     var total=0,months=[0,0,0,0,0,0,0,0,0,0,0,0],years=[];
     rows.forEach(function(r){var y=Number(r[2]),m=Number(r[3]),c=Number(r[4])||0;total+=c;if(y)years.push(y);if(m>=1&&m<=12)months[m-1]+=c;});
     return{total:total,months:months,minYear:years.length?Math.min.apply(null,years):null,maxYear:years.length?Math.max.apply(null,years):null};
@@ -117,7 +116,7 @@
       var complaint=complaintRowFor(complaintRows,meta.id,cs&&cs.year);
       var card=document.createElement('div');card.className='rounded-xl border border-slate-100 p-4 mb-3';
       var html='<div class="font-semibold text-forest-950">'+esc(name)+'</div><div class="mt-3 space-y-2 text-sm text-slate-700">';
-      html+='<div><strong>'+(l==='bm'?'Rekod kejadian':'Recorded occurrences')+':</strong> '+occ.total.toLocaleString()+' · '+sourceLink('#about-the-data','GBIF occurrence extract')+' <span class="text-xs text-slate-400">('+(l==='bm'?'2025 dan 2026 dikecualikan sebagai tahun tidak lengkap':'2025 and 2026 excluded as incomplete years')+')</span></div>';
+      html+='<div><strong>'+(l==='bm'?'Rekod kejadian':'Recorded occurrences')+':</strong> '+occ.total.toLocaleString()+' · '+sourceLink('#about-the-data','GBIF occurrence extract')+'</div>';
       if(meta.absentComplaint||!complaint){
         html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+esc(l==='bm'?'Tiada baris aduan khusus spesies yang diterbitkan untuk spesies ini di negeri ini; jumlah semua spesies tidak digunakan sebagai ganti.':'No published species-specific complaint row is available for this species in this state; the all-species total is not substituted.')+'</div>';
       }else{
@@ -135,11 +134,52 @@
   }
 
   function renderMonthly(st,codes){
-    var bars=document.getElementById('plan-result__seasonBars'),desc=document.getElementById('plan-result__seasonDescription');if(!bars||!desc)return;
-    var l=lang();
-    if(codes.length!==1){bars.innerHTML='';desc.textContent=l==='bm'?'Profil bulanan dipaparkan apabila satu spesies dipilih dan ambang D34 tersedia.':'Monthly profile is shown when one species is selected and the D34 threshold is available.';return;}
-    var occ=occurrenceFor(st,codes[0]);bars.innerHTML='';
-    desc.textContent=(l==='bm'?'Terdapat ':'There are ')+occ.total.toLocaleString()+(l==='bm'?' rekod lengkap untuk spesies ini di negeri ini. Ambang D34 belum tersedia melalui antara muka data, jadi graf bulanan tidak dilukis dan tiada ambang direka.':' complete-year records for this species in this state. The D34 threshold is not available through the data interface yet, so no monthly chart is drawn and no threshold is invented.')+(occ.minYear?' '+(l==='bm'?'Julat tahun lengkap: ':'Complete-year range: ')+occ.minYear+'–'+occ.maxYear+'.':'');
+    var chart=document.getElementById('plan-result__seasonChart'),wrap=document.getElementById('plan-result__seasonChartWrap'),desc=document.getElementById('plan-result__seasonDescription');if(!chart||!wrap||!desc)return;
+    var l=lang(),threshold=30;
+    chart.innerHTML='';wrap.classList.add('hidden');
+    if(!codes.length){desc.textContent=l==='bm'?'Pilih sekurang-kurangnya satu spesies untuk melihat profil bulanan rekod bertarikh.':'Select at least one species to view monthly profiles of dated records.';return;}
+    desc.textContent=l==='bm'?'Setiap spesies yang dipilih ditunjukkan secara berasingan. Rekod menunjukkan tempat spesies dilaporkan, bukan bilangan haiwan.':'Each selected species is shown separately. Records show where the species was reported, not the number of animals.';
+    var monthsShort=l==='bm'?['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis']:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    codes.forEach(function(code){
+      var occ=occurrenceFor(st,code),name=l==='bm'?SPECIES[code].bm:SPECIES[code].en,card=document.createElement('section');
+      card.className='rounded-xl border border-slate-100 bg-slate-50 p-3';
+      var title=document.createElement('div');title.className='text-xs font-semibold text-forest-950';title.textContent=name;card.appendChild(title);
+      var detail=document.createElement('p');detail.className='mt-1 text-xs text-slate-500';
+      if(occ.total<threshold){
+        // AC 1.2.4 — below the record threshold: no chart is drawn; state
+        // that there are not enough dated records for this species/state,
+        // the actual record count, and the threshold value in force (the
+        // same value every page that draws a profile uses). The other two
+        // signal cards (#plan-result__speciesList) are untouched by this.
+        detail.textContent=l==='bm'
+          ? 'Rekod bertarikh tidak mencukupi untuk '+name+' di '+(STATE_LABELS[st]||st)+' untuk memaparkan profil bulanan. Rekod semasa: '+occ.total.toLocaleString()+' · Ambang: '+threshold
+          : 'Not enough dated records for '+name+' in '+(STATE_LABELS[st]||st)+' to show a monthly profile. Records so far: '+occ.total.toLocaleString()+' · Threshold: '+threshold;
+        card.appendChild(detail);chart.appendChild(card);return;
+      }
+      detail.textContent=(l==='bm'?'Jumlah rekod bertarikh: ':'Dated records: ')+occ.total.toLocaleString()+' · '+occ.minYear+'–'+occ.maxYear;card.appendChild(detail);
+      // AC 1.2.3 — same 12-month bar chart as the Ecosystem species page
+      // (.bar-item/.bar-value/.bar-col), each bar labelled with its actual
+      // record count. No confidence interval, probability or trend line.
+      var bars=document.createElement('div');bars.className='mt-3 flex items-end gap-1.5 h-24';var max=Math.max.apply(null,occ.months);
+      var labels=document.createElement('div');labels.className='flex justify-between mt-1.5 text-[10px] text-slate-400';
+      occ.months.forEach(function(count,index){
+        var isPeak=count===max&&count>0;
+        var item=document.createElement('div');item.className='bar-item'+(isPeak?' peak':'');
+        var value=document.createElement('span');value.className='bar-value';value.textContent=count.toLocaleString();
+        var bar=document.createElement('div');bar.className='bar-col'+(isPeak?' peak':'');bar.style.height=Math.max(8,Math.round(count/max*100))+'%';
+        var tip=monthsShort[index]+': '+count.toLocaleString()+(l==='bm'?' rekod':' records');bar.title=tip;item.setAttribute('aria-label',tip);
+        item.appendChild(value);item.appendChild(bar);bars.appendChild(item);
+        var lbl=document.createElement('span');lbl.textContent=monthsShort[index];labels.appendChild(lbl);
+      });
+      card.appendChild(bars);card.appendChild(labels);
+      var footnote=document.createElement('p');footnote.className='mt-2 text-[11px] text-slate-400';
+      footnote.textContent=l==='bm'
+        ? 'Ini ialah rekod tempat spesies itu dilaporkan, bukan bilangan haiwan.'
+        : 'These are records of where the species was reported, not a count of animals.';
+      card.appendChild(footnote);
+      chart.appendChild(card);
+    });
+    wrap.classList.remove('hidden');
   }
 
   function load(){

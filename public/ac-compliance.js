@@ -75,13 +75,6 @@
         : 'Ordered by harm then frequency. Every action has a Malaysian source and a verified date. Nothing asks you to handle or harm an animal.';
     }
 
-    var signalsDescription=document.getElementById('plan-result__signalsDescription');
-    if(signalsDescription){
-      signalsDescription.textContent=currentLanguage()==='bm'
-        ? 'Tiga penunjuk berasingan: pemerhatian direkodkan di negeri anda, aduan di negeri anda, dan faktor rumah yang didokumenkan. Tahap gabungan ialah jumlah isyarat yang didokumenkan, bukan kebarangkalian bagi alamat anda.'
-        : 'Three separate indicators: recorded observations in your state, complaints in your state, and documented factors at your home. The combined level is the sum of documented signals, not a probability for your address.';
-    }
-
     document.querySelectorAll('#invasive__entryView p').forEach(function(p){
       var t=clean(p.textContent);
       if(/file an invasive sighting in Community|memfailkan penampakan invasif di Komuniti/i.test(t)){

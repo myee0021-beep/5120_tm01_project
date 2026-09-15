@@ -1350,7 +1350,6 @@
 <span class="info-pill shrink-0" id="plan-result__methodBadge">Documented method</span>
 </div>
 <p class="mt-2 text-xs text-slate-500 leading-relaxed max-w-2xl" id="plan-result__signalsDescription"></p>
-<a class="mt-1 inline-block text-xs font-semibold text-emerald-700 hover:text-emerald-800 underline underline-offset-2" href="plan-how-computed.html" id="plan-result__signalsComputeLink"></a>
 <div class="mt-5 space-y-5" id="plan-result__speciesList"></div>
 <p class="mt-5 text-xs text-slate-400 leading-relaxed" id="plan-result__signalsNote"></p>
 </div>
@@ -1362,10 +1361,7 @@
 </div>
 <p class="mt-2 text-xs text-slate-500 leading-relaxed max-w-2xl" id="plan-result__seasonDescription"></p>
 <div class="hidden mt-5" id="plan-result__seasonChartWrap">
-<div class="flex items-end gap-1.5 h-24" id="plan-result__seasonChart"></div>
-<div class="flex justify-between mt-1.5 text-[10px] text-slate-400">
-<span>Jan</span><span>Dec</span>
-</div>
+<div class="flex flex-col gap-5" id="plan-result__seasonChart"></div>
 </div>
 </div>
 <!-- ============ Your prevention plan ============ -->
@@ -1412,94 +1408,6 @@
 <a class="hover:text-white transition-colors underline underline-offset-2" href="about-the-data.html"><span data-en="">About the data</span><span data-bm="">Tentang Data</span></a>
 <a class="hover:text-white transition-colors underline underline-offset-2" href="community-how-review-works.html"><span data-en="">How review works</span><span data-bm="">Cara semakan berfungsi</span></a>
 <a class="hover:text-white transition-colors underline underline-offset-2" href="#"><span data-en="">Print</span><span data-bm="">Cetak</span></a>
-<span class="text-slate-500">Monash FIT5120 · TM01</span>
-</div>
-</div>
-</footer>
-
-
-
-</section>
-<section class="app-page" id="page-plan-how-computed" data-page="plan-how-computed" hidden>
-
- <!-- =========================== NAVBAR =========================== -->
-<header class="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-forest-950/90 border-b border-white/10">
-<div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-6">
-<a class="flex items-center gap-2.5 text-white font-display font-bold tracking-tight shrink-0" href="index.html">
-<img alt="Room for Both" class="w-8 h-8 rounded-full shrink-0 object-cover" src="data:image/png;base64,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"/>
-<span data-en="">Room for Both</span><span data-bm="">Room for Both</span>
-</a>
-<nav class="hidden md:flex items-center justify-center gap-7 text-sm font-medium text-slate-300 flex-1">
-<a class="nav-link transition-colors hover:text-white" href="index.html"><span data-en="">Home</span><span data-bm="">Utama</span></a>
-<a class="text-white border-b-2 border-emerald-400 pb-0.5" href="plan.html"><span data-en="">Plan</span><span data-bm="">Pelan</span></a>
-<a class="transition-colors hover:text-white" href="ecosystem.html"><span data-en="">Ecosystem</span><span data-bm="">Ekosistem</span></a>
-<a class="transition-colors hover:text-white" href="community-how-review-works.html"><span data-en="">Community</span><span data-bm="">Komuniti</span></a>
-<a class="transition-colors hover:text-white" href="emergency.html"><span data-en="">Emergency</span><span data-bm="">Kecemasan</span></a>
-<a class="transition-colors hover:text-white" href="about-the-data.html"><span data-en="">About the data</span><span data-bm="">Tentang Data</span></a>
-</nav>
-<div class="flex items-center gap-3 shrink-0">
-<div class="lang-toggle flex items-center rounded-full border border-white/20 overflow-hidden text-xs font-bold">
-<button class="bg-white text-forest-950 px-3.5 py-1.5" data-lang="en">EN</button>
-<button class="text-slate-300 px-3.5 py-1.5" data-lang="bm">BM</button>
-</div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
-<span data-en="">An animal is here now</span><span data-bm="">Ada haiwan di sini sekarang</span>
-</a>
-<button aria-expanded="false" aria-label="Menu" class="md:hidden w-9 h-9 rounded-lg border border-white/20 flex items-center justify-center text-white shrink-0" id="plan-how-computed__mobileNavToggle">
-<svg fill="none" height="18" id="plan-how-computed__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
-<svg class="hidden" fill="none" height="18" id="plan-how-computed__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
-</button>
-</div>
-</div>
-<nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="plan-how-computed__mobileNavPanel">
-<a class="nav-link transition-colors py-2.5" href="index.html"><span data-en="">Home</span><span data-bm="">Utama</span></a>
-<a class="nav-link py-2.5 text-white font-semibold" href="plan.html"><span data-en="">Plan</span><span data-bm="">Pelan</span></a>
-<a class="nav-link transition-colors py-2.5" href="ecosystem.html"><span data-en="">Ecosystem</span><span data-bm="">Ekosistem</span></a>
-<a class="nav-link transition-colors py-2.5" href="community-how-review-works.html"><span data-en="">Community</span><span data-bm="">Komuniti</span></a>
-<a class="nav-link transition-colors py-2.5" href="emergency.html"><span data-en="">Emergency</span><span data-bm="">Kecemasan</span></a>
-<a class="nav-link transition-colors py-2.5" href="about-the-data.html"><span data-en="">About the data</span><span data-bm="">Tentang Data</span></a>
-<a class="mt-2 inline-flex items-center justify-center gap-1.5 rounded-full bg-rose-600 text-white text-xs font-bold px-4 py-2.5" href="emergency.html">
-<span data-en="">An animal is here now</span><span data-bm="">Ada haiwan di sini sekarang</span>
-</a>
-</nav>
-</header>
-<main class="pt-28 pb-24">
-<div class="max-w-5xl mx-auto px-6">
-<a class="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-800" href="plan-result.html" id="plan-how-computed__backLink">
-<svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" viewbox="0 0 24 24" width="14"><path d="m15 18-6-6 6-6"></path></svg>
-<span data-en="">Back to my plan</span><span data-bm="">Kembali ke pelan saya</span>
-</a>
-<div class="mt-4 text-xs font-semibold tracking-wide uppercase text-slate-400">Plan · How this is computed · E1</div>
-<h1 class="font-display mt-1 text-3xl md:text-4xl font-bold tracking-tight text-forest-950">How your signals are computed</h1>
-<p class="mt-2 text-slate-500 max-w-2xl" id="plan-how-computed__pageIntro"></p>
-<div class="mt-6 space-y-6" id="plan-how-computed__signalCards"></div>
-<!-- ============ Combined level ============ -->
-<div class="card mt-6 px-6 py-6 md:px-7">
-<h2 class="font-display font-bold text-forest-950" id="plan-how-computed__combinedTitle"></h2>
-<p class="mt-2 text-sm text-slate-500 leading-relaxed" id="plan-how-computed__combinedDescription"></p>
-<div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4">
-<div class="font-display font-bold text-amber-800 text-sm" id="plan-how-computed__noticeTitle"></div>
-<p class="mt-1 text-sm text-amber-700 leading-relaxed" id="plan-how-computed__noticeBody"></p>
-</div>
-</div>
-<!-- ============ Sources ============ -->
-<div class="card mt-6 px-6 py-6 md:px-7">
-<h2 class="font-display font-bold text-forest-950">Sources on this page</h2>
-<ul class="mt-3 space-y-1.5 text-sm text-slate-500 list-disc pl-4" id="plan-how-computed__sourcesList"></ul>
-</div>
-<a class="mt-6 block w-full text-center rounded-full bg-forest-950 hover:bg-forest-900 transition-colors text-white text-sm font-semibold py-3.5" href="plan-result.html" id="plan-how-computed__backLink2">Back to my plan</a>
-</div>
-</main>
-<footer class="bg-forest-950 text-slate-400 py-10">
-<div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-sm">
-<div>
-<div class="text-slate-200 font-medium">Room for Both. A coexistence planning tool, not an atlas.</div>
-<div class="mt-1.5 text-xs text-slate-500 leading-relaxed">Open data: PERHILITAN, GBIF occurrence records, IUCN, GRIS, Global Forest Watch. Every figure links to About the data.</div>
-</div>
-<div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
-<a class="hover:text-white transition-colors underline underline-offset-2" href="about-the-data.html">About the data</a>
-<a class="hover:text-white transition-colors underline underline-offset-2" href="community-how-review-works.html">How review works</a>
-<a class="hover:text-white transition-colors underline underline-offset-2" href="#">Print</a>
 <span class="text-slate-500">Monash FIT5120 · TM01</span>
 </div>
 </div>
@@ -2810,79 +2718,17 @@ var NEIGHBOUR_CARD = {
 
 var SIGNALS_NOTE = 'Records are observations, not animals. Crows and mynas are not in the national conflict record, so no complaint figure is shown for them.';
 var SIGNALS_DESCRIPTION = {
-  en: 'Three separate indicators, shown with every input: recorded observations in your state (GBIF), complaints in your state (PERHILITAN), and documented attractants at your home (a sourced list of what draws each species). The combined level is the sum of documented signals. It is not a probability for your address.',
-  bm: 'Tiga penunjuk berasingan, ditunjukkan pada setiap input: pemerhatian direkodkan di negeri anda (GBIF), aduan di negeri anda (PERHILITAN), dan penarik yang didokumenkan di rumah anda (senarai bersumber tentang apa yang menarik setiap spesies). Tahap gabungan ialah jumlah isyarat yang didokumenkan. Ia bukan kebarangkalian bagi alamat anda.'
+  en: 'Three separate indicators, shown with every input: recorded observations in your state (GBIF), complaints in your state (PERHILITAN), and documented attractants at your home (a sourced list of what draws each species). It is not a probability for your address.',
+  bm: 'Tiga penunjuk berasingan, ditunjukkan pada setiap input: pemerhatian direkodkan di negeri anda (GBIF), aduan di negeri anda (PERHILITAN), dan penarik yang didokumenkan di rumah anda (senarai bersumber tentang apa yang menarik setiap spesies). Ia bukan kebarangkalian bagi alamat anda.'
 };
 
-var LEVEL_LABELS = {
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-  none: 'None',
-  not_computed: 'Attention level not computed'
-};
-function levelLabel(level) {
-  return LEVEL_LABELS[level] || level;
-}
-
-// AC1.2.1 — the combined level is the sum of the three band scores, and
-// that sum is always shown so a resident can check it by hand rather than
-// trust a single number. none/low/medium/high map to 0..3.
-var BAND_SCORE = { none: 0, low: 1, medium: 2, high: 3 };
-
-// AC1.2.1 / AC1.2.2 — three separate signal lines beneath the combined
-// level pill, every one carrying its own count and source (or an honest
-// "no series" / "nothing matched" statement instead of a number). Species
-// with a real bands object (occurrence/complaints/attractants, each
-// {level,value}) get the full sourced breakdown and the checkable sum;
-// species without one (Sabah, the generic fallback, crow/myna, snake —
-// none of these have per-signal figures in this mock) fall back to
-// whatever honest text is already on sp.stats/sp.tags rather than
-// inventing a number the underlying data doesn't have.
+// Signals are displayed as sourced details only; no rating is calculated.
 function renderSignalLines(sp, stateLabel) {
   var lines = [];
-  if (sp.bands) {
-    var occ = sp.bands.occurrence, comp = sp.bands.complaints, att = sp.bands.attractants;
-    lines.push('<div><span class="font-semibold text-slate-600">Recorded occurrences:</span> ' +
-      occ.value + ' in ' + stateLabel + ' &middot; source: GBIF occurrence extract</div>');
-    lines.push('<div><span class="font-semibold text-slate-600">Conflict complaints:</span> ' +
-      comp.value + ', ' + stateLabel + ' 2020 &middot; source: PERHILITAN Table 29 (all-species state total until species figures are loaded)</div>');
-    lines.push(att.value > 0
-      ? '<div><span class="font-semibold text-slate-600">Documented attractants matched:</span> ' +
-        att.value + ' at your home &mdash; ' + sp.tags.join(', ') + '</div>'
-      : '<div><span class="font-semibold text-slate-600">Documented attractants matched:</span> 0 &mdash; nothing at this home matched the documented causes</div>');
-    var sum = BAND_SCORE[occ.level] + BAND_SCORE[comp.level] + BAND_SCORE[att.level];
-    lines.push('<div class="text-slate-400">Combined level = sum of the three bands above (' +
-      BAND_SCORE[occ.level] + ' + ' + BAND_SCORE[comp.level] + ' + ' + BAND_SCORE[att.level] + ' = ' + sum + ')</div>');
-  } else if (/crow|myna/i.test(sp.name)) {
-    // AC5.0.3 — absent from the published case table: no conflict figure,
-    // no occurrence count substituted in its place either.
-    lines.push('<div><span class="font-semibold text-slate-600">Recorded occurrences:</span> ' + (sp.stats[0] || 'not loaded for this state') + ' &middot; source: GBIF occurrence extract</div>');
-    lines.push('<div><span class="font-semibold text-slate-600">Conflict complaints:</span> house crow and common myna are not in the national conflict record &mdash; no complaint figure shown (PERHILITAN Table 29)</div>');
-    var attCountCM = sp.tags ? sp.tags.length : 0;
-    lines.push(attCountCM > 0
-      ? '<div><span class="font-semibold text-slate-600">Documented attractants matched:</span> ' + attCountCM + ' at your home &mdash; ' + sp.tags.join(', ') + '</div>'
-      : '<div><span class="font-semibold text-slate-600">Documented attractants matched:</span> 0 &mdash; nothing at this home matched the documented causes</div>');
-  } else if (/^snake$/i.test(sp.name)) {
-    // The mock only carries a complaints figure for the snake category
-    // (both species grouped, AC3.2.2) — no separate occurrence count.
-    lines.push('<div><span class="font-semibold text-slate-600">Recorded occurrences:</span> not shown separately here &mdash; see the Ecosystem map, where both snake species are grouped as one category</div>');
-    lines.push('<div><span class="font-semibold text-slate-600">Conflict complaints:</span> ' + (sp.stats[0] || 'no complaint series loaded for this state') + ' &middot; source: PERHILITAN Table 29</div>');
-    var attCountSn = sp.tags ? sp.tags.length : 0;
-    lines.push(attCountSn > 0
-      ? '<div><span class="font-semibold text-slate-600">Documented attractants matched:</span> ' + attCountSn + ' at your home &mdash; ' + sp.tags.join(', ') + '</div>'
-      : '<div><span class="font-semibold text-slate-600">Documented attractants matched:</span> 0 &mdash; nothing at this home matched the documented causes</div>');
-  } else {
-    // No per-signal bands for this species/state in the mock (e.g. Sabah,
-    // the generic fallback) — show the honest text that IS available
-    // rather than a fabricated count.
-    lines.push('<div><span class="font-semibold text-slate-600">Recorded occurrences:</span> ' + (sp.stats[0] || 'not loaded for this state') + '</div>');
-    lines.push('<div><span class="font-semibold text-slate-600">Conflict complaints:</span> ' + (sp.stats[1] || 'no complaint series loaded for this state') + '</div>');
-    var attCount = sp.tags ? sp.tags.length : 0;
-    lines.push(attCount > 0
-      ? '<div><span class="font-semibold text-slate-600">Documented attractants matched:</span> ' + attCount + ' at your home &mdash; ' + sp.tags.join(', ') + '</div>'
-      : '<div><span class="font-semibold text-slate-600">Documented attractants matched:</span> 0 &mdash; nothing at this home matched the documented causes</div>');
-  }
+  lines.push('<div><span class="font-semibold text-slate-600">Recorded occurrences:</span> ' + (sp.stats[0] || 'not loaded for this state') + '</div>');
+  lines.push('<div><span class="font-semibold text-slate-600">Conflict complaints:</span> ' + (sp.stats[1] || 'no complaint series loaded for this state') + '</div>');
+  var attractants = sp.tags || [];
+  lines.push(attractants.length ? '<div><span class="font-semibold text-slate-600">Documented attractants matched:</span> ' + attractants.length + ' at your home &mdash; ' + attractants.join(', ') + '</div>' : '<div><span class="font-semibold text-slate-600">Documented attractants matched:</span> 0 &mdash; nothing at this home matched the documented causes</div>');
   return '<div class="mt-2 space-y-1 text-xs text-slate-500 leading-relaxed">' + lines.join('') + '</div>';
 }
 
@@ -2912,74 +2758,6 @@ function pickLang(value, lang) {
   return value;
 }
 
-// ----------------------------------------------------------------------
-// "How this is computed" — full page content (AC1.3.1), rendered by
-// plan-how-computed.html. Band thresholds are illustrative placeholders —
-// the real values are recorded team decision D34 and are not set yet.
-// This whole page describes rule-based computation from the state's data
-// tables (occurrence extract, complaint_series, attractant_rule); the AI
-// never writes any of it — its only job on the plan is the plain-words
-// summary (AC1.4.1).
-// ----------------------------------------------------------------------
-var HOW_COMPUTED_PAGE = {
-  intro: 'Three indicators, each from a named source, shown side by side. They are never merged into one score for your address, and none of them is a probability.',
-  signals: [
-    {
-      number: 1,
-      title: 'Records in your state',
-      description: 'Count of GBIF occurrence records for the species that carry your state name. All years in the extract, 1860 to 2026; 39,982 of the 48,188 records are from 2015 onward.',
-      bands: [
-        { label: '0 records', level: 'none' },
-        { label: '1 to 99 records', level: 'low' },
-        { label: '100 to 999 records', level: 'medium' },
-        { label: '1,000 and above records', level: 'high' }
-      ],
-      workedExamplesLabel: 'Worked examples',
-      workedExamples: 'Selangor, long-tailed macaque: 993 records, Medium. Selangor, house crow: 6,057 records, High. Perlis, wild boar: 5 records, Low.',
-      footnote: 'Observations by people, mostly eBird (35,038) and iNaturalist (10,338). They show where people look as much as where animals are.'
-    },
-    {
-      number: 2,
-      title: 'Complaints in your state',
-      description: 'PERHILITAN Laporan Tahunan 2020, Table 29, page 164. Peninsular Malaysia only, twelve states. Ten named species columns; the four we cover are macaque, wild boar, monitor lizard and snake. 2,820 of the 7,122 complaints sit outside the named columns, and the page says so.',
-      bands: [
-        { label: '0 complaints', level: 'none' },
-        { label: '1 to 49 complaints', level: 'low' },
-        { label: '50 to 499 complaints', level: 'medium' },
-        { label: '500 and above', level: 'high' }
-      ],
-      workedExamplesLabel: 'Worked examples',
-      workedExamples: 'Selangor, macaque: 170 of 2,160 national, Medium. Selangor, all species: 1,818 of 7,122. Sabah and Sarawak are not in this table, so the indicator reads "no series" there. Crows and mynas are not in the table at all.'
-    },
-    {
-      number: 3,
-      title: 'Attractants at your home',
-      description: 'Each questionnaire answer that matches a documented attractant for the species counts once (a sourced attractant list, one Malaysian source per row).',
-      bands: [
-        { label: '0 matches', level: 'none' },
-        { label: '1 match', level: 'low' },
-        { label: '2 matches', level: 'medium' },
-        { label: '3 or more', level: 'high' }
-      ],
-      workedExamplesLabel: 'Worked example',
-      workedExamples: 'Fruit trees, open bins and a feeding neighbour are three documented macaque attractants: High. Open bins alone for a water monitor: Low.'
-    }
-  ],
-  combined: {
-    title: 'Combined level',
-    description: 'Band scores are added: Low 1, Medium 2, High 3. A total of 0 to 2 shows Low, 3 to 5 shows Medium, 6 or more High. The three inputs are always printed beneath the combined chip so the sum can be checked by hand.',
-    notice: {
-      title: 'Open to review',
-      body: 'Thresholds are a team decision (D34) held in one table, so a mentor can ask for a change without touching code. They are not calibrated against outcomes, and the page says so.'
-    }
-  },
-  sources: [
-    'GBIF occurrence extract, 7 species, Malaysia, downloaded for Iteration 1 (CC BY 4.0, CC BY-NC 4.0, CC0)',
-    'PERHILITAN Laporan Tahunan 2020, Jadual 29 (transcribed, PDF)',
-    'Documented attractants: Room for Both table, every row sourced and dated'
-  ]
-};
-
 function withChecked(actions, checkedCount) {
   return actions.map(function (a, i) {
     return { text: a.text, source: a.source, checked: i < checkedCount };
@@ -3004,52 +2782,32 @@ var MOCK_PLAN_RESULTS = {
     signals: {
       methodBadge: 'Documented method',
       description: SIGNALS_DESCRIPTION,
-      computeLinkText: { en: 'How this is computed', bm: 'Bagaimana ini dikira' },
       species: [
         {
           name: 'Long-tailed macaque',
           localName: 'Kera',
           seen: true,
-          level: 'high',
           stats: ['Selangor records: 993 of 11,055', 'Macaque complaints, Selangor 2020: 170'],
           tags: ['Fruit trees', 'Open bins', 'Feeding nearby'],
-          bands: {
-            occurrence: { level: 'medium', value: 993 },
-            complaints: { level: 'medium', value: 170 },
-            attractants: { level: 'high', value: 3 }
-          }
         },
         {
           name: 'Water monitor',
           localName: 'Biawak air',
           seen: true,
-          level: 'medium',
           stats: ['Selangor records: 380 of 11,055', 'Monitor complaints, Selangor 2020: 25'],
           tags: ['Open bins'],
-          bands: {
-            occurrence: { level: 'medium', value: 380 },
-            complaints: { level: 'low', value: 25 },
-            attractants: { level: 'low', value: 1 }
-          }
         },
         {
           name: 'Wild boar',
           localName: 'Babi hutan',
           seen: false,
-          level: 'medium',
           stats: ['Selangor records: 21 of 11,055', 'Boar complaints, Selangor 2020: 221'],
           tags: [],
-          bands: {
-            occurrence: { level: 'low', value: 21 },
-            complaints: { level: 'medium', value: 221 },
-            attractants: { level: 'none', value: 0 }
-          }
         },
         {
           name: 'House crow and myna',
           localName: 'Gagak, tiong',
           seen: false,
-          level: 'medium',
           stats: ['Records only; birds are not in the complaint table'],
           tags: ['Open bins']
         },
@@ -3057,7 +2815,6 @@ var MOCK_PLAN_RESULTS = {
           name: 'Snake',
           localName: 'Ular · category only',
           seen: false,
-          level: 'medium',
           stats: ['Snake complaints, Selangor 2020: 27'],
           tags: ['Open bins; rats draw snakes']
         }
@@ -3066,8 +2823,8 @@ var MOCK_PLAN_RESULTS = {
     },
     seasonality: {
       badge: 'E3',
-      description: 'Act before June to August, when Selangor macaque records peak (E3 profile). Monthly counts of dated records, with the record count on screen. Illustrative until computed from the extract.',
-      monthlyCounts: [30, 28, 35, 40, 55, 120, 150, 140, 80, 45, 32, 28]
+      description: '',
+      monthlyCounts: null
     },
     preventionPlan: {
       description: 'Ordered by harm then frequency. Every line is a prevention_action row with a Malaysian source and a verified date. Nothing asks you to handle or harm an animal.',
@@ -3092,13 +2849,11 @@ var MOCK_PLAN_RESULTS = {
     signals: {
       methodBadge: 'Documented method',
       description: SIGNALS_DESCRIPTION,
-      computeLinkText: { en: 'How this is computed', bm: 'Bagaimana ini dikira' },
       species: [
         {
           name: 'Long-tailed macaque',
           localName: 'Kera',
           seen: true,
-          level: 'not_computed',
           stats: ['Sabah records: 1,713 of 4,563', 'Complaints: not in Table 29 (Peninsular only)'],
           tags: ['Fruit trees', 'Open bins']
         },
@@ -3106,7 +2861,6 @@ var MOCK_PLAN_RESULTS = {
           name: 'Water monitor',
           localName: 'Biawak air',
           seen: false,
-          level: 'not_computed',
           stats: ['Sabah records: 1,410 of 4,563', 'Complaints: not available'],
           tags: []
         }
@@ -3115,7 +2869,7 @@ var MOCK_PLAN_RESULTS = {
     },
     seasonality: {
       badge: 'E3',
-      description: 'Sabah macaque records peak in the middle of the year. Monthly counts of dated records, with the record count on screen. Illustrative until computed from the extract.',
+      description: '',
       monthlyCounts: null
     },
     preventionPlan: {
@@ -3135,7 +2889,7 @@ var MOCK_PLAN_RESULTS = {
 // renders empty. A real backend replaces this whole file.
 // ----------------------------------------------------------------------
 function buildGenericFallback(stateKey, homeAnswers) {
-  var stateLabel = (stateKey || '').replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }) || 'Your state';
+  var stateLabel = (stateKey || '').replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); }) || 'the selected state';
   homeAnswers = homeAnswers || {};
   var speciesSeen = homeAnswers.speciesSeen || [];
   var foodSources = homeAnswers.foodSources || [];
@@ -3182,8 +2936,7 @@ function buildGenericFallback(stateKey, homeAnswers) {
       name: label,
       localName: null,
       seen: speciesSeen.indexOf(key) !== -1,
-      level: 'not_computed',
-      stats: [stateLabel + ' records: not yet loaded for this state'],
+          stats: [stateLabel + ' records: not yet loaded for this state'],
       tags: tags
     };
   });
@@ -3193,19 +2946,18 @@ function buildGenericFallback(stateKey, homeAnswers) {
     stateLabel: stateLabel,
     summaryLine: summaryLine,
     dataNotice: {
-      title: stateLabel + ' has no worked example in this demo',
-      body: 'This state is not one of the hand-built samples yet, so signals below are drawn only from what you just answered — no state record counts or complaint tables are loaded for it.'
+      title: stateLabel + ' does not have a prepared summary yet',
+      body: 'Signals below are drawn only from what you just answered — no state record counts or complaint tables are loaded for ' + stateLabel + ' yet.'
     },
     signals: {
       methodBadge: 'Documented method',
       description: SIGNALS_DESCRIPTION,
-      computeLinkText: { en: 'How this is computed', bm: 'Bagaimana ini dikira' },
       species: species,
       note: SIGNALS_NOTE
     },
     seasonality: {
       badge: 'E3',
-      description: 'Seasonality for ' + stateLabel + ' is not loaded in this demo yet.',
+      description: '',
       monthlyCounts: null
     },
     preventionPlan: {
@@ -3834,6 +3586,7 @@ document.getElementById('plan__planSeeBtn').addEventListener('click', function (
   // Kept only on this device, per the copy above — sent along with the
   // request that computes the plan, never persisted server-side as-is.
   sessionStorage.setItem('roomForBoth.homeAnswers', JSON.stringify(answers));
+  sessionStorage.setItem('roomForBoth.selectedState', stateKey);
 
   // TODO: this is Plan step 1 of 2 — plan-result.html (step 2) is not
   // built yet. Once it exists, it should read sessionStorage
@@ -3905,150 +3658,153 @@ PageInit['plan-result'] = function() {
 // assets/prompts/plan-result-prompt.md. Today that object comes from
 // getMockPlanResult() (see assets/js/plan-data.js); a real backend/LLM call
 // can replace that function later without touching any code below.
+//
+// renderPlanResult() re-runs on every 'roomforboth:pageshow' for this page —
+// not just the first visit — so answers changed on plan.html (species,
+// state) are reflected when you navigate back here without a full page
+// reload. Event bindings below stay outside it so they attach exactly once
+// to these persistent DOM nodes.
 // ---------------------------------------------------------------------------
 
-var params = new URLSearchParams(AppNav.currentQuery);
-var stateKey = params.get('state') || '';
-var homeAnswers = null;
-try { homeAnswers = JSON.parse(sessionStorage.getItem('roomForBoth.homeAnswers') || 'null'); } catch (e) {}
+var stateKey = '';
+var plan = null;
 
-var plan = getMockPlanResult(stateKey, homeAnswers);
-// levelLabel() comes from assets/js/plan-data.js (shared with plan-print.html)
-
-document.getElementById('plan-result__stateHeading').textContent = plan.stateLabel;
-
-if (plan.dataNotice) {
-  document.getElementById('plan-result__dataNotice').classList.remove('hidden');
-  document.getElementById('plan-result__dataNoticeTitle').textContent = plan.dataNotice.title;
-  document.getElementById('plan-result__dataNoticeBody').textContent = plan.dataNotice.body;
-}
-
-// ---- signals ----
-document.getElementById('plan-result__methodBadge').textContent = plan.signals.methodBadge;
-
-// "How this is computed" is its own page (AC1.3.1) — see
-// plan-how-computed.html and HOW_COMPUTED_PAGE in assets/js/plan-data.js.
-// summaryLine / signals.description / computeLinkText / printButtonText /
-// encounters.badge+buttonText are the
-// only bilingual ({en,bm}) fields in the mock plan data (see pickLang() in
-// plan-data.js) — everything else in `plan` is English-only mock content.
 function currentLang() {
   return document.documentElement.getAttribute('lang') === 'bm' ? 'bm' : 'en';
 }
+// summaryLine / signals.description / printButtonText /
+// encounters.badge+buttonText are the
+// only bilingual ({en,bm}) fields in the mock plan data (see pickLang() in
+// plan-data.js) — everything else in `plan` is English-only mock content.
 function renderLangDependentPlanText() {
   var lang = currentLang();
   document.getElementById('plan-result__summaryLine').textContent = pickLang(plan.summaryLine, lang);
   document.getElementById('plan-result__signalsDescription').textContent = pickLang(plan.signals.description, lang);
-  document.getElementById('plan-result__signalsComputeLink').textContent = pickLang(plan.signals.computeLinkText, lang);
   document.getElementById('plan-result__printPlanBtn').textContent = pickLang(plan.preventionPlan.printButtonText, lang);
   document.getElementById('plan-result__encountersBadge').textContent = pickLang(plan.encounters.badge, lang);
   document.getElementById('plan-result__encountersBtn').textContent = pickLang(plan.encounters.buttonText, lang);
 }
 
-var speciesList = document.getElementById('plan-result__speciesList');
-plan.signals.species.forEach(function (sp, i) {
-  var row = document.createElement('div');
-  if (i > 0) row.className = 'pt-5 border-t border-slate-100';
-  var localBit = sp.localName ? (sp.localName + (sp.seen ? ' · seen at your home' : '')) : (sp.seen ? 'Seen at your home' : '');
-  // AC1.2.1 — the level pill alone is never enough: the three signals
-  // behind it (occurrences, complaints, attractants) are always shown
-  // beneath it, each with its own count, so the total can be checked by
-  // hand rather than taken on trust.
-  row.innerHTML =
-    '<div class="flex items-start justify-between gap-4">' +
-      '<div class="min-w-0">' +
-        '<div class="font-display font-bold text-sm text-forest-950">' + sp.name + '</div>' +
-        (localBit ? '<div class="text-xs text-slate-400 mt-0.5">' + localBit + '</div>' : '') +
-        renderSignalLines(sp, plan.stateLabel) +
-      '</div>' +
-      '<span class="level-pill level-' + sp.level + '">' + levelLabel(sp.level) + '</span>' +
-    '</div>';
-  speciesList.appendChild(row);
-});
-document.getElementById('plan-result__signalsNote').textContent = plan.signals.note;
+function renderPlanResult() {
+  var homeAnswers = null;
+  try { homeAnswers = JSON.parse(sessionStorage.getItem('roomForBoth.homeAnswers') || 'null'); } catch (e) {}
+  var params = new URLSearchParams(AppNav.currentQuery);
+  stateKey = params.get('state') || (homeAnswers && homeAnswers.state) || '';
+  if (!stateKey) {
+    try { stateKey = sessionStorage.getItem('roomForBoth.selectedState') || ''; } catch (e) {}
+  }
 
-// ---- seasonality ----
-document.getElementById('plan-result__seasonBadge').textContent = plan.seasonality.badge;
-document.getElementById('plan-result__seasonDescription').textContent = plan.seasonality.description;
-if (plan.seasonality.monthlyCounts && plan.seasonality.monthlyCounts.length === 12) {
-  document.getElementById('plan-result__seasonChartWrap').classList.remove('hidden');
-  var chart = document.getElementById('plan-result__seasonChart');
-  var counts = plan.seasonality.monthlyCounts;
-  var max = Math.max.apply(null, counts);
-  counts.forEach(function (c) {
-    var bar = document.createElement('div');
-    var pct = Math.max(8, Math.round((c / max) * 100));
-    bar.className = 'season-bar' + (c >= max * 0.6 ? ' peak' : '');
-    bar.style.height = pct + '%';
-    bar.title = String(c);
-    chart.appendChild(bar);
-  });
-}
+  plan = getMockPlanResult(stateKey, homeAnswers);
 
-// ---- prevention plan ----
-document.getElementById('plan-result__preventionDescription').textContent = plan.preventionPlan.description;
-var actionsWrap = document.getElementById('plan-result__preventionActions');
-var progressLabel = document.getElementById('plan-result__preventionProgress');
+  document.getElementById('plan-result__stateHeading').textContent = plan.stateLabel;
 
-function renderActions() {
-  actionsWrap.innerHTML = '';
-  plan.preventionPlan.actions.forEach(function (a, i) {
+  document.getElementById('plan-result__dataNotice').classList.toggle('hidden', !plan.dataNotice);
+  if (plan.dataNotice) {
+    document.getElementById('plan-result__dataNoticeTitle').textContent = plan.dataNotice.title;
+    document.getElementById('plan-result__dataNoticeBody').textContent = plan.dataNotice.body;
+  }
+
+  // ---- signals ----
+  document.getElementById('plan-result__methodBadge').textContent = plan.signals.methodBadge;
+
+  var speciesList = document.getElementById('plan-result__speciesList');
+  speciesList.innerHTML = '';
+  plan.signals.species.forEach(function (sp, i) {
     var row = document.createElement('div');
-    row.className = 'flex items-start gap-3';
-    var box = document.createElement('div');
-    box.className = 'checkbox-btn' + (a.checked ? ' checked' : '');
-    box.innerHTML = a.checked
-      ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
-      : '';
-    box.addEventListener('click', function () {
-      a.checked = !a.checked;
-      renderActions();
-    });
-    var text = document.createElement('div');
-    text.className = 'text-sm';
-    text.innerHTML =
-      '<div class="text-forest-950">' + (i + 1) + '. ' + a.text + '</div>' +
-      '<div class="mt-0.5 text-xs text-slate-400">Source: ' + a.source + '</div>';
-    row.appendChild(box);
-    row.appendChild(text);
-    actionsWrap.appendChild(row);
+    if (i > 0) row.className = 'pt-5 border-t border-slate-100';
+    var localBit = sp.localName ? (sp.localName + (sp.seen ? ' · seen at your home' : '')) : (sp.seen ? 'Seen at your home' : '');
+    // AC1.2.1 — the level pill alone is never enough: the three signals
+    // behind it (occurrences, complaints, attractants) are always shown
+    // beneath it, each with its own count, so the total can be checked by
+    // hand rather than taken on trust.
+    row.innerHTML =
+      '<div class="flex items-start justify-between gap-4">' +
+        '<div class="min-w-0">' +
+          '<div class="font-display font-bold text-sm text-forest-950">' + sp.name + '</div>' +
+          (localBit ? '<div class="text-xs text-slate-400 mt-0.5">' + localBit + '</div>' : '') +
+          renderSignalLines(sp, plan.stateLabel) +
+        '</div>' +
+      '</div>';
+    speciesList.appendChild(row);
   });
-  var done = plan.preventionPlan.actions.filter(function (a) { return a.checked; }).length;
-  progressLabel.textContent = done + ' of ' + plan.preventionPlan.actions.length + ' done';
-}
-renderActions();
+  document.getElementById('plan-result__signalsNote').textContent = plan.signals.note;
 
-document.getElementById('plan-result__neighbourTitle').textContent = plan.preventionPlan.neighbourCard.title;
-document.getElementById('plan-result__neighbourBody').textContent = plan.preventionPlan.neighbourCard.body;
-document.getElementById('plan-result__neighbourFootnote').textContent = plan.preventionPlan.neighbourCard.footnote;
+  // ---- seasonality ----
+  // Rendered by plan-signals-client.js, which reuses the same
+  // ECOSYSTEM_OCCURRENCES computation and AC 1.2.4 below-threshold copy as
+  // the Ecosystem page, filtered to the species actually selected here. It
+  // listens for 'roomforboth:pageshow' itself, so it re-renders in step
+  // with this function on every visit (AC 1.2.3/1.2.4, IT-2).
 
-// ---- print → PDF (AC2.2.1) ----
-// "Print my plan" now hands off to a dedicated print page (plan-print.html)
-// that renders its own compact, print-styled sheet and calls the browser's
-// native print dialog (the "Save as PDF" destination) rather than building
-// a file in JS — see plan-print.html for the print stylesheet.
-document.getElementById('plan-result__printPlanBtn').addEventListener('click', function () {
-  AppNav.goToUrl('plan-print.html' + (stateKey ? ('?state=' + encodeURIComponent(stateKey)) : ''));
-});
+  // ---- prevention plan ----
+  document.getElementById('plan-result__preventionDescription').textContent = plan.preventionPlan.description;
+  var actionsWrap = document.getElementById('plan-result__preventionActions');
+  var progressLabel = document.getElementById('plan-result__preventionProgress');
 
-// ---- encounters ----
-document.getElementById('plan-result__encountersDescription').textContent = plan.encounters.description;
+  function renderActions() {
+    actionsWrap.innerHTML = '';
+    plan.preventionPlan.actions.forEach(function (a, i) {
+      var row = document.createElement('div');
+      row.className = 'flex items-start gap-3';
+      var box = document.createElement('div');
+      box.className = 'checkbox-btn' + (a.checked ? ' checked' : '');
+      box.innerHTML = a.checked
+        ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+        : '';
+      box.addEventListener('click', function () {
+        a.checked = !a.checked;
+        renderActions();
+      });
+      var text = document.createElement('div');
+      text.className = 'text-sm';
+      text.innerHTML =
+        '<div class="text-forest-950">' + (i + 1) + '. ' + a.text + '</div>' +
+        '<div class="mt-0.5 text-xs text-slate-400">Source: ' + a.source + '</div>';
+      row.appendChild(box);
+      row.appendChild(text);
+      actionsWrap.appendChild(row);
+    });
+    var done = plan.preventionPlan.actions.filter(function (a) { return a.checked; }).length;
+    progressLabel.textContent = done + ' of ' + plan.preventionPlan.actions.length + ' done';
+  }
+  renderActions();
 
-renderLangDependentPlanText();
+  document.getElementById('plan-result__neighbourTitle').textContent = plan.preventionPlan.neighbourCard.title;
+  document.getElementById('plan-result__neighbourBody').textContent = plan.preventionPlan.neighbourCard.body;
+  document.getElementById('plan-result__neighbourFootnote').textContent = plan.preventionPlan.neighbourCard.footnote;
 
-// Language toggle (EN / BM) — persisted to localStorage so it survives
-// navigating here from plan.html and on to plan-print.html (each page's
-// <head> applies the saved value before first paint). Most of `plan` is
-// English-only mock content (see the comment above
-// renderLangDependentPlanText); only its {en,bm} fields re-render here.
-(function () {
+  // ---- encounters ----
+  document.getElementById('plan-result__encountersDescription').textContent = plan.encounters.description;
+
+  renderLangDependentPlanText();
   document.querySelectorAll('.lang-toggle button').forEach(function (b) {
     var active = b.getAttribute('data-lang') === currentLang();
     b.classList.toggle('bg-white', active);
     b.classList.toggle('text-forest-950', active);
     b.classList.toggle('text-slate-300', !active);
   });
-})();
+}
+
+document.addEventListener('roomforboth:pageshow', function (e) {
+  if (e.detail && e.detail.page === 'plan-result') renderPlanResult();
+});
+
+// ---- print → PDF (AC2.2.1) ----
+// "Print my plan" now hands off to a dedicated print page (plan-print.html)
+// that renders its own compact, print-styled sheet and calls the browser's
+// native print dialog (the "Save as PDF" destination) rather than building
+// a file in JS — see plan-print.html for the print stylesheet. Bound once;
+// reads the live `stateKey` set by the most recent renderPlanResult() call.
+document.getElementById('plan-result__printPlanBtn').addEventListener('click', function () {
+  AppNav.goToUrl('plan-print.html' + (stateKey ? ('?state=' + encodeURIComponent(stateKey)) : ''));
+});
+
+// Language toggle (EN / BM) — persisted to localStorage so it survives
+// navigating here from plan.html and on to plan-print.html (each page's
+// <head> applies the saved value before first paint). Most of `plan` is
+// English-only mock content (see the comment above
+// renderLangDependentPlanText); only its {en,bm} fields re-render here.
+// Bound once; re-reads the live `plan` via renderLangDependentPlanText().
 document.querySelectorAll('.lang-toggle button').forEach(function (btn) {
   btn.addEventListener('click', function () {
     var lang = btn.getAttribute('data-lang');
@@ -4061,92 +3817,6 @@ document.querySelectorAll('.lang-toggle button').forEach(function (btn) {
       b.classList.toggle('text-slate-300', !active);
     });
     renderLangDependentPlanText();
-  });
-});
-
-};
-
-PageInit['plan-how-computed'] = function() {
-
-// ---------------------------------------------------------------------------
-// Room for Both — "How this is computed" (AC1.3.1), its own page.
-// Content comes from HOW_COMPUTED_PAGE in assets/js/plan-data.js — this
-// script only renders it. Reached from the "How this is computed" link on
-// plan-result.html's Signals card (no popover any more).
-// ---------------------------------------------------------------------------
-
-var params = new URLSearchParams(AppNav.currentQuery);
-var stateKey = params.get('state') || '';
-var backHref = 'plan-result.html' + (stateKey ? ('?state=' + encodeURIComponent(stateKey)) : '');
-document.getElementById('plan-how-computed__backLink').href = backHref;
-document.getElementById('plan-how-computed__backLink2').href = backHref;
-
-var page = HOW_COMPUTED_PAGE;
-document.getElementById('plan-how-computed__pageIntro').textContent = page.intro;
-
-var cardsWrap = document.getElementById('plan-how-computed__signalCards');
-page.signals.forEach(function (sig) {
-  var card = document.createElement('div');
-  card.className = 'card px-6 py-6 md:px-7';
-
-  var bandRows = sig.bands.map(function (b) {
-    return '<div class="band-row"><span class="text-sm text-slate-600">' + b.label + '</span>' +
-      '<span class="level-pill level-' + b.level + '">' + levelLabel(b.level) + '</span></div>';
-  }).join('');
-
-  card.innerHTML =
-    '<h2 class="font-display font-bold text-forest-950">' + sig.number + ' · ' + sig.title + '</h2>' +
-    '<p class="mt-2 text-sm text-slate-500 leading-relaxed">' + sig.description + '</p>' +
-    '<div class="mt-4">' + bandRows + '</div>' +
-    '<div class="mt-4 rounded-xl bg-slate-50 border border-slate-100 px-4 py-3.5">' +
-      '<div class="font-display font-bold text-xs text-forest-950">' + sig.workedExamplesLabel + '</div>' +
-      '<p class="mt-1 text-xs text-slate-500 leading-relaxed">' + sig.workedExamples + '</p>' +
-    '</div>' +
-    (sig.footnote ? '<p class="mt-3 text-xs text-slate-400 leading-relaxed">' + sig.footnote + '</p>' : '');
-
-  cardsWrap.appendChild(card);
-});
-
-document.getElementById('plan-how-computed__combinedTitle').textContent = page.combined.title;
-document.getElementById('plan-how-computed__combinedDescription').textContent = page.combined.description;
-document.getElementById('plan-how-computed__noticeTitle').textContent = page.combined.notice.title;
-document.getElementById('plan-how-computed__noticeBody').textContent = page.combined.notice.body;
-
-var sourcesList = document.getElementById('plan-how-computed__sourcesList');
-page.sources.forEach(function (s) {
-  var li = document.createElement('li');
-  li.textContent = s;
-  sourcesList.appendChild(li);
-});
-
-// Language toggle (EN / BM) — persisted to localStorage so it carries over
-// from plan-result.html (this page's <head> applies the saved value before
-// first paint). Nav chrome + back link are bilingual; the actual "how
-// computed" content stays English-only mock data, same as plan-result.html
-// — this toggle previously didn't even call setAttribute('lang', ...), so
-// it did nothing at all on this page.
-function currentLang() {
-  return document.documentElement.getAttribute('lang') === 'bm' ? 'bm' : 'en';
-}
-(function () {
-  document.querySelectorAll('.lang-toggle button').forEach(function (b) {
-    var active = b.getAttribute('data-lang') === currentLang();
-    b.classList.toggle('bg-white', active);
-    b.classList.toggle('text-forest-950', active);
-    b.classList.toggle('text-slate-300', !active);
-  });
-})();
-document.querySelectorAll('.lang-toggle button').forEach(function (btn) {
-  btn.addEventListener('click', function () {
-    var lang = btn.getAttribute('data-lang');
-    document.documentElement.setAttribute('lang', lang);
-    try { localStorage.setItem('roomForBoth.lang', lang); } catch (e) {}
-    document.querySelectorAll('.lang-toggle button').forEach(function (b) {
-      var active = b.getAttribute('data-lang') === lang;
-      b.classList.toggle('bg-white', active);
-      b.classList.toggle('text-forest-950', active);
-      b.classList.toggle('text-slate-300', !active);
-    });
   });
 });
 
@@ -4178,22 +3848,9 @@ document.getElementById('plan-print__sheetSummary').textContent = pickLang(plan.
 document.getElementById('plan-print__sheetPrintedDate').textContent =
   'Printed: ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
-// Compact signals list — top species only, combined level plus the three
-// signal bands inline so the arithmetic (AC1.2.1) is checkable on paper too.
+// Compact signals list — sourced details only; no rating or calculated total.
 var speciesWrap = document.getElementById('plan-print__sheetSpecies');
-plan.signals.species.slice(0, 3).forEach(function (sp) {
-  var row = document.createElement('div');
-  row.className = 'species-line';
-  var breakdown = sp.bands
-    ? ' (records ' + sp.bands.occurrence.value + ' ' + levelLabel(sp.bands.occurrence.level) +
-      ' · complaints ' + sp.bands.complaints.value + ' ' + levelLabel(sp.bands.complaints.level) +
-      ' · attractants ' + sp.bands.attractants.value + ' ' + levelLabel(sp.bands.attractants.level) + ')'
-    : '';
-  row.innerHTML = '<span class="font-semibold text-forest-950">' + sp.name + '</span> · ' +
-    '<span class="lvl">' + levelLabel(sp.level) + '</span>' +
-    '<span class="breakdown">' + breakdown + '</span>';
-  speciesWrap.appendChild(row);
-});
+plan.signals.species.slice(0, 3).forEach(function (sp) { var row = document.createElement('div'); row.className = 'species-line'; row.textContent = sp.name; speciesWrap.appendChild(row); });
 
 // Compact action checklist — text + source on one line, no "Source:" label,
 // no done/checked state (a fresh printable sheet, not the on-screen tracker).
@@ -5767,10 +5424,11 @@ var AppNav = (function(){
 
   function go(page, query, anchor){
     currentQuery = query || '';
-    if (location.hash.replace('#','') === page) {
+    var target = page + (currentQuery ? '?' + currentQuery : '');
+    if (location.hash.replace('#','') === target) {
       show(page);
     } else {
-      location.hash = page;
+      location.hash = target;
     }
     if (anchor) {
       setTimeout(function(){
@@ -5789,6 +5447,7 @@ var AppNav = (function(){
     var h = (location.hash || '#index').replace('#', '');
     var page = h.split('?')[0];
     if (KNOWN_PAGES.indexOf(page) === -1) return; // not a page hash (e.g. in-page anchor) - leave as-is
+    currentQuery = h.indexOf('?') >= 0 ? h.slice(h.indexOf('?') + 1) : '';
     show(page);
     window.scrollTo(0, 0);
   }
@@ -5828,7 +5487,7 @@ document.addEventListener('click', function(e){
 
 <script id="r4b-mobile-nav-wiring">
 (function(){
-  var prefixes = ["plan-result","plan-how-computed","plan-print","ecosystem","ecosystem-redlist","species","invasive","community-how-review-works"];
+  var prefixes = ["plan-result","plan-print","ecosystem","ecosystem-redlist","species","invasive","community-how-review-works"];
   prefixes.forEach(function(prefix){
     var mobileToggle = document.getElementById(prefix + '__mobileNavToggle');
     var mobilePanel = document.getElementById(prefix + '__mobileNavPanel');
@@ -5852,7 +5511,7 @@ document.addEventListener('click', function(e){
 (function(){
   var GROUPS={
     'index':'index',
-    'plan':'plan','plan-result':'plan','plan-how-computed':'plan','plan-print':'plan',
+    'plan':'plan','plan-result':'plan','plan-print':'plan',
     'ecosystem':'ecosystem','ecosystem-redlist':'ecosystem','species':'ecosystem','invasive':'ecosystem',
     'community-how-review-works':'community-how-review-works',
     'emergency':'emergency','about-the-data':'about-the-data'
@@ -5876,6 +5535,14 @@ document.addEventListener('click', function(e){
   });
 })();
 </script>
+
+<!-- Plan-result seasonality (AC 1.2.3/1.2.4): reuses the Ecosystem page's
+     ECOSYSTEM_OCCURRENCES computation. Loaded statically (relative path, no
+     leading slash) so it does not depend on the worker's server-side script
+     injection being in front of this file, and still resolves correctly
+     when this file is opened directly as file://index0914.html — a leading
+     "/" resolves against the filesystem root under file:// and 404s. -->
+<script src="plan-signals-client.js"></script>
 
 </body>
 </html>
