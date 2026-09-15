@@ -37,15 +37,16 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 })();
 </script>
 <script src="/plan-db-client.js?v=20260915-1305"></script>
-<script src="/plan-signals-client.js?v=20260915-4"></script>
+<script src="/plan-signals-client.js?v=20260915-1759"></script>
 <script src="/plan-snapshot-sync.js?v=20260914-1"></script>
 <script src="/home-live-data.js?v=20260915-4"></script>
 <script src="/plan-ai-summary.js?v=20260914-2"></script>
 <script src="/plan-result-cleanup.js?v=20260914-1"></script>
+<script src="/plan-result-consistency.js?v=20260915-1759"></script>
 <script src="/print-plan-recovery.js?v=20260915-2"></script>
 <script src="/ac-compliance.js?v=20260914-3"></script>
-<script src="/print-selected-actions.js?v=20260915-1305"></script>
-<script src="/emergency-flow-ac.js?v=20260915-3"></script>
+<script src="/print-selected-actions.js?v=20260915-1759"></script>
+<script src="/emergency-flow-ac.js?v=20260915-1759"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>`;
 
 class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}}
