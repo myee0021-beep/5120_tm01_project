@@ -8,12 +8,6 @@ function patchText(doc){
  while(w.nextNode())nodes.push(w.currentNode);
  nodes.forEach(function(n){var p=n.parentElement;if(!p||p.closest('script,style'))return;var v=n.nodeValue||'',x=v.replace(/1960\s+to\s+2026/g,'1860 to 2026').replace(/1960\s+hingga\s+2026/g,'1860 hingga 2026');if(x!==v)n.nodeValue=x;});
 }
-function dangerBar(doc){
- if(doc.getElementById('i2-danger-999'))return;
- var flow=Array.from(doc.querySelectorAll('*')).find(function(e){return /^EMERGENCY FLOW$/i.test(t(e.textContent));});
- if(!flow||!doc.body)return;
- var b=doc.createElement('div');b.id='i2-danger-999';b.setAttribute('role','alert');b.style.cssText='background:#7f1d1d;color:white;padding:12px 18px;text-align:center;font-weight:800;position:relative;z-index:9999';b.innerHTML='Danger to life, right now? <a href="tel:999" style="color:white;text-decoration:underline;margin-left:8px">Call 999</a>';doc.body.insertBefore(b,doc.body.firstChild);
-}
 function progress(doc){
  doc.querySelectorAll('a,button,[role="tab"],li,span').forEach(function(e){var s=t(e.textContent);if((s==='Prevention'||s==='Pencegahan')&&e.children.length<=2){var p=t((e.parentElement&&e.parentElement.textContent)||'');if(/Start|Identify|Action|Contact|Mula|Tindakan|Hubungi/i.test(p))e.style.display='none';}
  if(/^Next:\s*Prevention$/i.test(s)||/^Seterusnya:\s*Pencegahan$/i.test(s)){e.textContent='Next: Plan';if(!e.dataset.planFixed){e.dataset.planFixed='1';e.addEventListener('click',function(ev){ev.preventDefault();try{window.top.location.hash='#plan';}catch(_){}});}}});
@@ -36,7 +30,7 @@ function states(doc){
 }
 function patch(doc){
  if(!doc||!doc.documentElement)return;
- patchText(doc);dangerBar(doc);progress(doc);notSure(doc);states(doc);
+ patchText(doc);progress(doc);notSure(doc);states(doc);
  doc.querySelectorAll('iframe').forEach(function(f){try{patch(f.contentDocument);}catch(_){}if(!f.dataset.acBound){f.dataset.acBound='1';f.addEventListener('load',function(){setTimeout(scan,80);});}});
 }
 function scan(){try{patch(document);}catch(e){console.warn('[Emergency AC]',e);}}
