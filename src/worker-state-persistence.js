@@ -1,5 +1,6 @@
 import planSummaryWorker from './worker-plan-summary.js';
 import { handleIdentifyDescribe } from './identify-describe.js';
+import { handlePlanRequest } from './plan-db-route.js';
 
 const SPA_ROUTES = new Set([
   '/index.html','/plan.html','/plan-result.html','/plan-how-computed.html',
@@ -35,7 +36,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();window.addEventListener('hashchange',run);document.addEventListener('roomforboth:pageshow',run);
 })();
 </script>
-<script src="/plan-db-client.js?v=20260914-6"></script>
+<script src="/plan-db-client.js?v=20260915-1305"></script>
 <script src="/plan-signals-client.js?v=20260914-1"></script>
 <script src="/plan-snapshot-sync.js?v=20260914-1"></script>
 <script src="/home-live-data.js?v=20260914-1"></script>
@@ -43,7 +44,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/plan-result-cleanup.js?v=20260914-1"></script>
 <script src="/print-plan-recovery.js?v=20260915-2"></script>
 <script src="/ac-compliance.js?v=20260914-3"></script>
-<script src="/print-selected-actions.js?v=20260914-3"></script>
+<script src="/print-selected-actions.js?v=20260915-1305"></script>
 <script src="/emergency-flow-ac.js?v=20260915-3"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>`;
 
@@ -94,6 +95,7 @@ export default{
   async fetch(request,env,ctx){
     const url=new URL(request.url);
     if(request.method==='POST'&&url.pathname==='/api/identify-describe')return handleIdentifyDescribe(request,env);
+    if(request.method==='POST'&&url.pathname==='/api/i2/plan')return handlePlanRequest(request,env);
     let upstreamRequest=request;
     if(request.method==='GET'&&SPA_ROUTES.has(url.pathname)&&url.pathname!=='/index.html'){
       const rewritten=new URL(request.url);rewritten.pathname='/index0914.html';upstreamRequest=new Request(rewritten.toString(),request);
