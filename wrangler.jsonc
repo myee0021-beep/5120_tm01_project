@@ -1,6 +1,6 @@
 {
   "name": "iteration2",
-  "main": "src/worker-state-persistence.js",
+  "main": "src/worker-plan-print-entry.js",
   "compatibility_date": "2026-08-27",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
