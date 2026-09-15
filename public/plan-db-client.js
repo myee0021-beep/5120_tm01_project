@@ -10,6 +10,7 @@
   function currentPage(){return String(location.hash||'#index').replace(/^#/,'').split('?')[0]||'index';}
   function currentLanguage(){var l=String(document.documentElement.getAttribute('lang')||'').toLowerCase();try{if(!l)l=String(localStorage.getItem('owm-lang')||'').toLowerCase();}catch(e){}return(l==='bm'||l==='ms')?'bm':'en';}
   function readHomeAnswers(){try{return JSON.parse(sessionStorage.getItem('roomForBoth.homeAnswers')||'null')||{};}catch(e){return {};}}
+  function readSnapshot(){try{return JSON.parse(sessionStorage.getItem(SNAPSHOT_KEY)||'null');}catch(e){return null;}}
   function readState(a){
     try{if(window.AppNav&&AppNav.currentQuery){var x=new URLSearchParams(AppNav.currentQuery).get('state');if(x)return x;}}catch(e){}
     try{var x2=new URLSearchParams(location.search).get('state');if(x2)return x2;}catch(e){}
@@ -20,7 +21,6 @@
   function buildPayload(){var a=readHomeAnswers();var p=Object.assign({},a);p.state=readState(a)||a.state||null;p.language=currentLanguage();return p;}
   function sourceLabel(a){var b=[];var p=clean(a&&a.source_person),i=clean(a&&a.source_institution);if(p)b.push(p);if(i&&b.indexOf(i)===-1)b.push(i);return b.join(' · ');}
   function valid(a){if(!a)return false;var t=clean(a.action_text||a.action_text_en||a.action_text_ms),s=sourceLabel(a)||clean(a.source_url),d=clean(a.date_verified);return!!(t&&s&&d);}
-  function clearSnapshot(){try{sessionStorage.removeItem(SNAPSHOT_KEY);}catch(e){}}
   function dispatchEmpty(){window.dispatchEvent(new Event('roomforboth:db-plan-empty'));}
 
   function writeSnapshot(actions,lang){
@@ -29,15 +29,8 @@
     var speciesList=document.getElementById('plan-result__speciesList');
     var seasonDescription=document.getElementById('plan-result__seasonDescription');
     var summaryLine=document.getElementById('plan-result__summaryLine');
-    var snapshot={version:3,state:state,stateLabel:clean(stateHeading&&stateHeading.textContent)||state,summaryLine:clean(summaryLine&&summaryLine.textContent),language:lang,signalsText:clean(speciesList&&speciesList.innerText),seasonText:clean(seasonDescription&&seasonDescription.innerText),actions:actions.map(function(a){return{prevention_id:clean(a.prevention_id),action_text:clean(a.action_text||a.action_text_en||a.action_text_ms),source_person:clean(a.source_person),source_institution:clean(a.source_institution),source_url:clean(a.source_url),date_verified:clean(a.date_verified)};})};
+    var snapshot={version:9,state:state,stateLabel:clean(stateHeading&&stateHeading.textContent)||state,summaryLine:clean(summaryLine&&summaryLine.textContent),language:lang,signalsText:clean(speciesList&&speciesList.innerText),seasonText:clean(seasonDescription&&seasonDescription.innerText),actions:actions.map(function(a){return{prevention_id:clean(a.prevention_id),action_text:clean(a.action_text||a.action_text_en||a.action_text_ms),source_person:clean(a.source_person),source_institution:clean(a.source_institution),source_url:clean(a.source_url),date_verified:clean(a.date_verified)};})};
     try{sessionStorage.setItem(SNAPSHOT_KEY,JSON.stringify(snapshot));}catch(e){}
-  }
-
-  function renderFailure(host,progress,lang,message){
-    host.setAttribute('data-plan-source','prevention_action-error');
-    host.innerHTML='<div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-slate-700">'+esc(message||(lang==='bm'?'Tiada tindakan pencegahan bersumber dan disahkan yang sepadan ditemui. Tiada panduan pengganti dipaparkan.':'No matching sourced and verified prevention actions were found. No substitute guidance is shown.'))+'</div>';
-    if(progress)progress.textContent='0 of 0 done';
-    clearSnapshot();dispatchEmpty();
   }
 
   function renderActions(host,progress,actions,lang,fallbackUsed){
@@ -61,6 +54,28 @@
     window.dispatchEvent(new CustomEvent('roomforboth:db-plan-ready',{detail:{count:actions.length,state:readState(readHomeAnswers()),actions:actions}}));
   }
 
+  function restoreSnapshot(host,progress,lang){
+    var snap=readSnapshot();
+    if(!snap||!Array.isArray(snap.actions)||!snap.actions.length)return false;
+    var actions=snap.actions.filter(valid);
+    if(!actions.length)return false;
+    renderActions(host,progress,actions,lang,false);
+    var note=document.createElement('div');note.className='text-xs text-slate-400 pt-1';note.textContent=lang==='bm'?'Menunjukkan pelan terakhir yang berjaya dimuatkan sementara sambungan data dipulihkan.':'Showing the last successfully loaded plan while the data connection recovers.';host.appendChild(note);
+    return true;
+  }
+
+  function renderFailure(host,progress,lang,message){
+    if(restoreSnapshot(host,progress,lang))return;
+    host.setAttribute('data-plan-source','prevention_action-error');
+    host.innerHTML='<div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-slate-700">'+esc(message||(lang==='bm'?'Permintaan pangkalan data/API gagal. Cuba muat semula halaman.':'Database/API request failed. Please reload the page.'))+'</div>';
+    if(progress)progress.textContent='0 of 0 done';
+    dispatchEmpty();
+  }
+
+  function requestPlan(payload,signal){
+    return fetch('/api/i2/plan',{method:'POST',headers:{'content-type':'application/json','accept':'application/json'},cache:'no-store',body:JSON.stringify(payload),signal:signal}).then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});});
+  }
+
   function loadPlan(){
     if(currentPage()!=='plan-result')return;
     var host=document.getElementById('plan-result__preventionActions'),progress=document.getElementById('plan-result__preventionProgress');if(!host)return;
@@ -69,22 +84,23 @@
     if(fp===inFlight)return;
     if(controller){controller.abort();controller=null;}
     inFlight=fp;controller=new AbortController();var lang=payload.language;
-    fetch('/api/i2/plan',{method:'POST',headers:{'content-type':'application/json','accept':'application/json'},cache:'no-store',body:JSON.stringify(payload),signal:controller.signal})
-      .then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});})
-      .then(function(result){
-        if(inFlight!==fp)return;
-        var body=result.body||{};
-        if(!result.ok||!body.ok){inFlight='';controller=null;lastFingerprint=fp;renderFailure(host,progress,lang,body.error||null);return;}
-        var actions=Array.isArray(body.actions)?body.actions.filter(valid):[];
-        inFlight='';controller=null;lastFingerprint=fp;
-        if(!actions.length){renderFailure(host,progress,lang);return;}
-        renderActions(host,progress,actions,lang,!!body.fallback_used);
-      })
-      .catch(function(error){
-        if(error&&error.name==='AbortError')return;
-        if(inFlight===fp){inFlight='';controller=null;lastFingerprint=fp;renderFailure(host,progress,lang);}
-        console.error('[plan-db-client]',error&&error.message?error.message:error);
-      });
+
+    requestPlan(payload,controller.signal).catch(function(error){
+      if(error&&error.name==='AbortError')throw error;
+      return new Promise(function(resolve){setTimeout(resolve,250);}).then(function(){return requestPlan(payload,controller.signal);});
+    }).then(function(result){
+      if(inFlight!==fp)return;
+      var body=result.body||{};
+      if(!result.ok||!body.ok){inFlight='';controller=null;lastFingerprint=fp;renderFailure(host,progress,lang,body.error||null);return;}
+      var actions=Array.isArray(body.actions)?body.actions.filter(valid):[];
+      inFlight='';controller=null;lastFingerprint=fp;
+      if(!actions.length){renderFailure(host,progress,lang);return;}
+      renderActions(host,progress,actions,lang,!!body.fallback_used);
+    }).catch(function(error){
+      if(error&&error.name==='AbortError')return;
+      if(inFlight===fp){inFlight='';controller=null;lastFingerprint=fp;renderFailure(host,progress,lang);}
+      console.error('[plan-db-client]',error&&error.message?error.message:error);
+    });
   }
 
   function schedule(){setTimeout(loadPlan,0);}
