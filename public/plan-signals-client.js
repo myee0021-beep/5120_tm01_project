@@ -21,6 +21,7 @@
   function lang(){var l=String(document.documentElement.lang||'').toLowerCase();return(l==='bm'||l==='ms')?'bm':'en';}
   function currentPage(){return String(location.hash||'#index').replace(/^#/,'').split('?')[0]||'index';}
   function answers(){try{return JSON.parse(sessionStorage.getItem('roomForBoth.homeAnswers')||'null')||{};}catch(e){return {};}}
+  function plainDate(v){var s=clean(v),m=s.match(/^(\d{4}-\d{2}-\d{2})/);return m?m[1]:s;}
   function state(){
     var a=answers();
     try{if(window.AppNav&&AppNav.currentQuery){var x=new URLSearchParams(AppNav.currentQuery).get('state');if(x)return norm(x);}}catch(e){}
@@ -31,7 +32,7 @@
   function speciesCodes(){
     var a=answers();var raw=a.speciesSeen||a.species_seen||a.species||[];if(!Array.isArray(raw))raw=[raw];
     var out=[];
-    raw.forEach(function(v){var n=norm(v);if(!n||n==='none'||n==='not-sure')return;if(n==='snake'||n==='snakes'||n==='ular'){out.push('python','cobra');return;}Object.keys(SPECIES).forEach(function(code){var m=SPECIES[code];if(n===code||n===String(m.id)||n.indexOf(code)!==-1)out.push(code);});});
+    raw.forEach(function(v){var n=norm(v);if(!n||n==='none'||n==='not-sure')return;if(n==='snake'||n==='snakes'||n==='ular'){out.push('python','cobra');return;}Object.keys(SPECIES).forEach(function(code){var m=SPECIES[code];if(n===code||n===String(m.id)||n.indexOf(code)!==-1||(code==='macaque'&&n.indexOf('long-tailed-macaque')!==-1)||(code==='monitor'&&(n.indexOf('water-monitor')!==-1||n.indexOf('monitor-lizard')!==-1)))out.push(code);});});
     return out.filter(function(v,i,a){return a.indexOf(v)===i;});
   }
   function occurrenceRows(){
@@ -43,21 +44,65 @@
     rows.forEach(function(r){var y=Number(r[2]),m=Number(r[3]),c=Number(r[4])||0;total+=c;if(y)years.push(y);if(m>=1&&m<=12)months[m-1]+=c;});
     return{total:total,months:months,minYear:years.length?Math.min.apply(null,years):null,maxYear:years.length?Math.max.apply(null,years):null};
   }
-  function documentedAnswerTokens(){
-    var a=answers();var vals=[];
-    ['foodSources','wasteStorage','neighboursFeed','attractants'].forEach(function(k){var v=a[k];if(Array.isArray(v))vals=vals.concat(v);else if(v!=null)vals.push(v);});
-    return vals.map(norm).filter(Boolean);
+  function answerValues(v){if(v==null)return[];return Array.isArray(v)?v:[v];}
+  function documentedAnswers(){
+    var a=answers(),seen={},out=[];
+    function add(key,value){
+      var n=norm(value);if(!n||n==='no'||n==='false'||n==='none'||n==='not-sure'||n==='unknown')return;
+      var label=n.replace(/-/g,' '),tokens=[n];
+      if(n==='yes'||n==='true'){
+        if(key==='neighboursFeed'){label='neighbour feeding';tokens=['neighbour-feeding','neighbor-feeding','feeding','feed','deliberate-feeding'];}
+        else return;
+      }
+      var dedupe=norm(label);if(!dedupe||seen[dedupe])return;seen[dedupe]=1;
+      out.push({key:key,label:label,tokens:tokens});
+    }
+    ['foodSources','wasteStorage','neighboursFeed','attractants'].forEach(function(key){answerValues(a[key]).forEach(function(v){add(key,v);});});
+    return out;
   }
-  function rowSpeciesId(r){return Number(r&&r.species_id)||null;}
+  function rowSpeciesId(r){var v=r&&r.species_id;return v==null?null:Number(v);}
   function rowText(r){return Object.keys(r||{}).map(function(k){return typeof r[k]==='string'||typeof r[k]==='number'?String(r[k]):'';}).join(' ').toLowerCase().replace(/[_-]+/g,' ');}
   function validAttractant(r){return!!(r&&clean(r.date_verified)&&(clean(r.source_url)||clean(r.source_person)||clean(r.source_institution)||clean(r.source_name)));}
+  function sourceName(r){
+    var named=clean(r&&(r.source_person||r.source_institution||r.source_name));if(named)return named;
+    var u=clean(r&&r.source_url);if(!u)return'';
+    try{
+      var host=new URL(u,location.href).hostname.replace(/^www\./,'');
+      if(/wwf\.org\.my$/i.test(host))return'WWF-Malaysia';
+      if(/wildlife\.gov\.my$/i.test(host)||/perhilitan/i.test(host))return'PERHILITAN';
+      return host;
+    }catch(e){return u;}
+  }
+  function answerMatchScore(item,row,sid){
+    var txt=rowText(row),score=0,rs=rowSpeciesId(row);
+    item.tokens.forEach(function(token){
+      var phrase=norm(token).replace(/-/g,' '),words=norm(token).split('-').filter(function(x){return x.length>2;});
+      if(phrase&&txt.indexOf(phrase)!==-1)score+=10;
+      words.forEach(function(w){if(txt.indexOf(w)!==-1)score+=1;});
+    });
+    if(rs===sid)score+=2;
+    return score;
+  }
   function matchAttractants(rows,code){
-    var tokens=documentedAnswerTokens(),sid=SPECIES[code].id,seen={},matched=[];
-    tokens.forEach(function(t){
-      var words=t.split('-').filter(function(x){return x.length>2;});
-      rows.forEach(function(r){if(!validAttractant(r))return;var rs=rowSpeciesId(r);if(rs&&rs!==sid)return;var txt=rowText(r);if(words.length&&words.some(function(w){return txt.indexOf(w)!==-1;})){var key=t+'|'+clean(r.source_url||r.source_institution||r.source_name);if(!seen[key]){seen[key]=1;matched.push({answer:t,row:r});}}});
+    var items=documentedAnswers(),sid=SPECIES[code].id,matched=[];
+    items.forEach(function(item){
+      var best=null,bestScore=0;
+      rows.forEach(function(r){
+        if(!validAttractant(r))return;
+        var rs=rowSpeciesId(r);if(rs&&rs!==sid)return;
+        var score=answerMatchScore(item,r,sid);
+        if(score>bestScore){best=r;bestScore=score;}
+      });
+      if(best&&bestScore>0)matched.push({answer:item.label,row:best});
     });
     return matched;
+  }
+  function complaintRowFor(rows,speciesId,preferredYear){
+    var matches=(rows||[]).filter(function(r){return Number(r&&r.species_id)===Number(speciesId);});
+    if(!matches.length)return null;
+    if(preferredYear){var same=matches.filter(function(r){return Number(r.year)===Number(preferredYear);});if(same.length)matches=same;}
+    matches.sort(function(a,b){return(Number(b.year)||0)-(Number(a.year)||0);});
+    return matches[0]||null;
   }
   function apiJson(url){return fetch(url,{headers:{accept:'application/json'},cache:'no-store'}).then(function(r){return r.json().then(function(b){if(!r.ok||b&&b.ok===false)throw new Error((b&&b.error)||('HTTP '+r.status));return b;});});}
   function sourceLink(url,label){return url?'<a class="underline underline-offset-2" target="_blank" rel="noopener" href="'+esc(url)+'">'+esc(label)+'</a>':esc(label);}
@@ -65,28 +110,27 @@
   function render(st,codes,complaints,attractants){
     var list=document.getElementById('plan-result__speciesList');if(!list)return;
     var l=lang(),stateLabel=STATE_LABELS[st]||st,cs=complaints&&complaints.summary||null,complaintRows=complaints&&Array.isArray(complaints.rows)?complaints.rows:[];
-    var complaintSeriesExists=complaintRows.length>0&&cs&&Number(cs.total_cases)>=0;
     list.innerHTML='';
     if(!codes.length){list.innerHTML='<div class="text-sm text-slate-500">'+esc(l==='bm'?'Tiada spesies dipilih dalam soal selidik. Tiada isyarat spesies direka.':'No species was selected in the questionnaire. No species signal is invented.')+'</div>';return;}
     codes.forEach(function(code){
       var meta=SPECIES[code],occ=occurrenceFor(st,code),att=matchAttractants(attractants,code),name=l==='bm'?meta.bm:meta.en;
+      var complaint=complaintRowFor(complaintRows,meta.id,cs&&cs.year);
       var card=document.createElement('div');card.className='rounded-xl border border-slate-100 p-4 mb-3';
       var html='<div class="font-semibold text-forest-950">'+esc(name)+'</div><div class="mt-3 space-y-2 text-sm text-slate-700">';
       html+='<div><strong>'+(l==='bm'?'Rekod kejadian':'Recorded occurrences')+':</strong> '+occ.total.toLocaleString()+' · '+sourceLink('#about-the-data','GBIF occurrence extract')+' <span class="text-xs text-slate-400">('+(l==='bm'?'2025 dan 2026 dikecualikan sebagai tahun tidak lengkap':'2025 and 2026 excluded as incomplete years')+')</span></div>';
-      if(meta.absentComplaint){
-        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+esc(l==='bm'?'Spesies ini tidak terdapat dalam jadual kes nasional yang diterbitkan; tiada angka kejadian digunakan sebagai ganti.':'This species is absent from the published national case table; no occurrence count is substituted.')+'</div>';
-      }else if(complaintSeriesExists){
-        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+Number(cs.total_cases||0).toLocaleString()+' · '+esc((cs.year||2020)+' '+(l==='bm'?'jumlah semua spesies negeri':'all-species state total'))+' · '+sourceLink(cs.source_url||'#about-the-data','PERHILITAN Table 29')+(cs.date_verified?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(cs.date_verified):'')+'</div>';
+      if(meta.absentComplaint||!complaint){
+        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+esc(l==='bm'?'Tiada baris aduan khusus spesies yang diterbitkan untuk spesies ini di negeri ini; jumlah semua spesies tidak digunakan sebagai ganti.':'No published species-specific complaint row is available for this species in this state; the all-species total is not substituted.')+'</div>';
       }else{
-        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+esc(l==='bm'?'Tiada siri aduan untuk negeri ini; tiada angka ganti dipaparkan.':'No complaint series exists for this state; no substitute figure is shown.')+'</div>';
+        var cSource=clean(complaint.source_url||(cs&&cs.source_url)),cDate=plainDate(complaint.date_verified||(cs&&cs.date_verified)),cYear=Number(complaint.year)||(cs&&cs.year)||2020;
+        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+Number(complaint.cases||0).toLocaleString()+' · '+esc(cYear+' '+(l==='bm'?'aduan khusus spesies':'species-specific complaints'))+' · '+sourceLink(cSource||'#about-the-data','PERHILITAN Table 19')+(cDate?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(cDate):'')+'</div>';
       }
       html+='<div><strong>'+(l==='bm'?'Tarikan rumah yang didokumenkan':'Documented attractants matched')+':</strong> '+att.length+'</div>';
-      if(att.length){html+='<ul class="ml-4 list-disc text-xs text-slate-500">'+att.map(function(x){var r=x.row;var src=clean(r.source_person||r.source_institution||r.source_name||'Malaysian source');return'<li>'+esc(x.answer.replace(/-/g,' '))+' · '+sourceLink(r.source_url,src)+(r.date_verified?' · '+esc(r.date_verified):'')+'</li>';}).join('')+'</ul>';}
+      if(att.length){html+='<ul class="ml-4 list-disc text-xs text-slate-500">'+att.map(function(x){var r=x.row;var src=sourceName(r);var d=plainDate(r.date_verified);return'<li>'+esc(x.answer)+' · '+sourceLink(r.source_url,src)+(d?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(d):'')+'</li>';}).join('')+'</ul>';}
       else html+='<div class="text-xs text-slate-500">'+esc(l==='bm'?'Tiada jawapan di rumah ini sepadan dengan sebab yang didokumenkan untuk spesies ini.':'Nothing at this home matched the documented causes for this species.')+'</div>';
       html+='</div><div class="mt-3 text-xs text-slate-500">'+esc(l==='bm'?'Tahap gabungan tidak dipaparkan sehingga baris ambang D34 tersedia daripada satu sumber data. Isyarat di atas ialah rekod negeri dan panduan terdokumen, bukan kebarangkalian bagi alamat anda.':'Combined level is not displayed until the D34 threshold row is available from one data source. The signals above are state records and documented guidance, not a probability for your address.')+'</div>';
       card.innerHTML=html;list.appendChild(card);
     });
-    var desc=document.getElementById('plan-result__signalsDescription');if(desc)desc.textContent=l==='bm'?'Tiga isyarat berasingan dengan kiraan dan sumbernya. Aduan menggunakan jumlah semua spesies negeri sehingga angka spesies yang telah disemak dimuatkan.':'Three separate signals with their counts and sources. Complaints use the all-species state total until reconciled species figures are loaded.';
+    var desc=document.getElementById('plan-result__signalsDescription');if(desc)desc.textContent=l==='bm'?'Tiga isyarat berasingan dengan kiraan dan sumbernya. Aduan menggunakan baris negeri dan spesies yang dipilih daripada jadual PERHILITAN yang telah diselaraskan; jumlah semua spesies tidak digunakan sebagai ganti.':'Three separate signals with their counts and sources. Complaints use the selected state/species row from the reconciled PERHILITAN table; the all-species total is not substituted.';
     var heading=document.getElementById('plan-result__stateHeading');if(heading)heading.textContent=stateLabel;
   }
 
