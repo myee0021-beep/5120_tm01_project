@@ -14,14 +14,17 @@ function progress(doc){
 }
 function notSure(doc){
  doc.querySelectorAll('a,button,[role="button"]').forEach(function(e){
-   var s=t(e.textContent);if(!/^Not sure\??/i.test(s)&&!/^Tidak pasti\??/i.test(s))return;
-   var context=e.closest('section,main,article,div');var contextText=t(context&&context.textContent);
-   if(!/snake|ular|animal is here now|emergency/i.test(contextText))return;
-   if(/guided|question|soal jawab/i.test(contextText))return;
+   var s=t(e.textContent);if(!/^Not sure\??$/i.test(s)&&!/^Tidak pasti\??$/i.test(s))return;
    if(e.dataset.snakeFixed)return;e.dataset.snakeFixed='1';
    e.addEventListener('click',function(ev){
-     var x=Array.from(doc.querySelectorAll('a,button,[role="tab"],[role="button"]')).find(function(a){return /Start\s*\/\s*snake check|snake check|semak ular/i.test(t(a.textContent));});
-     if(!x)return;ev.preventDefault();ev.stopImmediatePropagation();x.click();
+     var scope=e.closest('section,main,article,div')||doc;
+     var candidates=Array.from(scope.querySelectorAll('a,button,[role="tab"],[role="button"]'));
+     var target=candidates.find(function(a){var x=t(a.textContent);return /^Yes,?\s*(it'?s\s*)?a\s*snake$/i.test(x)||/^Ya,?\s*.*ular$/i.test(x);});
+     if(!target){
+       target=Array.from(doc.querySelectorAll('a,button,[role="tab"],[role="button"]')).find(function(a){var x=t(a.textContent);return /^Yes,?\s*(it'?s\s*)?a\s*snake$/i.test(x)||/^Ya,?\s*.*ular$/i.test(x)||/Start\s*\/\s*snake check|snake check|semak ular/i.test(x);});
+     }
+     if(!target)return;
+     ev.preventDefault();ev.stopImmediatePropagation();target.click();
    },true);
  });
 }
