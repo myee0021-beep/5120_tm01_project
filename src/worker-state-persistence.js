@@ -47,6 +47,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/ac-compliance.js?v=20260914-3"></script>
 <script src="/print-selected-actions.js?v=20260915-2202"></script>
 <script src="/print-ac-fixes.js?v=20260915-2202"></script>
+<script src="/remove-print-epic.js?v=20260915-2210"></script>
 <script src="/emergency-flow-ac.js?v=20260915-1759"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>`;
 
