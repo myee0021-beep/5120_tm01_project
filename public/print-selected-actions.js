@@ -2,6 +2,11 @@
   'use strict';
   var observer=null;
   function isPrintPage(){return String(location.hash||'').replace(/^#/,'').split('?')[0]==='plan-print';}
+  function cleanupStaleNeighbourPrint(){
+    if(!isPrintPage())return;
+    var stale=document.getElementById('i2-neighbour-print-card');if(stale)stale.remove();
+    var style=document.getElementById('i2-neighbour-print-style');if(style)style.remove();
+  }
   function ensureStyle(){
     if(!isPrintPage()||document.getElementById('i2-print-select-style'))return;
     var s=document.createElement('style');s.id='i2-print-select-style';s.textContent=[
@@ -14,13 +19,15 @@
     ].join('');document.head.appendChild(s);
   }
   function bindRows(){
-    if(!isPrintPage())return;ensureStyle();
+    if(!isPrintPage())return;cleanupStaleNeighbourPrint();ensureStyle();
     var host=document.getElementById('plan-print__sheetActions');if(!host)return;
     host.querySelectorAll('.action-row').forEach(function(row){
       var original=row.querySelector('input[type="checkbox"],.print-action-check');
       if(!original)return;
-      var selected=!!original.checked;
+      var existing=row.getAttribute('data-selected');
+      var selected=existing===null?true:existing==='true';
       row.setAttribute('data-selected',selected?'true':'false');
+      original.checked=selected;
       original.style.display='none';original.setAttribute('aria-hidden','true');original.tabIndex=-1;
       var btn=row.querySelector('.print-select-toggle');
       if(!btn){
@@ -49,6 +56,7 @@
   },true);
   function run(){
     if(!isPrintPage()){if(observer){observer.disconnect();observer=null;}return;}
+    cleanupStaleNeighbourPrint();
     setTimeout(function(){bindRows();observe();},0);setTimeout(bindRows,100);setTimeout(bindRows,400);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
