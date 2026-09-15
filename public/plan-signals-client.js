@@ -38,10 +38,12 @@
     var d=window.ECOSYSTEM_OCCURRENCES;if(!d||!Array.isArray(d.rows))return[];return d.rows;
   }
   function occurrenceFor(st,code){
-    var rows=occurrenceRows().filter(function(r){return norm(r[0])===st&&r[1]===code&&Number(r[2])>0&&Number(r[3])>=1&&Number(r[3])<=12;});
-    var total=0,months=[0,0,0,0,0,0,0,0,0,0,0,0],years=[];
-    rows.forEach(function(r){var y=Number(r[2]),m=Number(r[3]),c=Number(r[4])||0;total+=c;if(y)years.push(y);if(m>=1&&m<=12)months[m-1]+=c;});
-    return{total:total,months:months,minYear:years.length?Math.min.apply(null,years):null,maxYear:years.length?Math.max.apply(null,years):null};
+    var allRows=occurrenceRows().filter(function(r){return norm(r[0])===st&&r[1]===code;});
+    var datedRows=allRows.filter(function(r){return Number(r[2])>0&&Number(r[3])>=1&&Number(r[3])<=12;});
+    var total=0,datedTotal=0,months=[0,0,0,0,0,0,0,0,0,0,0,0],years=[];
+    allRows.forEach(function(r){total+=Number(r[4])||0;});
+    datedRows.forEach(function(r){var y=Number(r[2]),m=Number(r[3]),c=Number(r[4])||0;datedTotal+=c;if(y)years.push(y);if(m>=1&&m<=12)months[m-1]+=c;});
+    return{total:total,datedTotal:datedTotal,months:months,minYear:years.length?Math.min.apply(null,years):null,maxYear:years.length?Math.max.apply(null,years):null};
   }
   function answerValues(v){if(v==null)return[];return Array.isArray(v)?v:[v];}
   function documentedAnswers(){
@@ -79,7 +81,7 @@
       if(phrase&&txt.indexOf(phrase)!==-1)score+=10;
       words.forEach(function(w){if(txt.indexOf(w)!==-1)score+=1;});
     });
-    if(rs===sid)score+=2;
+    if(score>0&&rs===sid)score+=2;
     return score;
   }
   function matchAttractants(rows,code){
@@ -145,21 +147,13 @@
       card.className='rounded-xl border border-slate-100 bg-slate-50 p-3';
       var title=document.createElement('div');title.className='text-xs font-semibold text-forest-950';title.textContent=name;card.appendChild(title);
       var detail=document.createElement('p');detail.className='mt-1 text-xs text-slate-500';
-      if(occ.total<threshold){
-        // AC 1.2.4 — below the record threshold: no chart is drawn; state
-        // that there are not enough dated records for this species/state,
-        // the actual record count, and the threshold value in force (the
-        // same value every page that draws a profile uses). The other two
-        // signal cards (#plan-result__speciesList) are untouched by this.
+      if(occ.datedTotal<threshold){
         detail.textContent=l==='bm'
-          ? 'Rekod bertarikh tidak mencukupi untuk '+name+' di '+(STATE_LABELS[st]||st)+' untuk memaparkan profil bulanan. Rekod semasa: '+occ.total.toLocaleString()+' · Ambang: '+threshold
-          : 'Not enough dated records for '+name+' in '+(STATE_LABELS[st]||st)+' to show a monthly profile. Records so far: '+occ.total.toLocaleString()+' · Threshold: '+threshold;
+          ? 'Rekod bertarikh tidak mencukupi untuk '+name+' di '+(STATE_LABELS[st]||st)+' untuk memaparkan profil bulanan. Rekod semasa: '+occ.datedTotal.toLocaleString()+' · Ambang: '+threshold
+          : 'Not enough dated records for '+name+' in '+(STATE_LABELS[st]||st)+' to show a monthly profile. Records so far: '+occ.datedTotal.toLocaleString()+' · Threshold: '+threshold;
         card.appendChild(detail);chart.appendChild(card);return;
       }
-      detail.textContent=(l==='bm'?'Jumlah rekod bertarikh: ':'Dated records: ')+occ.total.toLocaleString()+' · '+occ.minYear+'–'+occ.maxYear;card.appendChild(detail);
-      // AC 1.2.3 — same 12-month bar chart as the Ecosystem species page
-      // (.bar-item/.bar-value/.bar-col), each bar labelled with its actual
-      // record count. No confidence interval, probability or trend line.
+      detail.textContent=(l==='bm'?'Jumlah rekod bertarikh: ':'Dated records: ')+occ.datedTotal.toLocaleString()+' · '+occ.minYear+'–'+occ.maxYear;card.appendChild(detail);
       var bars=document.createElement('div');bars.className='mt-3 flex items-end gap-1.5 h-24';var max=Math.max.apply(null,occ.months);
       var labels=document.createElement('div');labels.className='flex justify-between mt-1.5 text-[10px] text-slate-400';
       occ.months.forEach(function(count,index){
