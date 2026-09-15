@@ -1,164 +1,509 @@
-# Room for Both
+# Room for Both — Iteration 2
 
-**Room for Both** is a wildlife-coexistence web application for Malaysian residents. It helps users identify supported wildlife, see verified immediate safety guidance, understand likely behaviour, reduce repeat encounters, and find the relevant authority.
+**Room for Both** is a bilingual wildlife-coexistence web application for Malaysian residents. Iteration 2 focuses on four resident tasks:
 
-## Iteration 1 architecture
+1. identify what animal may be involved;
+2. get immediate safety guidance without delaying urgent action;
+3. understand evidence-based signals for the selected state/species;
+4. generate and print a sourced prevention plan for the home.
 
-```text
-Browser
-  ↓
-Cloudflare Worker + static frontend
-  ↓
-Read-only /api/* endpoints
-  ↓
-Neon PostgreSQL
-```
+**Iteration 2 deployment target:** `https://iteration2.myee0021.workers.dev`
 
-The production application is intentionally **database-driven for business data**. Business content defined by the project ERD is loaded from Neon; the frontend does not keep a second embedded copy as a business-data fallback.
+The application is designed for resident-facing use rather than expert wildlife identification. It deliberately avoids presenting a probability or synthetic “risk score” for a household. Where evidence is incomplete, the UI shows the underlying records, source and verification status instead of inventing a result.
 
-The one deliberate presentation exception is **species photography**. The V1.2 species photos remain static frontend presentation assets so the existing visual interface can be retained reliably. Those images do not supply species names, safety actions, behaviour guidance, prevention guidance, authority records, state records, or other business content.
+---
 
-If a database record is missing, the UI shows an empty/not-verified state or omits the field. It does **not** silently replace missing data with hard-coded business content.
-
-Values such as `NA`, `N/A`, null, undefined, or an empty string are treated as empty and are not rendered as resident-facing business content.
-
-## Frontend
-
-The Iteration 1 V1.2 user flow is retained, including Identify, Immediate Safety, Authority, Keep It Findable, Species Information, About/Data Sources, and supporting state views.
-
-Static HTML/CSS/JavaScript is responsible for layout, navigation, labels, interaction, presentation logic, and presentation photos. Wildlife records, categories, actions, authority records, state records, behaviour guidance, and prevention guidance come from Neon.
-
-The generic snake route intentionally avoids exposing a specific snake species identity to residents. Snake safety content is loaded by category where appropriate.
-
-## Database tables
-
-| Table | Purpose |
-|---|---|
-| `species` | Core species data and identification keywords |
-| `animal_category` | Wildlife categories and responsible-body type |
-| `species_media` | Media/source metadata retained in the ERD and read-only API |
-| `species_behaviour` | Likely location, movement, safe-distance and lost-sight guidance |
-| `immediate_action` | Ordered immediate safety actions |
-| `prevention_action` | Prevention actions, housing/cause/cost/harm metadata |
-| `authority` | Jurisdiction-specific agency and contact information |
-| `state` | Malaysian state/jurisdiction reference data |
-
-### Key relationships
+## 1. Iteration 2 architecture
 
 ```text
-animal_category.category_id
-   ├─ species.category_id
-   ├─ immediate_action.category_id
-   ├─ prevention_action.category_id
-   └─ authority.category_id
-
-species.species_id
-   ├─ species_media.species_id
-   ├─ species_behaviour.species_id
-   ├─ immediate_action.species_id
-   └─ prevention_action.species_id
+Browser / SPA
+  │
+  ├─ Home / Plan / Plan Result / Ecosystem / Emergency / Print
+  │
+  ▼
+Cloudflare Worker
+  ├─ SPA routing and runtime script injection
+  ├─ Neon-backed Iteration 2 APIs
+  ├─ MiniMax AI routes
+  └─ print / state-persistence compatibility layer
+  │
+  ├──────────────► Neon PostgreSQL
+  │                 ├─ prevention_action
+  │                 ├─ complaint_series
+  │                 ├─ attractant_rule
+  │                 ├─ species / category data
+  │                 └─ optional search-failure log
+  │
+  └──────────────► MiniMax API
+                    ├─ Describe it — wildlife matching
+                    └─ Plan in plain words — grounded plan summary
 ```
 
-Implementation notes:
+The active Cloudflare entry point is:
 
-- `state.state_code` is an integer primary key.
-- `authority.jurisdiction` is a varchar field, not a foreign key to `state` in the current ERD.
-- PostgreSQL exposes the unquoted `taxonKey` column as `taxonkey`; the API aliases it back to `taxonKey`.
-- The current ERD field is `action_kind`, not `action_type`.
-- `species_media` stores URLs/metadata and remains queryable through the read-only API, but it is not used to render the V1.2 presentation photos.
+```text
+src/worker-plan-print-entry.js
+```
 
-## Read-only API
+as configured in `wrangler.jsonc`.
 
-Only `GET` requests are accepted. The website backend does not implement `INSERT`, `UPDATE`, `DELETE`, or schema-changing operations.
+The Worker stack is intentionally layered so later fixes can be isolated without rewriting the original SPA:
+
+```text
+worker-plan-print-entry.js
+  → worker-state-persistence.js
+      → worker-plan-summary.js
+          → worker-iteration2.js
+```
+
+Dedicated handlers are also used for:
+
+```text
+src/plan-db-route.js       POST /api/i2/plan
+src/identify-describe.js   POST /api/identify-describe
+```
+
+---
+
+## 2. Main resident flow
+
+### Home
+
+The resident chooses a state and provides basic information about the encounter/home. State selection is persisted across SPA navigation so the same state is reused by Plan Result and Print.
+
+The Home complaint figure is loaded from the reconciled complaint dataset. It uses a **species-specific state row** where available rather than substituting the all-species total.
+
+### Plan questionnaire
+
+The Plan questionnaire records resident answers such as:
+
+- species seen;
+- food / waste conditions;
+- neighbour feeding;
+- fruit trees or other documented attractants;
+- housing-related conditions.
+
+These answers are used to select database-backed prevention actions and evidence signals.
+
+### Plan Result
+
+Plan Result separates three evidence types instead of merging them into one risk score:
+
+- **Recorded occurrences** — GBIF occurrence records for the selected state/species;
+- **Conflict complaints** — reconciled PERHILITAN complaint rows for the selected state/species;
+- **Documented attractants matched** — home answers matched to sourced attractant guidance.
+
+The page also includes:
+
+- species-by-species seasonality;
+- sourced prevention actions;
+- optional AI “Plan in plain words” summary;
+- resident-specific summary line generated from the actual answers;
+- print workflow.
+
+### Print
+
+The print page rebuilds the current plan from the stored plan snapshot. Prevention actions are selectable before printing and default to included. Print recovery logic avoids falling back to stale fixed plan content.
+
+---
+
+## 3. Emergency flow
+
+The emergency flow starts with one question:
+
+> **Is it a snake?**
+
+The routing rule is intentionally conservative:
+
+```text
+Yes / Not sure
+    → go directly to snake safety guidance
+    → do not ask for species name or photo first
+
+No, definitely not a snake
+    → resident may use Describe it or Guided Q&A
+```
+
+This prevents the identification interface from delaying safety guidance when a snake may be involved.
+
+The emergency flow also provides state/jurisdiction options and resident-facing navigation to the next relevant step.
+
+---
+
+# 4. AI features
+
+Iteration 2 contains **two active AI features**. AI is used only where it adds a resident-facing explanation or matching step; the core complaint, occurrence, attractant and prevention data remain deterministic and source-backed.
+
+## 4.1 Describe it — AI wildlife matching
+
+**Route**
 
 ```http
-GET /api/health
-GET /api/data-status
-GET /api/species
-GET /api/species?id=1
-GET /api/species?category_id=1
-GET /api/species?is_snake=true
-GET /api/categories
-GET /api/states
-GET /api/states?state_code=1
-GET /api/species-media?species_id=1
-GET /api/species-behaviour?species_id=1
-GET /api/immediate-actions?species_id=1
-GET /api/immediate-actions?category_id=1
-GET /api/prevention-actions?species_id=1
-GET /api/prevention-actions?category_id=1
-GET /api/authority?category_id=1&jurisdiction=Selangor
-GET /api/tables
+POST /api/identify-describe
 ```
 
-`/api/data-status` is a read-only deployment diagnostic that reports row counts for the eight ERD tables and media coverage. It does not expose credentials or arbitrary SQL access.
-
-## Presentation media
-
-Species photography is intentionally separated from business data:
+**Backend**
 
 ```text
-public/frontend-media.js  -> presentation photos only
-Neon /api/*               -> business data
+src/identify-describe.js
 ```
 
-`frontend-media.js` contains the V1.2 presentation images and their visual-source attribution. It does not contain safety guidance, authority details, state statistics, species behaviour, prevention actions, or other business rules.
+**Model**
 
-The `species_media` database table remains part of the ERD and can still be inspected through `/api/species-media`, but the current database rows contain source-page URLs rather than direct image-file URLs. The resident-facing V1.2 UI therefore does not use those rows as `<img src>` values.
+```text
+MiniMax-Text-01
+```
 
-## Security
+### Purpose
 
-- API routes are GET-only.
-- Database credentials are read from the Cloudflare runtime secret `DATABASE_URL`.
-- Real credentials must not be committed to GitHub.
-- `.gitignore` excludes `.dev.vars`, `.env`, `.env.*`, `node_modules/`, and Wrangler local state.
-- Repository-side credential review evidence is recorded in `SECURITY_CONFIRMATION.md`.
-- A database role limited to `SELECT` is recommended for production defence in depth.
+Residents can describe a non-snake animal in ordinary English, Malay or mixed language. The model returns likely matches from a **fixed whitelist only**.
 
-## Project structure
+Current AI whitelist:
+
+- House Crow;
+- Long-tailed Macaque;
+- Water Monitor Lizard;
+- Wild Boar;
+- Common Myna.
+
+The model is not allowed to invent a new species ID or name. It returns at most three candidates and the server filters the result against the approved identifiers before sending it to the browser.
+
+Expected model shape:
+
+```json
+{
+  "matches": [
+    {
+      "species_id": "macaque",
+      "confidence": "high"
+    }
+  ]
+}
+```
+
+### Safety behaviour
+
+Snake-like descriptions do not become a free-form AI snake identification task. The emergency interface routes snake / uncertain-snake cases to the dedicated snake safety path instead.
+
+### Failure behaviour
+
+The AI request has a short timeout and returns a controlled error if the provider is unavailable or returns malformed output. The resident can continue with **Guided Q&A** instead.
+
+The resident’s typed description is used for the request; the application does not persist the free-text description as a business-data record.
+
+---
+
+## 4.2 Plan in plain words — grounded AI summary
+
+**Route**
+
+```http
+POST /api/i2/plan-summary
+```
+
+**Backend**
+
+```text
+src/worker-plan-summary.js
+```
+
+**Frontend**
+
+```text
+public/plan-ai-summary.js
+```
+
+**Model**
+
+```text
+MiniMax-Text-01
+```
+
+### Purpose
+
+The AI converts the already displayed prevention-action rows into a short plain-language paragraph.
+
+The AI does **not** receive the resident’s full free-text description. Its source of truth is the small set of sourced prevention rows already displayed on Plan Result.
+
+### Grounding rules
+
+The server validates every generated summary before it is displayed:
+
+- output must contain **4–6 sentences**;
+- the model must not introduce a number absent from the source rows;
+- the model must not introduce an animal/species term absent from the source rows;
+- the prompt forbids adding new risk, place, date, cause, action, recommendation, prediction or safety advice;
+- synonymous/plain-language wording is allowed;
+- one retry is allowed after a validation failure.
+
+If validation fails twice, the AI paragraph is hidden and the resident is directed back to the verified action table.
+
+Validated summaries are cached using a key derived from the displayed action rows and language, so repeated requests for the same plan do not unnecessarily call the model again.
+
+### Important design decision
+
+**AI does not calculate the household risk level.**
+
+Iteration 2 intentionally removed the earlier combined-risk presentation. Occurrence records, complaints and attractant matches remain separate documented signals.
+
+---
+
+## 5. Database-backed Plan generation
+
+**Route**
+
+```http
+POST /api/i2/plan
+```
+
+**Handler**
+
+```text
+src/plan-db-route.js
+```
+
+The Plan API reads `prevention_action` from Neon and selects actions using the resident’s submitted context.
+
+Matching considers:
+
+- selected species;
+- documented cause groups;
+- housing type where applicable;
+- available English / Bahasa Melayu action text;
+- source information;
+- verification date.
+
+If there is no exact cause/housing match, the API may fall back to general actions for the selected species. It still requires each returned resident-facing action to have a usable action text, source and verification date.
+
+The frontend stores the successfully loaded plan as a session snapshot so the print page can reproduce the same plan rather than generating unrelated static content.
+
+---
+
+## 6. Complaint data
+
+The Iteration 2 complaint dataset uses an explicit aggregate-row convention:
+
+```text
+one row = one state / species / year aggregate
+species_id IS NULL = authoritative all-species state total
+```
+
+For resident-facing species cards, Plan Result and Home select the **matching species row** and do not substitute the all-species total when a species-specific number is required.
+
+Example:
+
+```text
+Selangor / Long-tailed Macaque / 2020 → species-specific complaint cases
+```
+
+The UI shows the source and a plain verification date.
+
+Relevant API:
+
+```http
+GET /api/i2/complaints?state=selangor
+GET /api/i2/complaints?state=selangor&species=macaque
+```
+
+---
+
+## 7. Occurrence records and seasonality
+
+Occurrence data are kept separate from complaint data.
+
+Iteration 2 distinguishes:
+
+```text
+total       = all occurrence records for the selected state/species
+datedTotal  = records with a usable year and month
+```
+
+`total` is used for the **Recorded occurrences** signal.
+
+`datedTotal` is used for the monthly seasonality profile.
+
+The monthly profile uses a threshold of **30 dated records**:
+
+- below 30: no chart is drawn and the actual dated record count is shown;
+- 30 or above: a 12-month bar chart is rendered for that species.
+
+The chart represents records of where the species was reported, **not a count of individual animals and not a probability for the resident’s address**.
+
+The current reconciled occurrence total used by the resident-facing copy is **47,033**, and GRIIS is spelled consistently as **GRIIS**.
+
+---
+
+## 8. Documented attractants
+
+The frontend loads documented attractant rows from:
+
+```http
+GET /api/i2/attractants
+```
+
+Resident answers are normalised and deduplicated before matching.
+
+Important matching behaviour:
+
+- `no`, `false`, `none`, `not sure` and equivalent empty answers are ignored;
+- generic `yes` is not displayed as an attractant label;
+- neighbour feeding can be normalised to a meaningful label;
+- one resident answer produces at most one best matching attractant row per species;
+- a species-only match is not enough — there must first be a lexical answer/row match before a species bonus is applied;
+- displayed rows require source information and a verification date.
+
+This prevents duplicated rows and avoids showing unrelated guidance simply because it belongs to the same species.
+
+---
+
+## 9. Resident-specific summary line
+
+`public/plan-result-consistency.js` rebuilds the Plan Result summary line from the actual session answers.
+
+This prevents old state mock copy such as a fixed “macaque and monitor” sentence from appearing when the resident selected only one of those animals.
+
+The same corrected summary is written back into the current plan snapshot so Print remains consistent with Plan Result.
+
+---
+
+## 10. Important APIs
+
+```http
+GET  /api/health
+GET  /api/i2/status
+GET  /api/i2/complaints
+GET  /api/i2/attractants
+GET  /api/i2/prevention-actions
+POST /api/i2/plan
+POST /api/i2/plan-summary
+POST /api/identify-describe
+POST /api/i2/search-failure
+```
+
+These APIs are served through the layered Cloudflare Worker. The outer Worker intercepts the active AI and stable Plan routes before delegating to the lower Iteration 2 worker.
+
+---
+
+## 11. Main files
 
 ```text
 5120_tm01_project/
 ├── public/
-│   ├── index.html              # production frontend
-│   ├── frontend-media.js       # static V1.2 presentation photos only
-│   ├── api-data.js             # Neon-backed business data/rendering layer
-│   └── v12-ui.js               # Iteration 1 V1.2 UI/flow compatibility
+│   ├── index0914.html                # main Iteration 2 SPA
+│   ├── home-live-data.js             # Home complaint signal
+│   ├── plan-db-client.js             # database-backed Plan Result actions
+│   ├── plan-signals-client.js        # occurrences, complaints, attractants, seasonality
+│   ├── plan-ai-summary.js            # Plan in plain words frontend
+│   ├── plan-result-consistency.js    # resident-answer summary/data consistency
+│   ├── plan-snapshot-sync.js         # current-plan snapshot synchronisation
+│   ├── print-plan-recovery.js        # rebuild/recover current print plan
+│   ├── print-selected-actions.js     # selectable actions for print
+│   ├── emergency-flow-ac.js          # emergency-flow AC fixes
+│   ├── emergency-identify-fix.js     # Guided Q&A / Describe interaction fixes
+│   ├── ac-compliance.js              # resident-facing AC/data corrections
+│   └── about-ai-routes.js            # AI explanation on About the Data
 ├── src/
-│   └── worker.js               # Cloudflare Worker + read-only API
-├── scripts/
-│   ├── apply_db_only_frontend.py
-│   └── use-frontend-media.js
-├── .github/workflows/
-│   ├── apply-db-only-frontend.yml
-│   └── verify-production-data.yml
-├── archive/legacy-html/        # superseded development snapshots
-├── BACKEND_SETUP.md
-├── SECURITY_CONFIRMATION.md
+│   ├── worker-plan-print-entry.js    # active Wrangler entry point
+│   ├── worker-state-persistence.js   # SPA/state/script runtime layer
+│   ├── worker-plan-summary.js        # grounded MiniMax Plan summary
+│   ├── worker-iteration2.js          # Iteration 2 Neon/API worker
+│   ├── plan-db-route.js              # stable database Plan API
+│   └── identify-describe.js          # MiniMax Describe-it backend
+├── database_code/
+│   └── iteration2_complaint_series.sql
+├── .dev.vars.example
 ├── package.json
 ├── wrangler.jsonc
 └── README.md
 ```
 
-The source-level sanitizer prevents the old embedded prototype business dataset from being reintroduced into `public/index.html`. Production business data remains Neon-backed; presentation photography remains frontend-managed by design.
+---
 
-## Local development
+## 12. Environment variables
 
-Create `.dev.vars` locally with the Neon connection string, then run:
+Local development uses `.dev.vars`.
+
+Required secrets:
+
+```text
+DATABASE_URL       Neon PostgreSQL connection string
+MINIMAX_API_KEY    MiniMax API key for active AI routes
+```
+
+Example:
+
+```bash
+cp .dev.vars.example .dev.vars
+```
+
+Never commit real credentials.
+
+Production secrets should be configured through Wrangler, for example:
+
+```bash
+npx wrangler secret put DATABASE_URL
+npx wrangler secret put MINIMAX_API_KEY
+```
+
+---
+
+## 13. Local development
+
+Install dependencies:
 
 ```bash
 npm install
+```
+
+Run locally:
+
+```bash
 npm run dev
 ```
 
-Manual deployment:
+Deploy Iteration 2:
 
 ```bash
 npm run deploy
 ```
 
-Do not commit `.dev.vars` or any real connection string.
+or:
+
+```bash
+npx wrangler deploy
+```
+
+The project uses `@neondatabase/serverless` for Neon access and Cloudflare Wrangler for local/runtime deployment.
 
 ---
 
-**Room for Both** — supporting safer interactions between people and urban wildlife.
+## 14. Iteration 2 design principles
+
+Iteration 2 follows these implementation rules:
+
+- **Safety before identification** — “Yes” or “Not sure” for snake routes directly to snake guidance.
+- **No invented risk score** — evidence signals remain separate.
+- **Species-specific complaints where required** — do not replace them with the all-species state total.
+- **Occurrence records are not animal counts** — the UI states this explicitly.
+- **Monthly seasonality uses dated records only** — total occurrence count and dated count are separate values.
+- **Source + verification date** — resident-facing prevention and attractant guidance must be traceable.
+- **AI is constrained and optional** — deterministic / guided paths remain usable if AI fails.
+- **AI output is validated before display** — model text is not automatically trusted.
+- **Resident answers drive resident copy** — fixed mock summary text is not treated as user-specific truth.
+- **Print should reproduce the current plan** — not a stale or unrelated plan.
+
+---
+
+## 15. Privacy and security
+
+- Database credentials and AI provider keys are stored as runtime secrets, not source code.
+- `.dev.vars` and real environment files must not be committed.
+- The Describe-it free-text request is used for matching and is not inserted into the project business tables.
+- Plan AI receives the displayed prevention rows rather than the resident’s full free-text description.
+- API responses use `cache-control: no-store` where resident/context-sensitive data are involved.
+- AI failures return controlled fallback states rather than exposing provider credentials or raw internal errors to the resident UI.
+
+---
+
+**Room for Both — Iteration 2**  
+Supporting safer, more evidence-based coexistence between Malaysian residents and urban wildlife.
