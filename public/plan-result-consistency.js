@@ -77,7 +77,7 @@
     while(w.nextNode())nodes.push(w.currentNode);
     nodes.forEach(function(node){
       var p=node.parentElement;if(!p||p.closest('script,style,noscript'))return;
-      var old=node.nodeValue||'',next=old.split('48,188').join('47,033').split('GRIS').join('GRIIS');
+      var old=node.nodeValue||'',next=old.split('GRIS').join('GRIIS');
       if(next!==old)node.nodeValue=next;
     });
   }
