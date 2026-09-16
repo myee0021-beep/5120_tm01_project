@@ -1,23 +1,6 @@
 (function(){
   'use strict';
 
-  function clean(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
-
-  function replaceText(){
-    if(!document.body)return;
-    var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),nodes=[];
-    while(walker.nextNode())nodes.push(walker.currentNode);
-    nodes.forEach(function(node){
-      var p=node.parentElement;if(!p||p.closest('script,style,noscript'))return;
-      var s=node.nodeValue||'',n=s;
-      n=n.replace(/PERHILITAN Table 19/g,'PERHILITAN Table 29');
-      n=n.replace(/criterion A3cd, since 2022/gi,'criterion A2cd+3cd+4cd, last assessed 28 October 2024');
-      n=n.replace(/\s*·\s*E\d+(?:\s*(?:to|hingga|,|\/|&|dan)\s*E?\d+)*\b/gi,'');
-      n=n.replace(/\bE\d+(?:\s*[,\/&]\s*E?\d+)+\b/gi,'');
-      if(n!==s)node.nodeValue=n;
-    });
-  }
-
   function addEmergencyShortcuts(){
     document.querySelectorAll('header').forEach(function(header){
       var row=header.querySelector('.max-w-7xl');
@@ -31,16 +14,8 @@
     });
   }
 
-  function removeInternalEpicBadges(){
-    document.querySelectorAll('.info-pill').forEach(function(el){
-      var t=clean(el.textContent);
-      if(/^E\d+(?:\s*[,\/&-]\s*E?\d+)*$/i.test(t))el.remove();
-    });
-  }
-
-  function apply(){replaceText();addEmergencyShortcuts();removeInternalEpicBadges();}
+  function apply(){addEmergencyShortcuts();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
   window.addEventListener('hashchange',function(){setTimeout(apply,0);});
   document.addEventListener('roomforboth:pageshow',function(){setTimeout(apply,0);});
-  new MutationObserver(function(){clearTimeout(window.__i2fixTimer);window.__i2fixTimer=setTimeout(apply,30);}).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
 })();
