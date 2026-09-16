@@ -13,6 +13,7 @@ function patchText(doc){
    var x=v
      .replace(/1960\s+to\s+2026/g,'1860 to 2026')
      .replace(/1960\s+hingga\s+2026/g,'1860 hingga 2026')
+     .replace(/PERHILITAN\s*\(mock reviewer\)/gi,'PERHILITAN')
      .replace(/\b(20\d{2}-\d{2}-\d{2})\b/g,function(m){return longDate(m);});
    if(x!==v)n.nodeValue=x;
  });
