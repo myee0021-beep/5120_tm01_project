@@ -39,7 +39,12 @@ function requestedSpeciesIds(payload){
 
 function tokenSet(payload){
   var values=[];
-  ['foodSources','wasteStorage','neighboursFeed','attractants','signals','doorsWindows','openDoorsWindows','open_doors_windows','clutter','shelter','clutterShelter','reporting','report','cause_group','causeGroups','causes'].forEach(function(k){flatten(payload&&payload[k],values);});
+  var SAFE_STORAGE=new Set(['closed-bins','covered-bins','secured-bins','bins-with-lids','kept-indoors','indoors']);
+  ['foodSources','wasteStorage','neighboursFeed','attractants','signals','doorsWindows','openDoorsWindows','open_doors_windows','clutter','shelter','clutterShelter','reporting','report','cause_group','causeGroups','causes'].forEach(function(k){
+    var next=[];flatten(payload&&payload[k],next);
+    if(k==='wasteStorage')next=next.filter(function(v){return !SAFE_STORAGE.has(norm(v));});
+    next.forEach(function(v){values.push(v);});
+  });
   var out=new Set();
   values.forEach(function(v){var n=norm(v);if(!n)return;out.add(n);n.split('-').filter(function(x){return x.length>2;}).forEach(function(x){out.add(x);});});
   return out;
