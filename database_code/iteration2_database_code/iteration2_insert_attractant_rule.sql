@@ -1,0 +1,113 @@
+INSERT INTO attractant_rule (
+    id,
+    answer_id,
+    species_id,
+    source_url,
+    date_verified
+)
+VALUES
+(
+    1,
+    'food_waste_yes',
+    1,
+    'https://sustainability.um.edu.my/news/balancing-coexistence-and-conservation-addressing-the-human-macaque-conflict-at-universiti-malaya',
+    '2026-09-13'
+),
+(
+    2,
+    'food_waste_yes',
+    2,
+    'https://www.thestar.com.my/metro/metro-news/2024/05/18/perhilitan-translocates-foraging-wild-boar-in-shah-alam-neighbourhood',
+    '2026-09-13'
+),
+(
+    3,
+    'food_waste_yes',
+    4,
+    'https://sustainability.um.edu.my/news/balancing-coexistence-and-conservation-addressing-the-human-macaque-conflict-at-universiti-malaya',
+    '2026-09-13'
+),
+(
+    4,
+    'food_waste_yes',
+    5,
+    'https://www.ukm.my/jsm/pdf_files/SM-PDF-54-12-2025/2.pdf',
+    '2026-09-13'
+),
+(
+    5,
+    'food_waste_yes',
+    6,
+    'https://doi.org/10.1163/15707563-bja10065',
+    '2026-09-13'
+),
+(
+    6,
+    'food_waste_yes',
+    7,
+    'https://sustainability.um.edu.my/news/balancing-coexistence-and-conservation-addressing-the-human-macaque-conflict-at-universiti-malaya',
+    '2026-09-13'
+),
+(
+    7,
+    'open_bins_yes',
+    1,
+    'https://sustainability.um.edu.my/news/balancing-coexistence-and-conservation-addressing-the-human-macaque-conflict-at-universiti-malaya',
+    '2026-09-13'
+),
+(
+    8,
+    'open_bins_yes',
+    2,
+    'https://www.thestar.com.my/metro/metro-news/2024/05/18/perhilitan-translocates-foraging-wild-boar-in-shah-alam-neighbourhood',
+    '2026-09-13'
+),
+(
+    9,
+    'open_bins_yes',
+    4,
+    'https://sustainability.um.edu.my/news/balancing-coexistence-and-conservation-addressing-the-human-macaque-conflict-at-universiti-malaya',
+    '2026-09-13'
+),
+(
+    10,
+    'open_bins_yes',
+    5,
+    'https://www.ukm.my/jsm/pdf_files/SM-PDF-54-12-2025/2.pdf',
+    '2026-09-13'
+),
+(
+    11,
+    'open_bins_yes',
+    6,
+    'https://doi.org/10.1163/15707563-bja10065',
+    '2026-09-13'
+),
+(
+    12,
+    'open_bins_yes',
+    7,
+    'https://sustainability.um.edu.my/news/balancing-coexistence-and-conservation-addressing-the-human-macaque-conflict-at-universiti-malaya',
+    '2026-09-13'
+),
+(
+    13,
+    'fruit_trees_yes',
+    1,
+    'https://langurprojectpenang.com/2020/08/22/faq/',
+    '2026-09-13'
+),
+(
+    14,
+    'open_windows_yes',
+    1,
+    'https://langurprojectpenang.com/2020/08/22/faq/',
+    '2026-09-13'
+),
+(
+    15,
+    'neighbour_feeds_yes',
+    1,
+    'https://www.thestar.com.my/metro/metro-news/2024/10/18/perhilitan-stop-feeding-releasing-trapped-monkeys',
+    '2026-09-13'
+);
