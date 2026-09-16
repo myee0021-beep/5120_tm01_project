@@ -48,8 +48,10 @@
   function answerValues(v){if(v==null)return[];return Array.isArray(v)?v:[v];}
   function documentedAnswers(){
     var a=answers(),seen={},out=[];
+    var SAFE_HOME_ANSWERS={'closed-bins':1,'covered-bins':1,'secured-bins':1,'bins-with-lids':1,'kept-indoors':1,'indoors':1};
     function add(key,value){
       var n=norm(value);if(!n||n==='no'||n==='false'||n==='none'||n==='not-sure'||n==='unknown')return;
+      if(key==='wasteStorage'&&SAFE_HOME_ANSWERS[n])return;
       var label=n.replace(/-/g,' '),tokens=[n];
       if(n==='yes'||n==='true'){
         if(key==='neighboursFeed'){label='neighbour feeding';tokens=['neighbour-feeding','neighbor-feeding','feeding','feed','deliberate-feeding'];}
@@ -123,7 +125,7 @@
         html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+esc(l==='bm'?'Tiada baris aduan khusus spesies yang diterbitkan untuk spesies ini di negeri ini; jumlah semua spesies tidak digunakan sebagai ganti.':'No published species-specific complaint row is available for this species in this state; the all-species total is not substituted.')+'</div>';
       }else{
         var cSource=clean(complaint.source_url||(cs&&cs.source_url)),cDate=plainDate(complaint.date_verified||(cs&&cs.date_verified)),cYear=Number(complaint.year)||(cs&&cs.year)||2020;
-        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+Number(complaint.cases||0).toLocaleString()+' · '+esc(cYear+' '+(l==='bm'?'aduan khusus spesies':'species-specific complaints'))+' · '+sourceLink(cSource||'#about-the-data','PERHILITAN Table 19')+(cDate?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(cDate):'')+'</div>';
+        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+Number(complaint.cases||0).toLocaleString()+' · '+esc(cYear+' '+(l==='bm'?'aduan khusus spesies':'species-specific complaints'))+' · '+sourceLink(cSource||'#about-the-data','PERHILITAN Table 29')+(cDate?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(cDate):'')+'</div>';
       }
       html+='<div><strong>'+(l==='bm'?'Tarikan rumah yang didokumenkan':'Documented attractants matched')+':</strong> '+att.length+'</div>';
       if(att.length){html+='<ul class="ml-4 list-disc text-xs text-slate-500">'+att.map(function(x){var r=x.row;var src=sourceName(r);var d=plainDate(r.date_verified);return'<li>'+esc(x.answer)+' · '+sourceLink(r.source_url,src)+(d?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(d):'')+'</li>';}).join('')+'</ul>';}
