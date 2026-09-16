@@ -20,7 +20,7 @@
     if(s==='w.p. putrajaya')return 'putrajaya';
     return s.replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   }
-  function publish(data){
+  function publishAllYears(data){
     if(!Array.isArray(data))return;
     var rows=[],total=0,noMonth=0,noYear=0,years=[];
     data.forEach(function(r){
@@ -33,13 +33,14 @@
       rows.push([normState(r.state_normalised),code,year,month,count]);
     });
     var meta={generatedBy:'iteration2 2026-09-16 build',sourceFile:'iteration2_map_aggregated.json',totalRecords:total,recordsWithNoMonth:noMonth,recordsWithNoYear:noYear,speciesCodes:['crow','myna','macaque','monitor','python','boar','cobra'],snakeCodes:['python','cobra'],yearRange:years.length?[Math.min.apply(null,years),Math.max.apply(null,years)]:[]};
-    // D43: keep the embedded 2017-2026 dataset exclusively for the Ecosystem map.
-    // Publish the all-years dataset separately for Plan, Red List, species pages and print.
+    // The inline map dataset is deliberately left untouched: it is the
+    // 2017–2026, 28,135-record extract. Other pages consume this full-history
+    // dataset through its own global, so fetch timing can never replace map data.
     window.OCCURRENCES_ALL_YEARS={meta:meta,rows:rows};
-    window.dispatchEvent(new CustomEvent('roomforboth:all-years-occurrence-data-ready',{detail:{rows:rows.length,totalRecords:total}}));
+    window.dispatchEvent(new CustomEvent('roomforboth:all-years-occurrence-data-ready',{detail:{rows:rows.length,totalRecords:total,yearRange:meta.yearRange}}));
   }
-  fetch('/iteration2_map_aggregated.json?v=20260916-2',{cache:'no-store'})
+  fetch('iteration2_map_aggregated.json?v=20260916-1',{cache:'no-store'})
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-    .then(publish)
-    .catch(function(err){console.warn('[ecosystem-occurrences-current] all-years data unavailable:',err&&err.message?err.message:err);});
+    .then(publishAllYears)
+    .catch(function(err){console.warn('[ecosystem-occurrences-current] could not load full-history data:',err&&err.message?err.message:err);});
 })();

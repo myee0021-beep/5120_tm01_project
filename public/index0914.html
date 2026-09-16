@@ -647,6 +647,27 @@
 
 </style>
 
+<style id="r4b-mobile-nav-layout-v1">
+@media (max-width: 767px) {
+  .app-page > header .max-w-7xl { gap: .5rem; padding-left: .75rem; padding-right: .75rem; }
+  .app-page > header a[href="index.html"].font-display { min-width: 0; flex: 1 1 auto; }
+  .app-page > header a[href="index.html"].font-display > span { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(1rem, 4vw, 1.35rem); }
+  .app-page > header .lang-toggle { flex-shrink: 0; }
+  .app-page > header .lang-toggle button { padding-left: .625rem; padding-right: .625rem; }
+  .app-page > header [id$="__mobileNavToggle"],
+  .app-page > header .i2-mobile-emergency-shortcut { width: 2.5rem; height: 2.5rem; min-width: 2.5rem; }
+  .app-page > header .i2-mobile-emergency-shortcut { margin-left: 0; }
+}
+@media (max-width: 380px) {
+  .app-page > header .max-w-7xl { gap: .375rem; padding-left: .625rem; padding-right: .625rem; }
+  .app-page > header a[href="index.html"].font-display { gap: .4rem; }
+  .app-page > header a[href="index.html"].font-display img { width: 1.75rem; height: 1.75rem; }
+  .app-page > header a[href="index.html"].font-display > span { font-size: .94rem; }
+  .app-page > header .lang-toggle button { padding-left: .5rem; padding-right: .5rem; }
+  .app-page > header [id$="__mobileNavToggle"],
+  .app-page > header .i2-mobile-emergency-shortcut { width: 2.25rem; height: 2.25rem; min-width: 2.25rem; }
+}
+</style>
 <style id="r4b-clean-v3">
 /* Keep the original site logo exactly as supplied in the source build. */
 
@@ -868,7 +889,7 @@
 <button class="bg-white text-forest-950 px-3.5 py-1.5 transition-colors" data-lang="en">EN</button>
 <button class="text-slate-300 px-3.5 py-1.5 transition-colors" data-lang="bm">BM</button>
 </div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+<a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
 <span data-en="">An animal is here now</span>
 <span data-bm="">Ada haiwan di sini sekarang</span>
 </a>
@@ -876,6 +897,9 @@
 <svg fill="none" height="18" id="index__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
 <svg class="hidden" fill="none" height="18" id="index__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
 </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
 </div>
 </div>
 <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="index__mobileNavPanel">
@@ -906,154 +930,60 @@
 <div class="pointer-events-none absolute z-10 top-1/3 -right-40 w-[420px] h-[420px] rounded-full bg-teal-400/10 blur-3xl"></div>
 <div class="pointer-events-none absolute z-10 -bottom-20 -left-20 w-[460px] h-[460px] rounded-full bg-sky-400/10 blur-3xl"></div>
 <div class="relative z-20 max-w-5xl mx-auto px-6 text-left">
-<span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1.5 text-xs font-semibold tracking-wide uppercase text-emerald-300">
-<span data-en="">SDG 15 · Life on Land · Coexistence Planning · E5 to E7</span>
-<span data-bm="">SDG 15 · Hidupan di Darat · Perancangan Kewujudan Bersama · E5 hingga E7</span>
-</span>
-<h1 class="reveal in-view font-display mt-7 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.08]">
-<span data-en="">Know what is coming. Keep both safe.</span>
-<span data-bm="">Ketahui apa yang akan datang. Selamatkan kedua-duanya.</span>
-</h1>
-<p class="reveal in-view mt-6 text-lg text-slate-300/85 max-w-xl leading-relaxed">
-<span data-en="">Tell us where you live and what your home is like. We show where the seven animals are recorded near you, what draws them, and the sourced plan that keeps them out of the kitchen.</span>
-<span data-bm="">Beritahu kami di mana anda tinggal dan bagaimana rumah anda. Kami tunjukkan di mana tujuh haiwan itu direkodkan berhampiran anda, apa yang menarik mereka, dan pelan bersumber yang mengekalkan mereka di luar dapur.</span>
-</p>
-<div class="mt-7 flex items-start gap-4">
-<div class="font-display text-3xl font-extrabold text-white tracking-tight whitespace-nowrap">48,188</div>
-<div class="text-xs text-slate-400 leading-snug pt-1.5 max-w-sm">
-<span data-en="">Recorded observations of the seven species in Malaysia, 1960 to 2026, 39,982 of them since 2015. GBIF occurrence extract. Observations, not animals.</span>
-<span data-bm="">Pemerhatian direkodkan bagi tujuh spesies di Malaysia, 1960 hingga 2026, 39,982 daripadanya sejak 2015. Ekstrak kejadian GBIF. Pemerhatian, bukan bilangan haiwan.</span>
-</div>
-</div>
-<!-- State planner -->
-<div class="mt-8 max-w-md">
-<div class="rounded-2xl bg-forest-800/70 border border-white/10 p-2 space-y-1.5">
-<select class="plain-select w-full rounded-xl bg-forest-700/60 border border-white/10 text-sm font-medium text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-400/40" id="index__home_stateSelect">
-<option id="index__home_stateSelect_placeholder" selected="" disabled="" value="">Select state…</option>
-</select>
-<button class="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 transition-colors text-white text-sm font-semibold px-6 py-3.5" id="index__home_goBtn">
-<span id="index__home_goBtnLabel"><span data-en="">Start my plan</span><span data-bm="">Mulakan pelan saya</span></span>
-<svg fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="15"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-</button>
-</div>
-<a class="mt-3 inline-flex items-center gap-1.5 text-sm text-emerald-300 hover:text-emerald-200 transition-colors" href="emergency.html">
-<span data-en="">An animal is here now?</span><span data-bm="">Ada haiwan di sini sekarang?</span>
-<span class="font-semibold underline underline-offset-2"><span data-en="">Go to Emergency</span><span data-bm="">Pergi ke Kecemasan</span></span>
-</a>
-</div>
-</div>
-<!-- wave divider — matches the original site's dark-to-white hero transition -->
+  <p class="reveal in-view text-xs font-bold tracking-[0.16em] uppercase text-emerald-200">
+    <span data-en="">Coexistence planning for Malaysian homes</span>
+    <span data-bm="">Perancangan kewujudan bersama untuk rumah di Malaysia</span>
+  </p>
+  <h1 class="reveal in-view font-display mt-6 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.08] max-w-4xl">
+    <span data-en="">Wild animals visit Malaysian homes. Which situation is yours?</span>
+    <span data-bm="">Haiwan liar mengunjungi rumah di Malaysia. Situasi yang manakah milik anda?</span>
+  </h1>
+  <p class="reveal in-view mt-6 text-lg text-slate-200 max-w-2xl leading-relaxed">
+    <span data-en="">Clear, practical next steps for people and wildlife to share space safely.</span>
+    <span data-bm="">Langkah seterusnya yang jelas dan praktikal agar manusia serta hidupan liar dapat berkongsi ruang dengan selamat.</span>
+  </p>
+</div><!-- wave divider — matches the original site's dark-to-white hero transition -->
 <div class="absolute bottom-0 inset-x-0 leading-[0] z-10">
 <svg class="w-full h-20 md:h-28" preserveaspectratio="none" viewbox="0 0 1440 120" xmlns="http://www.w3.org/2000/svg">
 <path d="M0,64 C240,110 480,110 720,72 C960,34 1200,34 1440,72 L1440,120 L0,120 Z" fill="#FFFFFF"></path>
 </svg>
 </div>
 </section>
-<!-- =========================== AT A GLANCE (appears once a state is chosen) =========================== -->
-<section class="hidden bg-white border-b border-slate-100 py-10" id="index__glancePanel">
-<div class="max-w-5xl mx-auto px-6">
-<div class="text-xs font-semibold tracking-wide uppercase text-slate-400 mb-5" id="index__glanceTitle">SELANGOR AT A GLANCE · E5</div>
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
-<div>
-<div class="font-display text-2xl font-extrabold text-forest-950" id="index__glanceObservations">11,055</div>
-<div class="text-xs text-slate-500 mt-1"><span data-en="">recorded observations, 2015 to 2026</span><span data-bm="">pemerhatian direkodkan, 2015 hingga 2026</span></div>
-</div>
-<div>
-<div class="font-display text-2xl font-extrabold text-forest-950" id="index__glanceMostRecorded">Myna</div>
-<div class="text-xs text-slate-500 mt-1"><span data-en="">most recorded</span><span data-bm="">paling kerap direkod</span></div>
-</div>
-<div>
-<div class="font-display text-2xl font-extrabold text-forest-950" id="index__glanceComplaints">1,818</div>
-<div class="text-xs text-slate-500 mt-1" id="index__glanceComplaintsLabel">macaque complaints, 2020, PERHILITAN Table 19</div>
-</div>
-</div>
-<p class="mt-5 text-xs text-slate-400" id="index__glanceCaption">
-<span data-en="">Tap Ecosystem to see them on the map by species and state.</span>
-<span data-bm="">Ketik Ekosistem untuk melihatnya di peta mengikut spesies dan negeri.</span>
-</p>
-</div>
+<!-- =========================== THREE DOORS =========================== -->
+<section class="bg-[#f8faf8] py-12 md:py-16">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <a href="emergency.html" class="group rounded-2xl border border-rose-200 bg-rose-50 p-7 transition-transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-rose-900/10">
+        <p class="text-sm font-bold text-rose-600"><span data-en="">An animal is here now</span><span data-bm="">Haiwan berada di sini sekarang</span></p>
+        <p class="mt-3 text-sm leading-relaxed text-slate-600"><span data-en="">Safety steps first, then keep it findable and know who to call.</span><span data-bm="">Utamakan langkah keselamatan, kemudian pastikan ia mudah ditemui dan ketahui siapa perlu dihubungi.</span></p>
+        <span class="mt-7 inline-flex items-center gap-2 text-sm font-bold text-rose-600"><span data-en="">Open Emergency</span><span data-bm="">Buka Kecemasan</span><span aria-hidden="true">→</span></span>
+      </a>
+      <a href="plan.html" class="group rounded-2xl border border-emerald-300 bg-emerald-300 p-7 transition-transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-950/10">
+        <p class="text-sm font-bold text-[#0b130e]"><span data-en="">One keeps coming back</span><span data-bm="">Seekor haiwan terus kembali</span></p>
+        <p class="mt-3 text-sm leading-relaxed text-[#1b4332]"><span data-en="">A few questions about your home, then a practical plan with a source on every line.</span><span data-bm="">Beberapa soalan tentang rumah anda, kemudian pelan praktikal dengan sumber pada setiap baris.</span></p>
+        <span class="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#0b130e]"><span data-en="">Start my plan</span><span data-bm="">Mulakan pelan saya</span><span aria-hidden="true">→</span></span>
+      </a>
+      <a href="ecosystem.html" class="group rounded-2xl border border-blue-100 bg-blue-50 p-7 transition-transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-950/10">
+        <p class="text-sm font-bold text-blue-700"><span data-en="">I am moving somewhere new</span><span data-bm="">Saya berpindah ke tempat baharu</span></p>
+        <p class="mt-3 text-sm leading-relaxed text-slate-600"><span data-en="">Explore the ecosystem map, then choose a state to see what is recorded there.</span><span data-bm="">Terokai peta ekosistem, kemudian pilih negeri untuk melihat rekod di sana.</span></p>
+        <span class="mt-7 inline-flex items-center gap-2 text-sm font-bold text-blue-700"><span data-en="">See the ecosystem map</span><span data-bm="">Lihat peta ekosistem</span><span aria-hidden="true">→</span></span>
+      </a>
+    </div>
+
+    <nav class="mt-6 flex flex-wrap gap-2.5" aria-label="Home links">
+      <a href="ecosystem.html" class="rounded-full border border-[#1b4332]/20 bg-white px-4 py-2 text-xs font-semibold text-[#1b4332] transition-colors hover:bg-[#1b4332] hover:text-white"><span data-en="">Map</span><span data-bm="">Peta</span></a>
+      <a href="ecosystem-redlist.html" class="rounded-full border border-[#1b4332]/20 bg-white px-4 py-2 text-xs font-semibold text-[#1b4332] transition-colors hover:bg-[#1b4332] hover:text-white"><span data-en="">Red List and status</span><span data-bm="">Senarai Merah dan status</span></a>
+      <a href="community-how-review-works.html" class="rounded-full border border-[#1b4332]/20 bg-white px-4 py-2 text-xs font-semibold text-[#1b4332] transition-colors hover:bg-[#1b4332] hover:text-white"><span data-en="">Community</span><span data-bm="">Komuniti</span></a>
+      <a href="about-the-data.html" class="rounded-full border border-[#1b4332]/20 bg-white px-4 py-2 text-xs font-semibold text-[#1b4332] transition-colors hover:bg-[#1b4332] hover:text-white"><span data-en="">About the data</span><span data-bm="">Tentang data</span></a>
+    </nav>
+
+    <aside class="mt-6 rounded-xl bg-emerald-50 px-5 py-4 text-sm leading-relaxed text-[#1b4332]" aria-label="Privacy statement">
+      <span data-en="">No account. No location detection. You choose a state inside the plan. Your answers are never stored.</span>
+      <span data-bm="">Tiada akaun. Tiada pengesanan lokasi. Anda memilih negeri di dalam pelan. Jawapan anda tidak pernah disimpan.</span>
+    </aside>
+  </div>
 </section>
-<!-- =========================== FOUR SECTIONS, ONE PATH =========================== -->
-<section class="bg-sand-50 py-20">
-<div class="max-w-5xl mx-auto px-6">
-<div class="text-xs font-semibold tracking-wide uppercase text-slate-400 mb-6">
-<span data-en="">Four sections, one path</span>
-<span data-bm="">Empat bahagian, satu laluan</span>
-</div>
-<div class="space-y-4">
-<div class="reveal in-view rounded-2xl border border-slate-100 bg-white shadow-sm px-6 py-5 flex items-start gap-4" id="index__plan-section">
-<span class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><path d="M9 3v15"></path><path d="M15 6v15"></path><path d="M3 6.5 9 3l6 3 6-3v14.5l-6 3-6-3-6 3Z"></path></svg>
-</span>
-<div class="min-w-0">
-<h3 class="font-display text-base font-bold text-forest-950"><span data-en="">Plan</span><span data-bm="">Pelan</span></h3>
-<p class="mt-1.5 text-sm text-slate-500 leading-relaxed">
-<span data-en="">Where you live, what your home is like, what is drawing them, and a sourced plan to change it. E6, E7, E8.</span>
-<span data-bm="">Di mana anda tinggal, bagaimana rumah anda, apa yang menarik mereka, dan pelan bersumber untuk mengubahnya. E6, E7, E8.</span>
-</p>
-<a class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 hover:text-emerald-700" href="plan.html">
-<span data-en="">Build my plan</span><span data-bm="">Bina pelan saya</span>
-<svg fill="none" height="13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="13"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-</a>
-</div>
-</div>
-<div class="reveal in-view rounded-2xl border border-slate-100 bg-white shadow-sm px-6 py-5 flex items-start gap-4" id="index__ecosystem-section">
-<span class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-4 4"></path></svg>
-</span>
-<div class="min-w-0">
-<h3 class="font-display text-base font-bold text-forest-950"><span data-en="">Ecosystem</span><span data-bm="">Ekosistem</span></h3>
-<p class="mt-1.5 text-sm text-slate-500 leading-relaxed">
-<span data-en="">The map of recorded observations by species and state, and who is on the Red List. E5.</span>
-<span data-bm="">Peta pemerhatian direkodkan mengikut spesies dan negeri, dan siapa dalam Senarai Merah. E5.</span>
-</p>
-<a class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-emerald-600 hover:text-emerald-700" href="ecosystem.html">
-<span data-en="">Open the map</span><span data-bm="">Buka peta</span>
-<svg fill="none" height="13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="13"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-</a>
-</div>
-</div>
-<div class="reveal in-view rounded-2xl border border-slate-100 bg-white shadow-sm px-6 py-5 flex items-start gap-4" id="index__community-section">
-<span class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-</span>
-<div class="min-w-0">
-<h3 class="font-display text-base font-bold text-forest-950"><span data-en="">Community</span><span data-bm="">Komuniti</span></h3>
-<p class="mt-1.5 text-sm text-slate-500 leading-relaxed">
-<span data-en="">Structured, anonymous reports from your district: what turned up, what worked, invasive species seen. E9, E10.</span>
-<span data-bm="">Laporan berstruktur dan tanpa nama daripada daerah anda: apa yang muncul, apa yang berkesan, spesies invasif dilihat. E9, E10.</span>
-</p>
-<a class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-sky-600 hover:text-sky-700" href="community-how-review-works.html">
-<span data-en="">Read reports</span><span data-bm="">Baca laporan</span>
-<svg fill="none" height="13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="13"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-</a>
-</div>
-</div>
-<div class="reveal in-view rounded-2xl border border-slate-100 bg-white shadow-sm px-6 py-5 flex items-start gap-4" id="index__emergency-section">
-<span class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
-</span>
-<div class="min-w-0">
-<h3 class="font-display text-base font-bold text-rose-600"><span data-en="">Emergency</span><span data-bm="">Kecemasan</span></h3>
-<p class="mt-1.5 text-sm text-slate-500 leading-relaxed">
-<span data-en="">An animal is here now. Snake check first, safety steps, then keep it findable and who to call, together. E1 to E4.</span>
-<span data-bm="">Ada haiwan di sini sekarang. Semak ular dahulu, langkah keselamatan, kemudian kekalkan ia boleh dijumpai dan siapa perlu dihubungi, bersama-sama.</span>
-</p>
-<a class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-rose-600 hover:text-rose-700" href="emergency.html">
-<span data-en="">Open Emergency</span><span data-bm="">Buka Kecemasan</span>
-<svg fill="none" height="13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="13"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-</a>
-</div>
-</div>
-</div>
-<p class="mt-8 text-center text-xs text-slate-400 max-w-2xl mx-auto leading-relaxed">
-<span data-en="">No account. No location detection. You choose a state. Your home answers and encounter log stay on your device.</span>
-<span data-bm="">Tiada akaun. Tiada pengesanan lokasi. Anda pilih negeri. Jawapan rumah dan log pertemuan anda kekal di peranti anda.</span>
-</p>
-</div>
-</section>
-</section>
-</main>
+</section></main>
 <footer class="bg-forest-950 text-slate-400 py-10" id="index__about-data">
 <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 text-sm">
 <div>
@@ -1102,7 +1032,7 @@
 <button class="bg-white text-forest-950 px-3.5 py-1.5 transition-colors" data-lang="en">EN</button>
 <button class="text-slate-300 px-3.5 py-1.5 transition-colors" data-lang="bm">BM</button>
 </div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+<a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
 <span data-en="">An animal is here now</span>
 <span data-bm="">Ada haiwan di sini sekarang</span>
 </a>
@@ -1110,6 +1040,9 @@
 <svg fill="none" height="18" id="plan__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
 <svg class="hidden" fill="none" height="18" id="plan__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
 </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
 </div>
 </div>
 <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="plan__mobileNavPanel">
@@ -1127,8 +1060,8 @@
 <main class="pt-32 pb-24">
 <div class="max-w-5xl mx-auto px-6">
 <div class="text-xs font-semibold tracking-wide uppercase text-slate-400">
-<span data-en="">Step 1 of 2 · Your home · E1</span>
-<span data-bm="">Langkah 1 daripada 2 · Rumah anda · E1</span>
+<span data-en="">Step 1 of 2 · Your home</span>
+<span data-bm="">Langkah 1 daripada 2 · Rumah anda</span>
 </div>
 <h1 class="font-display mt-2 text-3xl md:text-4xl font-bold tracking-tight text-forest-950">
 <span data-en="">Describe your home. We do the rest.</span>
@@ -1305,13 +1238,16 @@
 <button class="bg-white text-forest-950 px-3.5 py-1.5 transition-colors" data-lang="en">EN</button>
 <button class="text-slate-300 px-3.5 py-1.5 transition-colors" data-lang="bm">BM</button>
 </div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+<a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
 <span data-en="">An animal is here now</span><span data-bm="">Ada haiwan di sini sekarang</span>
 </a>
 <button aria-expanded="false" aria-label="Menu" class="md:hidden w-9 h-9 rounded-lg border border-white/20 flex items-center justify-center text-white shrink-0" id="plan-result__mobileNavToggle">
 <svg fill="none" height="18" id="plan-result__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
 <svg class="hidden" fill="none" height="18" id="plan-result__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
 </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
 </div>
 </div>
 <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="plan-result__mobileNavPanel">
@@ -1333,8 +1269,8 @@
 <span data-en="">Edit your answers</span><span data-bm="">Sunting jawapan anda</span>
 </a>
 <div class="mt-4 text-xs font-semibold tracking-wide uppercase text-slate-400">
-<span data-en="">Step 2 of 2 · Your plan · E1, E2</span>
-<span data-bm="">Langkah 2 daripada 2 · Pelan anda · E1, E2</span>
+<span data-en="">Step 2 of 2 · Your plan</span>
+<span data-bm="">Langkah 2 daripada 2 · Pelan anda</span>
 </div>
 <h1 class="font-display mt-1 text-4xl font-bold tracking-tight text-forest-950" id="plan-result__stateHeading">—</h1>
 <p class="mt-1 text-sm text-slate-500" id="plan-result__summaryLine">—</p>
@@ -1357,7 +1293,7 @@
 <div class="card mt-6 px-6 py-6 md:px-7">
 <div class="flex items-start justify-between gap-4">
 <h2 class="font-display font-bold text-forest-950"><span data-en="">When it is recorded most</span><span data-bm="">Bila ia paling kerap direkod</span></h2>
-<span class="info-pill shrink-0" id="plan-result__seasonBadge">E3</span>
+
 </div>
 <p class="mt-2 text-xs text-slate-500 leading-relaxed max-w-2xl" id="plan-result__seasonDescription"></p>
 <div class="hidden mt-5" id="plan-result__seasonChartWrap">
@@ -1438,13 +1374,16 @@
 <button class="bg-white text-forest-950 px-3.5 py-1.5" data-lang="en">EN</button>
 <button class="text-slate-300 px-3.5 py-1.5" data-lang="bm">BM</button>
 </div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+<a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
 <span data-en="">An animal is here now</span><span data-bm="">Ada haiwan di sini sekarang</span>
 </a>
 <button aria-expanded="false" aria-label="Menu" class="md:hidden w-9 h-9 rounded-lg border border-white/20 flex items-center justify-center text-white shrink-0" id="plan-print__mobileNavToggle">
 <svg fill="none" height="18" id="plan-print__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
 <svg class="hidden" fill="none" height="18" id="plan-print__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
 </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
 </div>
 </div>
 <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="plan-print__mobileNavPanel">
@@ -1465,7 +1404,7 @@
 <svg fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" viewbox="0 0 24 24" width="14"><path d="m15 18-6-6 6-6"></path></svg>
 <span data-en="">Back to my plan</span><span data-bm="">Kembali ke pelan saya</span>
 </a>
-<div class="no-print mt-4 text-xs font-semibold tracking-wide uppercase text-slate-400">Plan · Print · E2</div>
+<div class="no-print mt-4 text-xs font-semibold tracking-wide uppercase text-slate-400">Plan · Print</div>
 <h1 class="no-print font-display mt-1 text-3xl md:text-4xl font-bold tracking-tight text-forest-950"><span data-en="">Print my plan</span><span data-bm="">Cetak pelan saya</span></h1>
 <p class="no-print mt-2 text-slate-500 max-w-2xl">
 <span data-en="">A one-page A4 sheet from the browser print dialog. Nothing is uploaded. Put it on the fridge, or give it to whoever looks after the house when you are away.</span>
@@ -1551,13 +1490,16 @@
 <button class="bg-white text-forest-950 px-3.5 py-1.5 transition-colors" data-lang="en">EN</button>
 <button class="text-slate-300 px-3.5 py-1.5 transition-colors" data-lang="bm">BM</button>
 </div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+<a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
 <span data-en="">An animal is here now</span><span data-bm="">Ada haiwan di sini sekarang</span>
 </a>
 <button aria-expanded="false" aria-label="Menu" class="md:hidden w-9 h-9 rounded-lg border border-white/20 flex items-center justify-center text-white shrink-0" id="ecosystem__mobileNavToggle">
 <svg fill="none" height="18" id="ecosystem__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
 <svg class="hidden" fill="none" height="18" id="ecosystem__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
 </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
 </div>
 </div>
 <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="ecosystem__mobileNavPanel">
@@ -1574,7 +1516,7 @@
 </header>
 <main class="pt-28 pb-24">
 <div class="max-w-5xl mx-auto px-6">
-<div class="text-xs font-semibold tracking-wide uppercase text-slate-400" id="ecosystem__crumb">Ecosystem · Where it is recorded · E3</div>
+<div class="text-xs font-semibold tracking-wide uppercase text-slate-400" id="ecosystem__crumb">Ecosystem · Where it is recorded</div>
 <h1 class="font-display mt-1 text-3xl md:text-4xl font-bold tracking-tight text-forest-950" id="ecosystem__pageTitle">Where the seven are recorded</h1>
 <p class="mt-2 text-slate-500 max-w-2xl" id="ecosystem__pageSubtitle"></p>
 <!-- ============ Map card ============ -->
@@ -1732,13 +1674,16 @@
 <button class="bg-white text-forest-950 px-3.5 py-1.5 transition-colors" data-lang="en">EN</button>
 <button class="text-slate-300 px-3.5 py-1.5 transition-colors" data-lang="bm">BM</button>
 </div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+<a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
 <span data-en="">An animal is here now</span><span data-bm="">Ada haiwan di sini sekarang</span>
 </a>
 <button aria-expanded="false" aria-label="Menu" class="md:hidden w-9 h-9 rounded-lg border border-white/20 flex items-center justify-center text-white shrink-0" id="ecosystem-redlist__mobileNavToggle">
 <svg fill="none" height="18" id="ecosystem-redlist__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
 <svg class="hidden" fill="none" height="18" id="ecosystem-redlist__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
 </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
 </div>
 </div>
 <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="ecosystem-redlist__mobileNavPanel">
@@ -1823,13 +1768,16 @@
 <button class="bg-white text-forest-950 px-3.5 py-1.5 transition-colors" data-lang="en">EN</button>
 <button class="text-slate-300 px-3.5 py-1.5 transition-colors" data-lang="bm">BM</button>
 </div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+<a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
 <span data-en="">An animal is here now</span><span data-bm="">Ada haiwan di sini sekarang</span>
 </a>
 <button aria-expanded="false" aria-label="Menu" class="md:hidden w-9 h-9 rounded-lg border border-white/20 flex items-center justify-center text-white shrink-0" id="species__mobileNavToggle">
 <svg fill="none" height="18" id="species__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
 <svg class="hidden" fill="none" height="18" id="species__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
 </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
 </div>
 </div>
 <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="species__mobileNavPanel">
@@ -1872,7 +1820,7 @@
 <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
 <div class="stat-tile">
 <div class="value" id="species__statTotal">—</div>
-<div class="label"><span data-en="">records, all years</span><span data-bm="">rekod, semua tahun</span></div>
+<div class="label"><span data-en="">records, 1860 to 2026</span><span data-bm="">rekod, 1860 hingga 2026</span></div>
 </div>
 <div class="stat-tile">
 <div class="value" id="species__statPeakMonth">—</div>
@@ -1988,13 +1936,16 @@
 <button class="bg-white text-forest-950 px-3.5 py-1.5 transition-colors" data-lang="en">EN</button>
 <button class="text-slate-300 px-3.5 py-1.5 transition-colors" data-lang="bm">BM</button>
 </div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+<a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
 <span data-en="">An animal is here now</span><span data-bm="">Ada haiwan di sini sekarang</span>
 </a>
 <button aria-expanded="false" aria-label="Menu" class="md:hidden w-9 h-9 rounded-lg border border-white/20 flex items-center justify-center text-white shrink-0" id="invasive__mobileNavToggle">
 <svg fill="none" height="18" id="invasive__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
 <svg class="hidden" fill="none" height="18" id="invasive__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
 </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
 </div>
 </div>
 <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="invasive__mobileNavPanel">
@@ -2016,7 +1967,7 @@
 <span id="invasive__backLinkLabel"><span data-en="">Back to Ecosystem</span><span data-bm="">Kembali ke Ekosistem</span></span>
 </a>
 <div class="mt-4 text-xs font-semibold tracking-wide uppercase text-slate-400">
-<span data-en="">Ecosystem · Is it invasive? · E4</span><span data-bm="">Ekosistem · Adakah ia invasif? · E4</span>
+<span data-en="">Ecosystem · Is it invasive?</span><span data-bm="">Ekosistem · Adakah ia invasif?</span>
 </div>
 <!-- ============================================================ -->
 <!-- ENTRY VIEW (Invasive · 01) -->
@@ -2178,13 +2129,16 @@
 <button class="bg-white text-forest-950 px-3.5 py-1.5 transition-colors" data-lang="en">EN</button>
 <button class="text-slate-300 px-3.5 py-1.5 transition-colors" data-lang="bm">BM</button>
 </div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+<a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
 <span data-en="">An animal is here now</span><span data-bm="">Ada haiwan di sini sekarang</span>
 </a>
 <button aria-expanded="false" aria-label="Menu" class="md:hidden w-9 h-9 rounded-lg border border-white/20 flex items-center justify-center text-white shrink-0" id="community-how-review-works__mobileNavToggle">
 <svg fill="none" height="18" id="community-how-review-works__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
 <svg class="hidden" fill="none" height="18" id="community-how-review-works__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
 </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
 </div>
 </div>
 <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="community-how-review-works__mobileNavPanel">
@@ -2212,7 +2166,7 @@
 </a>
 </div>
 <div class="mt-4 text-xs font-semibold tracking-wide uppercase text-slate-400">
-<span data-en="">Community · How review works · E5, E10</span><span data-bm="">Komuniti · Cara semakan berfungsi · E5, E10</span>
+<span data-en="">Community · How review works</span><span data-bm="">Komuniti · Cara semakan berfungsi</span>
 </div>
 <h1 class="font-display mt-1 text-3xl md:text-4xl font-bold tracking-tight text-forest-950">
 <span data-en="">How review works</span><span data-bm="">Cara semakan berfungsi</span>
@@ -2332,13 +2286,16 @@
 <button class="bg-white text-forest-950 px-3.5 py-1.5 transition-colors" data-lang="en">EN</button>
 <button class="text-slate-300 px-3.5 py-1.5 transition-colors" data-lang="bm">BM</button>
 </div>
-<a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+<a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
 <span data-en="">An animal is here now</span><span data-bm="">Ada haiwan di sini sekarang</span>
 </a>
 <button aria-expanded="false" aria-label="Menu" class="md:hidden w-9 h-9 rounded-lg border border-white/20 flex items-center justify-center text-white shrink-0" id="about-the-data__mobileNavToggle">
 <svg fill="none" height="18" id="about-the-data__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
 <svg class="hidden" fill="none" height="18" id="about-the-data__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
 </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
 </div>
 </div>
 <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="about-the-data__mobileNavPanel">
@@ -2393,7 +2350,7 @@
 <tbody class="divide-y divide-slate-100">
 <tr>
 <td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">GBIF occurrence records</td>
-<td class="py-4 pr-4 text-slate-600"><span data-en="">Where the seven species have been recorded, by state, year and month — 48,188 records nationwide</span><span data-bm="">Di mana tujuh spesies direkodkan, mengikut negeri, tahun dan bulan — 48,188 rekod seluruh negara</span></td>
+<td class="py-4 pr-4 text-slate-600"><span data-en="">Where the seven species have been recorded, by state, year and month — 47,033 records nationwide, 1860 to 2026</span><span data-bm="">Di mana tujuh spesies direkodkan, mengikut negeri, tahun dan bulan — 47,033 rekod seluruh negara, 1860 hingga 2026</span></td>
 <td class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">CC BY 4.0 / CC0</span></td>
 <td class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://gbif.org" rel="noopener" target="_blank">gbif.org <svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="11"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg></a></td>
 </tr>
@@ -2609,7 +2566,7 @@ var ECOSYSTEM_OCCURRENCES = {"meta":{"generatedBy":"scripts/build-real-ecosystem
 // ============================================================================
 // Room for Both — shared Ecosystem constants (species metadata, state
 // labels), used by both ecosystem-map.js (the map) and species.html (the
-// per-species page, Epic 4 / AC4.1.2). Kept as one file so the two never
+// per-species page, AC4.1.2). Kept as one file so the two never
 // drift out of sync on names, latin names or state labels.
 // ============================================================================
 
@@ -2647,21 +2604,21 @@ function speciesMatchesFilter(code, filter) {
 }
 
 // ---------------------------------------------------------------------------
-// Species-level status (Epic 4 / AC4.1.1). Record counts here are the
-// authoritative national per-species split — they sum to exactly 48,188,
-// the site's total record count (see ecosystem-redlist.html). The map's
-// own synthetic dataset (ecosystem-occurrences-data.js) predates this and
-// its national per-species totals are close but not identical; a
-// follow-up should reconcile the generator to match these exactly.
+// Species-level status (AC4.1.1). Record counts here are the
+// authoritative full-history per-species split — they sum to 47,033 records
+// from 1860 to 2026. The map uses its own 2017 to 2026 extract.
+
+
+
 // ---------------------------------------------------------------------------
 var SPECIES_STATUS = {
-  macaque: { records: 5807, iucn: 'endangered', origin: 'native' },
-  boar: { records: 330, iucn: 'least-concern', origin: 'native' },
-  monitor: { records: 3710, iucn: 'least-concern', origin: 'native' },
-  python: { records: 431, iucn: 'least-concern', origin: 'native' },
-  cobra: { records: 209, iucn: 'least-concern', origin: 'native' },
-  crow: { records: 18021, iucn: 'least-concern', origin: 'introduced' },
-  myna: { records: 19680, iucn: 'least-concern', origin: 'introduced' }
+  macaque: { records: 5153, iucn: 'endangered', origin: 'native' },
+  boar: { records: 186, iucn: 'least-concern', origin: 'native' },
+  monitor: { records: 3535, iucn: 'least-concern', origin: 'native' },
+  python: { records: 382, iucn: 'least-concern', origin: 'native' },
+  cobra: { records: 162, iucn: 'least-concern', origin: 'native' },
+  crow: { records: 17992, iucn: 'least-concern', origin: 'introduced' },
+  myna: { records: 19623, iucn: 'least-concern', origin: 'introduced' }
 };
 var IUCN_LABELS = { endangered: 'IUCN: Endangered', 'least-concern': 'IUCN: Least Concern' };
 var IUCN_CLASSES = { endangered: 'pill-endangered', 'least-concern': 'pill-least-concern' };
@@ -2733,8 +2690,8 @@ function renderSignalLines(sp, stateLabel) {
 }
 
 // Generic emergency quick-reference for the print sheet's "If an animal
-// is here now" line. TODO: once the Emergency epic's per-state authority
-// table (AUTHORITY_TABLE-style, E1–E4) is wired in, swap this for the
+// is here now" line. TODO: once the Emergency per-state authority
+// table is wired in, swap this for the
 // number for the plan's own state rather than this national default.
 var EMERGENCY_QUICK_REFERENCE = {
   heading: 'If an animal is here now',
@@ -2822,7 +2779,7 @@ var MOCK_PLAN_RESULTS = {
       note: SIGNALS_NOTE
     },
     seasonality: {
-      badge: 'E3',
+
       description: '',
       monthlyCounts: null
     },
@@ -2830,7 +2787,7 @@ var MOCK_PLAN_RESULTS = {
       description: 'Ordered by harm then frequency. Every line is a prevention_action row with a Malaysian source and a verified date. Nothing asks you to handle or harm an animal.',
       actions: withChecked(PREVENTION_ACTION_LIBRARY, 2),
       neighbourCard: NEIGHBOUR_CARD,
-      printButtonText: { en: 'Print my plan · E2', bm: 'Cetak pelan saya · E2' }
+      printButtonText: { en: 'Print my plan', bm: 'Cetak pelan saya' }
     },
     encounters: ENCOUNTERS_BLOCK
   },
@@ -2868,7 +2825,7 @@ var MOCK_PLAN_RESULTS = {
       note: SIGNALS_NOTE
     },
     seasonality: {
-      badge: 'E3',
+
       description: '',
       monthlyCounts: null
     },
@@ -2876,7 +2833,7 @@ var MOCK_PLAN_RESULTS = {
       description: 'Ordered by harm then frequency. Every line is a prevention_action row with a Malaysian source and a verified date. Nothing asks you to handle or harm an animal.',
       actions: withChecked(PREVENTION_ACTION_LIBRARY.slice(0, 3), 0),
       neighbourCard: NEIGHBOUR_CARD,
-      printButtonText: { en: 'Print my plan · E2', bm: 'Cetak pelan saya · E2' }
+      printButtonText: { en: 'Print my plan', bm: 'Cetak pelan saya' }
     },
     encounters: ENCOUNTERS_BLOCK
   }
@@ -2956,7 +2913,7 @@ function buildGenericFallback(stateKey, homeAnswers) {
       note: SIGNALS_NOTE
     },
     seasonality: {
-      badge: 'E3',
+
       description: '',
       monthlyCounts: null
     },
@@ -2964,7 +2921,7 @@ function buildGenericFallback(stateKey, homeAnswers) {
       description: 'Ordered by harm then frequency. Every line is a prevention_action row with a Malaysian source and a verified date. Nothing asks you to handle or harm an animal.',
       actions: withChecked(PREVENTION_ACTION_LIBRARY.slice(0, 3), 0),
       neighbourCard: NEIGHBOUR_CARD,
-      printButtonText: { en: 'Print my plan · E2', bm: 'Cetak pelan saya · E2' }
+      printButtonText: { en: 'Print my plan', bm: 'Cetak pelan saya' }
     },
     encounters: ENCOUNTERS_BLOCK
   };
@@ -3059,7 +3016,7 @@ function buildPlanResultPrompt(homeAnswers, stateContext) {
         <button class="bg-white text-forest-950 px-3.5 py-1.5 transition-colors" data-lang="en">EN</button>
         <button class="text-slate-300 px-3.5 py-1.5 transition-colors" data-lang="bm">BM</button>
       </div>
-      <a class="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
+      <a class="hidden md:inline-flex items-center gap-1.5 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-bold px-4 py-2 whitespace-nowrap" href="emergency.html">
         <span data-en="">An animal is here now</span>
         <span data-bm="">Ada haiwan di sini sekarang</span>
       </a>
@@ -3067,6 +3024,9 @@ function buildPlanResultPrompt(homeAnswers, stateContext) {
         <svg fill="none" height="18" id="emergencyShell__mobileNavIconOpen" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24" width="18"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
         <svg class="hidden" fill="none" height="18" id="emergencyShell__mobileNavIconClose" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewBox="0 0 24 24" width="18"><line x1="18" x2="6" y1="6" y2="18"></line><line x1="6" x2="18" y1="6" y2="18"></line></svg>
       </button>
+<a class="i2-mobile-emergency-shortcut md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full bg-rose-600 hover:bg-rose-700 transition-colors text-white shrink-0" href="emergency.html" aria-label="An animal is here now" title="An animal is here now">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/><path d="M12 9v4" stroke="currentColor" stroke-linecap="round" stroke-width="2"/><path d="M12 17h.01" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>
+</a>
     </div>
   </div>
   <nav class="hidden md:hidden border-t border-white/10 bg-forest-950/95 backdrop-blur-md px-6 py-3 flex flex-col gap-1 text-sm font-medium text-slate-300" id="emergencyShell__mobileNavPanel">
@@ -3139,7 +3099,7 @@ function buildPlanResultPrompt(homeAnswers, stateContext) {
     // placeholder rows in these two state selects. One real option now,
     // text swapped by hand here.
     var stateholderText = lang === 'bm' ? 'Pilih negeri…' : 'Select state…';
-    ['index__home_stateSelect_placeholder', 'plan__plan_stateSelect_placeholder'].forEach(function (id) {
+    ['plan__plan_stateSelect_placeholder'].forEach(function (id) {
       var opt = document.getElementById(id);
       if (opt) opt.textContent = stateholderText;
     });
@@ -3171,7 +3131,7 @@ function buildPlanResultPrompt(homeAnswers, stateContext) {
   // sets html[lang] before this runs, but never touches these options).
   var initialLang = document.documentElement.getAttribute('lang') === 'bm' ? 'bm' : 'en';
   var initialPlaceholderText = initialLang === 'bm' ? 'Pilih negeri…' : 'Select state…';
-  ['index__home_stateSelect_placeholder', 'plan__plan_stateSelect_placeholder'].forEach(function (id) {
+  ['plan__plan_stateSelect_placeholder'].forEach(function (id) {
     var opt = document.getElementById(id);
     if (opt) opt.textContent = initialPlaceholderText;
   });
@@ -3214,207 +3174,28 @@ var PageInitDone = {};
 
 PageInit['index'] = function() {
 
-// ---------------------------------------------------------------------------
-// Front-end only re-creation of the Room for Both home page.
-// State selection drives an "at a glance" panel. The fetch* functions
-// below are the ONLY places that talk to data — swap their bodies for
-// real `fetch(...)` calls against the backend and every caller
-// (populateStates / updateGlancePanel) keeps working unchanged, since
-// they already just `await` these functions.
-// ---------------------------------------------------------------------------
-
-// ============================================================
-// BACKEND INTEGRATION POINTS — replace the mock bodies below.
-// ============================================================
-var API_BASE = '/api'; // TODO: point at the real backend base URL
-
-// TODO: replace with `return fetch(API_BASE + '/states').then(r => r.json());`
-// Expected response shape: [{ key, nameEn, nameBm }, ...]
-async function fetchStateList() {
-  return STATE_ORDER.map(function (key) {
-    return { key: key, nameEn: STATE_DATA[key].nameEn, nameBm: STATE_DATA[key].nameBm };
-  });
-}
-
-// TODO: replace with:
-//   var url = API_BASE + '/glance?state=' + encodeURIComponent(stateKey);
-//   return fetch(url).then(r => r.json());
-// Expected response shape: { observations, mostRecorded, complaints, complaintYear, complaintSource }
-async function fetchStateGlance(stateKey) {
-  if (!stateKey || !STATE_DATA[stateKey]) return null;
-  var base = STATE_DATA[stateKey];
-  return {
-    observations: base.observations,
-    mostRecorded: base.mostRecorded,
-    complaints: base.complaints,
-    complaintYear: base.complaintYear,
-    complaintSource: base.complaintSource
-  };
-}
-// ============================================================
-// END backend integration points
-// ============================================================
-
-// Local mock dataset backing the fetch* functions above until the
-// real endpoints exist. Delete this block once the backend is wired in.
-var STATE_DATA = {
-  johor:            { nameEn: 'Johor',            nameBm: 'Johor',            districts: ['Johor Bahru','Kluang','Batu Pahat','Muar','Kota Tinggi','Segamat','Pontian'], observations: 8210,  mostRecorded: 'Long-tailed Macaque', complaints: 1290, complaintYear: 2020, complaintSource: 'PERHILITAN Table 12' },
-  kedah:            { nameEn: 'Kedah',             nameBm: 'Kedah',             districts: ['Kota Setar','Kulim','Baling','Langkawi','Sungai Petani','Pendang'], observations: 4120, mostRecorded: 'Wild Boar', complaints: 640, complaintYear: 2020, complaintSource: 'PERHILITAN Table 14' },
-  kelantan:         { nameEn: 'Kelantan',          nameBm: 'Kelantan',          districts: ['Kota Bharu','Pasir Mas','Tanah Merah','Machang','Gua Musang'], observations: 3870, mostRecorded: 'Water Monitor', complaints: 512, complaintYear: 2019, complaintSource: 'PERHILITAN Table 9' },
-  melaka:           { nameEn: 'Melaka',            nameBm: 'Melaka',            districts: ['Melaka Tengah','Alor Gajah','Jasin'], observations: 2210, mostRecorded: 'Long-tailed Macaque', complaints: 388, complaintYear: 2020, complaintSource: 'PERHILITAN Table 6' },
-  'negeri-sembilan':{ nameEn: 'Negeri Sembilan',   nameBm: 'Negeri Sembilan',   districts: ['Seremban','Port Dickson','Rembau','Kuala Pilah','Jempol'], observations: 3305, mostRecorded: 'Wild Boar', complaints: 455, complaintYear: 2020, complaintSource: 'PERHILITAN Table 11' },
-  pahang:           { nameEn: 'Pahang',            nameBm: 'Pahang',            districts: ['Kuantan','Temerloh','Bentong','Cameron Highlands','Raub','Jerantut'], observations: 6740, mostRecorded: 'Asian Elephant', complaints: 322, complaintYear: 2019, complaintSource: 'PERHILITAN Table 17' },
-  perak:            { nameEn: 'Perak',             nameBm: 'Perak',             districts: ['Kinta','Ipoh','Taiping','Kuala Kangsar','Manjung','Batang Padang'], observations: 7455, mostRecorded: 'Long-tailed Macaque', complaints: 980, complaintYear: 2020, complaintSource: 'PERHILITAN Table 15' },
-  perlis:           { nameEn: 'Perlis',            nameBm: 'Perlis',            districts: ['Kangar','Arau'], observations: 860, mostRecorded: 'Common Myna', complaints: 96, complaintYear: 2019, complaintSource: 'PERHILITAN Table 3' },
-  penang:           { nameEn: 'Pulau Pinang',      nameBm: 'Pulau Pinang',      districts: ['Timur Laut','Barat Daya','Seberang Perai Utara','Seberang Perai Tengah','Seberang Perai Selatan'], observations: 3960, mostRecorded: 'Common Myna', complaints: 705, complaintYear: 2020, complaintSource: 'PERHILITAN Table 8' },
-  sabah:            { nameEn: 'Sabah',             nameBm: 'Sabah',             districts: ['Kota Kinabalu','Sandakan','Tawau','Lahad Datu','Keningau','Ranau'], observations: 9880, mostRecorded: 'Reticulated Python', complaints: 610, complaintYear: 2019, complaintSource: 'Sabah Wildlife Dept Table 4' },
-  sarawak:          { nameEn: 'Sarawak',           nameBm: 'Sarawak',           districts: ['Kuching','Miri','Sibu','Bintulu','Sri Aman'], observations: 8130, mostRecorded: 'Reticulated Python', complaints: 588, complaintYear: 2019, complaintSource: 'Sarawak Forestry Table 5' },
-  selangor:         { nameEn: 'Selangor',          nameBm: 'Selangor',          districts: ['Hulu Langat','Petaling','Klang','Gombak','Sepang','Kuala Selangor','Kuala Langat','Sabak Bernam','Hulu Selangor'], observations: 11055, mostRecorded: 'Myna', complaints: 1818, complaintYear: 2020, complaintSource: 'PERHILITAN Table 19' },
-  terengganu:       { nameEn: 'Terengganu',        nameBm: 'Terengganu',        districts: ['Kuala Terengganu','Kemaman','Dungun','Besut','Hulu Terengganu'], observations: 3210, mostRecorded: 'Malayan Sun Bear', complaints: 268, complaintYear: 2019, complaintSource: 'PERHILITAN Table 7' },
-  kl:               { nameEn: 'Kuala Lumpur',      nameBm: 'Kuala Lumpur',      districts: ['Kuala Lumpur'], observations: 2680, mostRecorded: 'Common Myna', complaints: 402, complaintYear: 2020, complaintSource: 'PERHILITAN Table 2' },
-  labuan:           { nameEn: 'Labuan',            nameBm: 'Labuan',            districts: ['Labuan'], observations: 340, mostRecorded: 'Water Monitor', complaints: 41, complaintYear: 2019, complaintSource: 'PERHILITAN Table 1' },
-  putrajaya:        { nameEn: 'Putrajaya',         nameBm: 'Putrajaya',         districts: ['Putrajaya'], observations: 210, mostRecorded: 'Common Myna', complaints: 28, complaintYear: 2020, complaintSource: 'PERHILITAN Table 1' }
-};
-
-var STATE_ORDER = ['johor','kedah','kelantan','melaka','negeri-sembilan','pahang','perak','perlis','penang','sabah','sarawak','selangor','terengganu','kl','labuan','putrajaya'];
-
-var stateSelect = document.getElementById('index__home_stateSelect');
-var goBtn = document.getElementById('index__home_goBtn');
-var goBtnLabel = document.getElementById('index__home_goBtnLabel');
-var glancePanel = document.getElementById('index__glancePanel');
-var glanceTitle = document.getElementById('index__glanceTitle');
-var glanceObservations = document.getElementById('index__glanceObservations');
-var glanceMostRecorded = document.getElementById('index__glanceMostRecorded');
-var glanceComplaints = document.getElementById('index__glanceComplaints');
-var glanceComplaintsLabel = document.getElementById('index__glanceComplaintsLabel');
-var glanceCaption = document.getElementById('index__glanceCaption');
-
 function currentLang() {
   return document.documentElement.getAttribute('lang') === 'bm' ? 'bm' : 'en';
 }
 
-function stateLabel(key) {
-  var s = STATE_DATA[key];
-  return currentLang() === 'bm' ? s.nameBm : s.nameEn;
-}
-
-// populate state select
-async function populateStates() {
-  var states = await fetchStateList();
-  states.forEach(function (s) {
-    var opt = document.createElement('option');
-    opt.value = s.key;
-    opt.textContent = currentLang() === 'bm' ? s.nameBm : s.nameEn;
-    opt.setAttribute('data-key', s.key);
-    stateSelect.appendChild(opt);
+function syncLanguageToggle() {
+  document.querySelectorAll('.lang-toggle button').forEach(function (button) {
+    var active = button.getAttribute('data-lang') === currentLang();
+    button.classList.toggle('bg-white', active);
+    button.classList.toggle('text-forest-950', active);
+    button.classList.toggle('text-slate-300', !active);
   });
 }
 
-function complaintsLabelText(data) {
-  // complaint counts are tracked separately from "most recorded" species —
-  // matches the source mockup, where Selangor's complaint figure is always
-  // macaque complaints regardless of which species tops the observation count
-  var species = currentLang() === 'bm' ? 'monyet' : 'macaque';
-  if (currentLang() === 'bm') {
-    return 'aduan ' + species + ', ' + data.complaintYear + ', ' + data.complaintSource;
-  }
-  return species + ' complaints, ' + data.complaintYear + ', ' + data.complaintSource;
-}
-
-async function updateGlancePanel() {
-  var stateKey = stateSelect.value;
-
-  if (!stateKey) {
-    glancePanel.classList.add('hidden');
-    return;
-  }
-  var data = await fetchStateGlance(stateKey);
-  if (!data) {
-    glancePanel.classList.add('hidden');
-    return;
-  }
-  var label = stateLabel(stateKey).toUpperCase();
-
-  glanceTitle.textContent = (label + ' ' + (currentLang() === 'bm' ? 'SEPINTAS LALU' : 'AT A GLANCE') + ' · E5');
-  glanceObservations.textContent = data.observations.toLocaleString('en-US');
-  glanceCaption.innerHTML = '<span data-en>Tap Ecosystem to see them on the map by species and state.</span><span data-bm>Ketik Ekosistem untuk melihatnya di peta mengikut spesies dan negeri.</span>';
-  glanceMostRecorded.textContent = data.mostRecorded;
-  glanceComplaints.textContent = data.complaints.toLocaleString('en-US');
-  glanceComplaintsLabel.textContent = complaintsLabelText(data);
-
-  glancePanel.classList.remove('hidden');
-  glancePanel.classList.remove('glance-enter');
-  void glancePanel.offsetWidth;
-  glancePanel.classList.add('glance-enter');
-}
-
-function updateGoButtonLabel() {
-  var stateKey = stateSelect.value;
-  var lang = currentLang();
-  var base = lang === 'bm' ? 'Mulakan pelan saya' : 'Start my plan';
-  if (stateKey && STATE_DATA[stateKey]) {
-    goBtnLabel.textContent = base + (lang === 'bm' ? ' untuk ' : ' for ') + stateLabel(stateKey);
-  } else {
-    goBtnLabel.innerHTML = '<span data-en>Start my plan</span><span data-bm>Mulakan pelan saya</span>';
-  }
-}
-
-stateSelect.addEventListener('change', async function () {
-  await updateGlancePanel();
-  updateGoButtonLabel();
-});
-
-// "Start my plan" — carries the chosen state (if any) over to plan.html,
-// which pre-fills its own state select from the ?state= query param.
-goBtn.addEventListener('click', function () {
-  var stateKey = stateSelect.value;
-  AppNav.goToUrl('plan.html' + (stateKey ? ('?state=' + encodeURIComponent(stateKey)) : ''));
-});
-
-populateStates();
-
-// Language toggle (EN / BM) — persisted to localStorage so it survives
-// navigating to another page (a <head> script on every page applies the
-// saved value before first paint); sync the toggle's own highlight here to
-// whatever that early script already applied.
-(function () {
-  document.querySelectorAll('.lang-toggle button').forEach(function (b) {
-    var active = b.getAttribute('data-lang') === currentLang();
-    b.classList.toggle('bg-white', active);
-    b.classList.toggle('text-forest-950', active);
-    b.classList.toggle('text-slate-300', !active);
-  });
-})();
-document.querySelectorAll('.lang-toggle button').forEach(function (btn) {
-  btn.addEventListener('click', async function () {
-    var lang = btn.getAttribute('data-lang');
+syncLanguageToggle();
+document.querySelectorAll('.lang-toggle button').forEach(function (button) {
+  button.addEventListener('click', function () {
+    var lang = button.getAttribute('data-lang');
     document.documentElement.setAttribute('lang', lang);
     try { localStorage.setItem('roomForBoth.lang', lang); } catch (e) {}
-    document.querySelectorAll('.lang-toggle button').forEach(function (b) {
-      var active = b.getAttribute('data-lang') === lang;
-      b.classList.toggle('bg-white', active);
-      b.classList.toggle('text-forest-950', active);
-      b.classList.toggle('text-slate-300', !active);
-    });
-    // refresh state option labels + any dynamic text for the new language
-    Array.prototype.forEach.call(stateSelect.options, function (opt) {
-      var key = opt.getAttribute('data-key');
-      if (key) opt.textContent = lang === 'bm' ? STATE_DATA[key].nameBm : STATE_DATA[key].nameEn;
-    });
-    // the placeholder is two CSS-toggled <option>s (one per language) so the
-    // dropdown list itself shows only one — but the collapsed <select> box
-    // still displays whichever option is marked selected, and CSS display
-    // never changes that. Re-point selection at the right one when nothing
-    // real has been chosen yet.
-    if (stateSelect.value === '') {
-      var placeholderOpt = stateSelect.querySelector(lang === 'bm' ? 'option[data-bm]' : 'option[data-en]');
-      if (placeholderOpt) placeholderOpt.selected = true;
-    }
-    if (!glancePanel.classList.contains('hidden')) await updateGlancePanel();
-    updateGoButtonLabel();
+    syncLanguageToggle();
   });
 });
-
 // Hero background carousel — cross-fades between slides on a timer
 var carouselSlides = document.querySelectorAll('#homeCarousel .hero-carousel-slide');
 var carouselCredit = document.getElementById('index__homeCarouselCredit');
@@ -3754,7 +3535,7 @@ function renderPlanResult() {
 
   // ---- seasonality ----
   // Rendered by plan-signals-client.js, which reuses the same
-  // ECOSYSTEM_OCCURRENCES computation and AC 1.2.4 below-threshold copy as
+  // OCCURRENCES_ALL_YEARS full-history computation and AC 1.2.4 below-threshold copy as
   // the Ecosystem page, filtered to the species actually selected here. It
   // listens for 'roomforboth:pageshow' itself, so it re-renders in step
   // with this function on every visit (AC 1.2.3/1.2.4, IT-2).
@@ -3792,9 +3573,21 @@ function renderPlanResult() {
   }
   renderActions();
 
-  document.getElementById('plan-result__neighbourTitle').textContent = plan.preventionPlan.neighbourCard.title;
-  document.getElementById('plan-result__neighbourBody').textContent = plan.preventionPlan.neighbourCard.body;
-  document.getElementById('plan-result__neighbourFootnote').textContent = plan.preventionPlan.neighbourCard.footnote;
+  // This card cites macaque-specific feeding guidance. Until every species has
+  // an equivalent, sourced version, show it only when macaque was selected.
+  var selectedSpecies = homeAnswers && (homeAnswers.speciesSeen || homeAnswers.species_seen || homeAnswers.species) || [];
+  if (!Array.isArray(selectedSpecies)) selectedSpecies = [selectedSpecies];
+  var macaqueSelected = selectedSpecies.some(function (species) {
+    var key = String(species || '').toLowerCase().replace(/[\s_]+/g, '-');
+    return key === 'long-tailed-macaque' || key === 'macaque';
+  });
+  var neighbourCard = document.getElementById('plan-result__neighbourCard');
+  neighbourCard.classList.toggle('hidden', !macaqueSelected);
+  if (macaqueSelected) {
+    document.getElementById('plan-result__neighbourTitle').textContent = plan.preventionPlan.neighbourCard.title;
+    document.getElementById('plan-result__neighbourBody').textContent = plan.preventionPlan.neighbourCard.body;
+    document.getElementById('plan-result__neighbourFootnote').textContent = plan.preventionPlan.neighbourCard.footnote;
+  }
 
   // ---- encounters ----
   document.getElementById('plan-result__encountersDescription').textContent = plan.encounters.description;
@@ -3928,7 +3721,7 @@ document.querySelectorAll('.lang-toggle button').forEach(function (btn) {
 PageInit['ecosystem'] = function() {
 
 // ============================================================================
-// Room for Both — Ecosystem map (Epic 3: "See where the seven are recorded").
+// Room for Both — Ecosystem map: see where the seven are recorded.
 //
 // Per AC3.1.1 / D32: no database call for map data. Both files this page
 // reads are static, shipped with the site as plain <script> globals
@@ -3952,7 +3745,7 @@ PageInit['ecosystem'] = function() {
 // underlying dataset grows, so there is no marker-clustering library and no
 // per-record DOM node — the earlier synthetic dataset's ~48,000 individual
 // markers (needed only because that stand-in invented fake coordinates)
-// are gone. Filtering just re-sums the 7,401 aggregate rows (cheap) and
+// are gone. Filtering only re-sums the compact 2017 to 2026 aggregate rows and
 // re-styles up to 16 circles — no per-record work happens in the browser.
 // ============================================================================
 
@@ -4303,7 +4096,7 @@ function renderHeader(filtered) {
   var count = sumCount(filtered);
 
   if (selectedState) {
-    crumb.textContent = (lang === 'bm' ? 'Ekosistem · ' : 'Ecosystem · ') + STATE_LABELS[selectedState] + ' · E3';
+    crumb.textContent = (lang === 'bm' ? 'Ekosistem · ' : 'Ecosystem · ') + STATE_LABELS[selectedState];
     if (speciesFilter === 'all') {
       title.textContent = STATE_LABELS[selectedState] + (lang === 'bm' ? ', semua tujuh spesies' : ', all seven species');
       subtitle.textContent = lang === 'bm'
@@ -4316,7 +4109,7 @@ function renderHeader(filtered) {
         : fmt(count) + ' records carrying the state name ' + STATE_LABELS[selectedState] + ', all years.';
     }
   } else {
-    crumb.textContent = lang === 'bm' ? 'Ekosistem · Di mana ia direkodkan · E3' : 'Ecosystem · Where it is recorded · E3';
+    crumb.textContent = lang === 'bm' ? 'Ekosistem · Di mana ia direkodkan' : 'Ecosystem · Where it is recorded';
     if (speciesFilter === 'all') {
       title.textContent = lang === 'bm' ? 'Di mana tujuh spesies direkodkan' : 'Where the seven are recorded';
       subtitle.textContent = lang === 'bm'
@@ -4328,7 +4121,7 @@ function renderHeader(filtered) {
         ? fmt(count) + ' rekod. Ular ditapis sebagai satu kumpulan di sini; nama spesies dipaparkan hanya selepas anda membuka kumpulan di bawah.'
         : fmt(count) + ' records. Snakes are filtered as a group here; species names appear only once you open the group below.';
     } else {
-      title.textContent = SPECIES_META[speciesFilter].name + (lang === 'bm' ? ', semua tahun' : ', all years');
+      title.textContent = SPECIES_META[speciesFilter].name + (lang === 'bm' ? ', 2017 hingga 2026' : ', 2017 to 2026');
       subtitle.textContent = lang === 'bm'
         ? fmt(count) + ' rekod. Rekod dan aduan mengukur perkara yang berbeza, dan laman ini menyatakannya pada setiap skrin yang memaparkan salah satu daripadanya.'
         : fmt(count) + ' records. Records and complaints measure different things, and this site says so on every screen that shows either.';
@@ -4507,9 +4300,9 @@ function renderChart(filtered) {
       ? monthName + ' mempunyai rekod ' + speciesLabel + ' bertarikh paling banyak (' + fmt(max) + '). Ini ialah masa orang merekodkannya, yang bukan sama dengan masa ia melawat rumah. Gunakan bersama log pertemuan anda sendiri, bukan menggantikannya.'
       : monthName + ' has the most dated ' + speciesLabel + ' records (' + fmt(max) + '). This is when people record them, which is not the same as when they visit homes. Use it with your own encounter log, not instead of it.';
   } else {
-    label.textContent = STATE_LABELS[selectedState].toUpperCase() + (lang === 'bm' ? ' MENGIKUT TAHUN, SEJAK 2015' : ' BY YEAR, SINCE 2015');
+    label.textContent = STATE_LABELS[selectedState].toUpperCase() + (lang === 'bm' ? ' MENGIKUT TAHUN, 2017 HINGGA 2026' : ' BY YEAR, 2017 TO 2026');
     var years = [];
-    for (var y = 2015; y <= 2026; y++) years.push(y);
+    for (var y = 2017; y <= 2026; y++) years.push(y);
     var yCounts = years.map(function (y) {
       return sumCount(filtered.filter(function (r) { return r[2] === y; }));
     });
@@ -4690,12 +4483,12 @@ PageInit['ecosystem-redlist'] = function() {
 // Species names/latin come from SPECIES_META, status/records from
 // SPECIES_STATUS — both in assets/js/ecosystem-shared.js, shared with the
 // map and the species page so all three never drift out of sync.
-// SPECIES_STATUS's record counts (5,807 / 330 / 3,710 / 431 / 209 /
-// 18,021 / 19,680) sum to exactly 48,188 — the site's total record count —
-// so this list is the authoritative per-species split. The map's own
-// synthetic dataset (assets/js/ecosystem-occurrences-data.js) predates it
-// and its national per-species totals are close but not identical;
-// reconciling the generator to match exactly is a follow-up, not done here.
+// SPECIES_STATUS uses the full-history counts (1860 to 2026), which total
+// 47,033 records. The map deliberately uses the separate 2017 to 2026 extract.
+
+
+
+
 // ---------------------------------------------------------------------------
 var REDLIST_ORDER = ['macaque', 'boar', 'monitor', 'python', 'cobra', 'crow', 'myna'];
 var TABLE_NOTES = {
@@ -4772,9 +4565,9 @@ document.querySelectorAll('.lang-toggle button').forEach(function (btn) {
 PageInit['species'] = function() {
 
 // ---------------------------------------------------------------------------
-// Room for Both — Species page (Epic 4 / AC4.1.2).
-// Status chips + record profile are computed live from ECOSYSTEM_OCCURRENCES
-// (assets/js/ecosystem-occurrences-data.js) and SPECIES_STATUS (assets/js/
+// Room for Both — Species page (AC4.1.2).
+// Status chips + record profile use OCCURRENCES_ALL_YEARS
+// and SPECIES_STATUS (assets/js/
 // ecosystem-shared.js) — the same shipped data the map itself reads, no
 // database call. "Why it comes to homes" is the one place on this page that
 // would be AI-summarised narrative text in a real build; per the site's
@@ -4860,12 +4653,14 @@ if (speciesCode === 'macaque') {
 }
 
 // ---- recorded in Malaysia: computed live from the shipped occurrence file ----
-// ECOSYSTEM_OCCURRENCES.rows is the real GBIF extract, aggregated to
+// OCCURRENCES_ALL_YEARS.rows is the full-history GBIF extract, aggregated to
 // [stateKey, speciesCode, year, month, count] (see build-real-ecosystem-
 // data.js) — no point-level coordinates, so this sums counts rather than
 // counting individual records like the old synthetic per-point dataset did.
 var codesToCount = isSnake ? [speciesCode] : [speciesCode];
-var speciesRows = ECOSYSTEM_OCCURRENCES.rows.filter(function (r) { return codesToCount.indexOf(r[1]) !== -1; });
+var allYearsData = window.OCCURRENCES_ALL_YEARS;
+if (!allYearsData || !Array.isArray(allYearsData.rows)) return;
+var speciesRows = allYearsData.rows.filter(function (r) { return codesToCount.indexOf(r[1]) !== -1; });
 
 var speciesTotal = 0;
 speciesRows.forEach(function (r) { speciesTotal += r[4]; });
@@ -4998,6 +4793,9 @@ currentRenderLangText = renderLangDependentText;
 document.addEventListener('roomforboth:pageshow', function (ev) {
   if (ev.detail && ev.detail.page === 'species') renderSpeciesPage();
 });
+window.addEventListener('roomforboth:all-years-occurrence-data-ready', function () {
+  if ((location.hash || '#index').split('?')[0] === '#species') renderSpeciesPage();
+});
 
 // Language toggle (EN / BM) — persisted to localStorage so it carries over
 // from wherever the visitor came from (this page's <head> applies the
@@ -5034,7 +4832,7 @@ document.querySelectorAll('.lang-toggle button').forEach(function (btn) {
 PageInit['invasive'] = function() {
 
 // ---------------------------------------------------------------------------
-// Room for Both — "Is it invasive?" (Epic 4, User Story 4.2).
+// Room for Both — "Is it invasive?" (User Story 4.2).
 // One page, four views (entry / result / not-sure / not-covered), switched
 // client-side — matches the four Invasive prototype screens. Species
 // status (IUCN/origin) comes from SPECIES_STATUS in assets/js/
@@ -5604,11 +5402,12 @@ document.addEventListener('click', function(e){
 </script>
 
 <!-- Plan-result seasonality (AC 1.2.3/1.2.4): reuses the Ecosystem page's
-     ECOSYSTEM_OCCURRENCES computation. Loaded statically (relative path, no
+     OCCURRENCES_ALL_YEARS full-history computation. Loaded statically (relative path, no
      leading slash) so it does not depend on the worker's server-side script
      injection being in front of this file, and still resolves correctly
      when this file is opened directly as file://index0914.html — a leading
      "/" resolves against the filesystem root under file:// and 404s. -->
+<script src="ecosystem-occurrences-current.js"></script>
 <script src="plan-signals-client.js"></script>
 
 </body>

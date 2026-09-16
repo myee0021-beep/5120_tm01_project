@@ -1,5 +1,6 @@
 (function(){
 'use strict';
+var STATES=[['johor','Johor'],['kedah','Kedah'],['kelantan','Kelantan'],['melaka','Melaka'],['negeri-sembilan','Negeri Sembilan'],['pahang','Pahang'],['perak','Perak'],['perlis','Perlis'],['penang','Pulau Pinang'],['sabah','Sabah'],['sarawak','Sarawak'],['selangor','Selangor'],['terengganu','Terengganu'],['kl','W.P. Kuala Lumpur'],['labuan','W.P. Labuan'],['putrajaya','W.P. Putrajaya']];
 function t(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
 function longDate(s){var m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return s;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));return d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});}
 function patchText(doc){
