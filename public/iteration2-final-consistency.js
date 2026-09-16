@@ -20,19 +20,21 @@ function patchMacaque(){
 function patchCommunity(){document.querySelectorAll('h3').forEach(function(h){if(clean(h.textContent)==='Community'){var p=h.parentElement&&h.parentElement.querySelector('p');if(p){var en=p.querySelector('[data-en]'),bm=p.querySelector('[data-bm]');if(en)en.textContent='Structured, anonymous reports from your district: what turned up, what worked, invasive species seen.';if(bm)bm.textContent='Laporan berstruktur dan tanpa nama daripada daerah anda: apa yang muncul, apa yang berkesan, spesies invasif dilihat.';}}});}
 function removeCombined(){
  if(page()!=='plan-result'&&page()!=='plan-print')return;
- // Remove the promise about a future Combined level entirely (D41 / AC 1.2.1).
  document.querySelectorAll('#plan-result__speciesList div, #plan-print__sheetSpecies div, p, div').forEach(function(el){
    if(el.children.length>0&&el.id!=='plan-result__speciesList'&&el.id!=='plan-print__sheetSpecies')return;
    var t=clean(el.textContent);
    if(/^Combined level is not displayed until the D34 threshold row is available/i.test(t)||/^Tahap gabungan tidak dipaparkan sehingga baris ambang D34/i.test(t))el.remove();
  });
  walkText(document.body,function(s){
-   var n=s.replace(/Combined level is not displayed until the D34 threshold row is available from one data source\.\s*/ig,'')
-          .replace(/Tahap gabungan tidak dipaparkan sehingga baris ambang D34[^.]*\.\s*/ig,'');
-   return n;
+   return s.replace(/Combined level is not displayed until the D34 threshold row is available from one data source\.\s*/ig,'')
+           .replace(/Tahap gabungan tidak dipaparkan sehingga baris ambang D34[^.]*\.\s*/ig,'');
  });
 }
-function formatDates(){if(!/plan-result|plan-print/.test(page()))return;walkText(document.body,function(s){return s.replace(/\b(20\d{2}-\d{2}-\d{2})\b/g,function(x){return longDate(x);});});}
+function formatDates(){
+ var p=page();
+ if(!/plan-result|plan-print|emergency/.test(p))return;
+ walkText(document.body,function(s){return s.replace(/\b(20\d{2}-\d{2}-\d{2})\b/g,function(x){return longDate(x);});});
+}
 function dedupeStates(){['index__home_stateSelect','plan__plan_stateSelect'].forEach(function(id){var s=document.getElementById(id);if(!s)return;var seen={};Array.from(s.options).forEach(function(o){var k=norm(o.value).replace(/^w-p-/,'').replace(/^kuala-lumpur$/,'kl');if(!k)return;if(seen[k])o.remove();else seen[k]=1;});});}
 function applyD42Home(){
  if(page()!=='index')return;
@@ -40,13 +42,11 @@ function applyD42Home(){
  if(select){select.style.display='none';select.setAttribute('aria-hidden','true');select.tabIndex=-1;}
  var btn=document.getElementById('index__home_goBtn');
  if(!btn)return;
- // D42: Home has one Start my plan control; state is selected inside Plan.
  if(btn.dataset.d42Bound!=='1'){
    btn.dataset.d42Bound='1';
    btn.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();location.hash='#plan';},true);
  }
- var box=btn.parentElement;
- if(box){box.style.paddingTop='0';box.style.gap='0';}
+ var box=btn.parentElement;if(box){box.style.paddingTop='0';box.style.gap='0';}
 }
 function selectedCodes(){var a=answers(),raw=a.speciesSeen||a.species_seen||a.species||[];if(!Array.isArray(raw))raw=[raw];var out=[];raw.forEach(function(v){var n=norm(v);if(n.indexOf('macaque')>=0)out.push('macaque');else if(n.indexOf('boar')>=0)out.push('boar');else if(n.indexOf('myna')>=0)out.push('myna');else if(n.indexOf('crow')>=0)out.push('crow');else if(n.indexOf('monitor')>=0)out.push('monitor');else if(n.indexOf('python')>=0)out.push('python');else if(n.indexOf('cobra')>=0)out.push('cobra');else if(n==='snake')out.push('python','cobra');});return out.filter(function(x,i,a2){return a2.indexOf(x)===i;});}
 function stateKey(){var a=answers(),v=a.state||sessionStorage.getItem('roomForBoth.selectedState')||'';return norm(v).replace(/^pulau-pinang$/,'penang').replace(/^kuala-lumpur$/,'kl');}
