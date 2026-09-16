@@ -35,11 +35,12 @@
 
   function factorLabels(){
     var a=answers(),out=[],seen={};
-    function add(v){
+    function add(v,key){
       var n=norm(v);if(!n||n==='no'||n==='false'||n==='none'||n==='not-sure'||n==='unknown'||n==='yes'||n==='true')return;
+      if(key==='wasteStorage'&&(n==='closed-bins'||n==='covered-bins'||n==='secured-bins'||n==='bins-with-lids'||n==='kept-indoors'||n==='indoors'))return;
       var label=n.replace(/-/g,' ');if(seen[label])return;seen[label]=1;out.push(label);
     }
-    ['foodSources','wasteStorage','attractants'].forEach(function(key){values(a[key]).forEach(add);});
+    ['foodSources','wasteStorage','attractants'].forEach(function(key){values(a[key]).forEach(function(v){add(v,key);});});
     var feed=norm(a.neighboursFeed||a.neighborsFeed||'');
     if(feed==='yes'||feed==='true'||feed==='feeding'||feed==='neighbour-feeding'||feed==='neighbor-feeding'){
       var label=lang()==='bm'?'jiran memberi makan haiwan':'a neighbour feeds animals';
