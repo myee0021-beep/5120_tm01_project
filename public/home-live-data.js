@@ -55,7 +55,7 @@
       setText('index__glanceComplaints',Number(row.cases||0).toLocaleString());
       setText('index__glanceComplaintsLabel',l==='bm'?'aduan '+name+', '+year:name+' complaints, '+year);
       var cap=document.getElementById('index__glanceCaption');
-      if(cap){cap.textContent=(l==='bm'?'Angka aduan khusus spesies untuk negeri yang dipilih. Sumber: PERHILITAN Table 19':'Species-specific complaint figure for the selected state. Source: PERHILITAN Table 19')+(date?(l==='bm'?' · disahkan ':' · verified ')+date:'')+'.';}
+      if(cap){cap.textContent=(l==='bm'?'Angka aduan khusus spesies untuk negeri yang dipilih. Sumber: PERHILITAN Table 29':'Species-specific complaint figure for the selected state. Source: PERHILITAN Table 29')+(date?(l==='bm'?' · disahkan ':' · verified ')+date:'')+'.';}
     }else{
       setText('index__glanceComplaints','—');
       setText('index__glanceComplaintsLabel',l==='bm'?'tiada angka aduan khusus spesies untuk negeri ini':'no species-specific complaint figure for this state');
