@@ -51,7 +51,8 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/print-ac-fixes.js?v=20260916-1"></script>
 <script src="/remove-print-epic.js?v=20260915-2316"></script>
 <script src="/emergency-flow-ac.js?v=20260915-1759"></script>
-<script src="/about-ai-routes.js?v=20260914-1"></script>`;
+<script src="/about-ai-routes.js?v=20260914-1"></script>
+<script src="/iteration2-final-consistency.js?v=20260916-2"></script>`;
 
 class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}}
 export default{
