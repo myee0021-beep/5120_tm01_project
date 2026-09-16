@@ -18,16 +18,23 @@
   }
   function feedingAction(){
     var s=snapshot(),rows=s&&Array.isArray(s.actions)?s.actions:[];
-    var best=null,bestScore=-1;
+    var body=clean(document.getElementById('plan-result__neighbourBody')&&document.getElementById('plan-result__neighbourBody').textContent).toLowerCase();
+    var foot=clean(document.getElementById('plan-result__neighbourFootnote')&&document.getElementById('plan-result__neighbourFootnote').textContent).toLowerCase();
+    var best=null,bestScore=-999;
     rows.forEach(function(a){
-      var text=clean(a.action_text||a.action),cause=clean(a.cause_group).toLowerCase(),score=0;
+      var text=clean(a.action_text||a.action),low=text.toLowerCase(),cause=clean(a.cause_group).toLowerCase(),score=0;
       if(!text)return;
-      if(/deliberate[-_ ]feeding|neighbou?r[-_ ]feeding/.test(cause))score+=30;
-      if(/\b(feed|feeding|food)\b/i.test(text))score+=10;
-      if(/\b(instead|avoid|stop|secure|close|remove|store|harvest)\b/i.test(text))score+=2;
+      if(/^\s*(do not|don't|never|avoid|stop)\b.*\b(feed|feeding)\b/i.test(text))score-=80;
+      if(/\b(feeding creates dependency|become aggressive|turn aggressive|expect food daily)\b/i.test(text))score-=50;
+      if((body&&body.indexOf(low)!==-1)||(foot&&foot.indexOf(low)!==-1))score-=60;
+      if(/\b(secure|close|cover|store|keep|remove|harvest|clean|lock|seal|bring|use|put)\b/i.test(text))score+=35;
+      if(/\b(bin|bins|waste|rubbish|garbage|fruit|food source|indoors|lid|lids)\b/i.test(text))score+=12;
+      if(/food[-_ ]waste[-_ ]and[-_ ]bins|fruit[-_ ]trees/.test(cause))score+=15;
+      if(/deliberate[-_ ]feeding|neighbou?r[-_ ]feeding/.test(cause))score+=6;
+      if(/\b(feed|feeding)\b/i.test(text))score+=2;
       if(score>bestScore){best=a;bestScore=score;}
     });
-    return bestScore>0?best:null;
+    return best&&bestScore>0?best:null;
   }
 
   function cleanInstructionText(text){
