@@ -6,6 +6,7 @@
   var attractantsChecked = false;
 
   function clean(v){ return String(v == null ? '' : v).replace(/\s+/g,' ').trim(); }
+  function plainDate(v){ var s=clean(v),m=s.match(/^(\d{4}-\d{2}-\d{2})/); return m?m[1]:s; }
   function esc(v){ return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
   function currentPage(){ return String(location.hash || '#index').replace(/^#/,'').split('?')[0] || 'index'; }
   function currentLanguage(){
@@ -117,10 +118,6 @@
       var emptyOptions=Array.prototype.filter.call(sel.options,function(o){return o.value==='';});
       var first=emptyOptions[0] || null;
 
-      // Important: do not rebuild an already-correct native select. The broad
-      // MutationObserver below reruns this function after DOM changes, so
-      // removing/reinserting the same placeholder on every pass causes the
-      // browser's native dropdown to close/reopen repeatedly on Home and Plan.
       if(emptyOptions.length===1 && first===sel.options[0] && first.disabled && clean(first.textContent)===desired){
         return;
       }
@@ -304,7 +301,7 @@
       if(a.source_person && a.source_institution && clean(a.source_person)!==clean(a.source_institution)){
         source = clean(a.source_person) + ' · ' + clean(a.source_institution);
       }
-      var verified = clean(a.date_verified);
+      var verified = plainDate(a.date_verified);
       if(!text || !source || !verified) return;
 
       var row = document.createElement('div');
