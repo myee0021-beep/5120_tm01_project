@@ -3,35 +3,72 @@
 
   var SNAPSHOT_KEY='roomForBoth.currentPlanSnapshot';
   var timer=null;
+  var SPECIES_ID_BY_TOKEN={macaque:1,boar:2,myna:3,python:4,crow:5,monitor:6,cobra:7};
 
   function clean(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
+  function norm(v){return clean(v).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
   function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
   function page(){return String(location.hash||'#index').replace(/^#/,'').split('?')[0]||'index';}
   function lang(){var l=String(document.documentElement.lang||'').toLowerCase();return(l==='bm'||l==='ms')?'bm':'en';}
   function plainDate(v){var s=clean(v),m=s.match(/^(\d{4}-\d{2}-\d{2})/);return m?m[1]:s;}
   function snapshot(){try{return JSON.parse(sessionStorage.getItem(SNAPSHOT_KEY)||'null');}catch(e){return null;}}
+  function answers(){try{return JSON.parse(sessionStorage.getItem('roomForBoth.homeAnswers')||'null')||{};}catch(e){return {};}}
   function sourceName(a){
     var s=clean(a&&(a.source_person||a.source_institution||a.source_name));
     if(s)return s.replace(/Suzika Julling/g,'Suzika Juiling');
     var u=clean(a&&a.source_url);if(!u)return'';
     try{return new URL(u,location.href).hostname.replace(/^www\./,'').replace(/wwf\.org\.my$/i,'WWF-Malaysia').replace(/wildlife\.gov\.my$/i,'PERHILITAN');}catch(e){return u;}
   }
+
+  function selectedSpeciesIds(){
+    var a=answers(),raw=a.speciesSeen||a.species_seen||a.species||[];
+    if(!Array.isArray(raw))raw=[raw];
+    var ids=[];
+    raw.forEach(function(v){
+      var n=norm(v);
+      if(!n||n==='none'||n==='not-sure')return;
+      if(n==='snake'||n==='snakes'||n==='ular'){ids.push(4,7);return;}
+      Object.keys(SPECIES_ID_BY_TOKEN).forEach(function(code){
+        if(n===code||n===String(SPECIES_ID_BY_TOKEN[code])||n.indexOf(code)!==-1||(code==='macaque'&&n.indexOf('long-tailed-macaque')!==-1)||(code==='monitor'&&(n.indexOf('water-monitor')!==-1||n.indexOf('monitor-lizard')!==-1))){ids.push(SPECIES_ID_BY_TOKEN[code]);}
+      });
+    });
+    return ids.filter(function(v,i,a2){return a2.indexOf(v)===i;});
+  }
+
+  function isUnsafeOrIrrelevantAction(text){
+    return /\b(poison|poisoning|cull|culling|kill|killing|euthan|relocat|trap|trapping|capture|shoot|snare)\b/i.test(text);
+  }
+  function isFeedingCause(cause){return /deliberate[-_ ]feeding|neighbou?r[-_ ]feeding|feeding/.test(cause);}
+  function isPracticalAction(text){return /\b(secure|close|cover|store|keep|remove|harvest|clean|lock|seal|bring|put|dispose|wash|use a bin|lid|lids|rubbish|garbage|waste|food source|indoors)\b/i.test(text);}
+
   function feedingAction(){
     var s=snapshot(),rows=s&&Array.isArray(s.actions)?s.actions:[];
+    var speciesIds=selectedSpeciesIds();
     var body=clean(document.getElementById('plan-result__neighbourBody')&&document.getElementById('plan-result__neighbourBody').textContent).toLowerCase();
     var foot=clean(document.getElementById('plan-result__neighbourFootnote')&&document.getElementById('plan-result__neighbourFootnote').textContent).toLowerCase();
+
+    // Hard rule: never use an action belonging to another species. If the current
+    // Plan has species-scoped rows, only those rows are eligible for this card.
+    var speciesScoped=rows.filter(function(a){return speciesIds.indexOf(Number(a&&a.species_id))!==-1;});
+    if(speciesIds.length&&speciesScoped.length)rows=speciesScoped;
+    else if(speciesIds.length){rows=rows.filter(function(a){return a&&a.species_id==null;});}
+
     var best=null,bestScore=-999;
     rows.forEach(function(a){
       var text=clean(a.action_text||a.action),low=text.toLowerCase(),cause=clean(a.cause_group).toLowerCase(),score=0;
       if(!text)return;
-      if(/^\s*(do not|don't|never|avoid|stop)\b.*\b(feed|feeding)\b/i.test(text))score-=80;
-      if(/\b(feeding creates dependency|become aggressive|turn aggressive|expect food daily)\b/i.test(text))score-=50;
-      if((body&&body.indexOf(low)!==-1)||(foot&&foot.indexOf(low)!==-1))score-=60;
-      if(/\b(secure|close|cover|store|keep|remove|harvest|clean|lock|seal|bring|use|put)\b/i.test(text))score+=35;
-      if(/\b(bin|bins|waste|rubbish|garbage|fruit|food source|indoors|lid|lids)\b/i.test(text))score+=12;
-      if(/food[-_ ]waste[-_ ]and[-_ ]bins|fruit[-_ ]trees/.test(cause))score+=15;
-      if(/deliberate[-_ ]feeding|neighbou?r[-_ ]feeding/.test(cause))score+=6;
-      if(/\b(feed|feeding)\b/i.test(text))score+=2;
+      if(isUnsafeOrIrrelevantAction(text))return;
+      if((body&&body.indexOf(low)!==-1)||(foot&&foot.indexOf(low)!==-1))return;
+
+      // Prefer a real alternative action over another warning sentence.
+      if(/^\s*(do not|don't|never|avoid|stop)\b.*\b(feed|feeding)\b/i.test(text))score-=35;
+      if(/\b(feeding creates dependency|become aggressive|turn aggressive|expect food daily)\b/i.test(text))score-=60;
+      if(isFeedingCause(cause))score+=45;
+      if(isPracticalAction(text))score+=40;
+      if(/food[-_ ]waste[-_ ]and[-_ ]bins|fruit[-_ ]trees|waste|bins/.test(cause))score+=18;
+      if(/\b(feed|feeding)\b/i.test(text))score+=4;
+      if(a.species_id!=null&&speciesIds.indexOf(Number(a.species_id))!==-1)score+=50;
+
       if(score>bestScore){best=a;bestScore=score;}
     });
     return best&&bestScore>0?best:null;
