@@ -1,6 +1,5 @@
 (function(){
 'use strict';
-var STATES=[['johor','Johor'],['kedah','Kedah'],['kelantan','Kelantan'],['melaka','Melaka'],['negeri-sembilan','Negeri Sembilan'],['pahang','Pahang'],['perak','Perak'],['perlis','Perlis'],['penang','Pulau Pinang'],['sabah','Sabah'],['sarawak','Sarawak'],['selangor','Selangor'],['terengganu','Terengganu'],['kl','W.P. Kuala Lumpur'],['labuan','W.P. Labuan'],['putrajaya','W.P. Putrajaya']];
 function t(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
 function longDate(s){var m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return s;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));return d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});}
 function patchText(doc){
@@ -38,12 +37,9 @@ function notSure(doc){
    },true);
  });
 }
-function states(doc){
- doc.querySelectorAll('select').forEach(function(s){var texts=Array.from(s.options).map(function(o){return t(o.textContent).toLowerCase();});var hits=STATES.filter(function(x){return texts.indexOf(x[1].toLowerCase())!==-1;}).length;if(hits<5)return;STATES.forEach(function(x){if(!Array.from(s.options).some(function(o){return t(o.textContent).toLowerCase()===x[1].toLowerCase();})){var o=doc.createElement('option');o.value=x[0];o.textContent=x[1];s.appendChild(o);}});});
-}
 function patch(doc){
  if(!doc||!doc.documentElement)return;
- patchText(doc);progress(doc);notSure(doc);states(doc);
+ patchText(doc);progress(doc);notSure(doc);
  doc.querySelectorAll('iframe').forEach(function(f){
    try{patch(f.contentDocument);}catch(_){}
    if(!f.dataset.acBound){
