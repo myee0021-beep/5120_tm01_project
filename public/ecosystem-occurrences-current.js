@@ -33,14 +33,13 @@
       rows.push([normState(r.state_normalised),code,year,month,count]);
     });
     var meta={generatedBy:'iteration2 2026-09-16 build',sourceFile:'iteration2_map_aggregated.json',totalRecords:total,recordsWithNoMonth:noMonth,recordsWithNoYear:noYear,speciesCodes:['crow','myna','macaque','monitor','python','boar','cobra'],snakeCodes:['python','cobra'],yearRange:years.length?[Math.min.apply(null,years),Math.max.apply(null,years)]:[]};
-    window.ECOSYSTEM_OCCURRENCES={meta:meta,rows:rows};
-    if(typeof window.ALL_ROWS!=='undefined')window.ALL_ROWS=rows;
-    if(typeof window.META!=='undefined')window.META=meta;
-    window.dispatchEvent(new CustomEvent('roomforboth:occurrence-data-ready',{detail:{rows:rows.length,totalRecords:total}}));
-    document.dispatchEvent(new Event('roomforboth:pageshow'));
+    // D43: keep the embedded 2017-2026 dataset exclusively for the Ecosystem map.
+    // Publish the all-years dataset separately for Plan, Red List, species pages and print.
+    window.OCCURRENCES_ALL_YEARS={meta:meta,rows:rows};
+    window.dispatchEvent(new CustomEvent('roomforboth:all-years-occurrence-data-ready',{detail:{rows:rows.length,totalRecords:total}}));
   }
-  fetch('/iteration2_map_aggregated.json?v=20260916-1',{cache:'no-store'})
+  fetch('/iteration2_map_aggregated.json?v=20260916-2',{cache:'no-store'})
     .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(publish)
-    .catch(function(err){console.warn('[ecosystem-occurrences-current] using embedded fallback:',err&&err.message?err.message:err);});
+    .catch(function(err){console.warn('[ecosystem-occurrences-current] all-years data unavailable:',err&&err.message?err.message:err);});
 })();
