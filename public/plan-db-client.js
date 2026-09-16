@@ -6,6 +6,7 @@
   var SNAPSHOT_KEY='roomForBoth.currentPlanSnapshot';
 
   function clean(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
+  function plainDate(v){var s=clean(v),m=s.match(/^(\d{4}-\d{2}-\d{2})/);return m?m[1]:s;}
   function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
   function currentPage(){return String(location.hash||'#index').replace(/^#/,'').split('?')[0]||'index';}
   function currentLanguage(){var l=String(document.documentElement.getAttribute('lang')||'').toLowerCase();try{if(!l)l=String(localStorage.getItem('owm-lang')||'').toLowerCase();}catch(e){}return(l==='bm'||l==='ms')?'bm':'en';}
@@ -40,7 +41,7 @@
       host.innerHTML='';
       actions.forEach(function(action,i){
         var textValue=clean(action.action_text||action.action_text_en||action.action_text_ms||'');
-        var source=sourceLabel(action),sourceUrl=clean(action.source_url),verified=clean(action.date_verified);
+        var source=sourceLabel(action),sourceUrl=clean(action.source_url),verified=plainDate(action.date_verified);
         var row=document.createElement('div');row.className='flex items-start gap-3';row.setAttribute('data-plan-row','database');row.setAttribute('data-prevention-id',clean(action.prevention_id||''));row.setAttribute('data-action-text',textValue);row.setAttribute('data-source-person',clean(action.source_person));row.setAttribute('data-source-institution',clean(action.source_institution));row.setAttribute('data-source-url',sourceUrl);row.setAttribute('data-date-verified',verified);
         var box=document.createElement('button');box.type='button';box.className='checkbox-btn'+(checked[i]?' checked':'');box.setAttribute('aria-pressed',checked[i]?'true':'false');box.setAttribute('aria-label',(lang==='bm'?'Tandakan tindakan: ':'Mark action done: ')+textValue);box.innerHTML=checked[i]?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>':'';box.addEventListener('click',function(){checked[i]=!checked[i];draw();});
         var text=document.createElement('div');text.className='text-sm min-w-0';var sourceHtml=sourceUrl?'<a class="underline underline-offset-2 hover:text-emerald-700" href="'+esc(sourceUrl)+'" target="_blank" rel="noopener">'+esc(source||sourceUrl)+'</a>':esc(source);
