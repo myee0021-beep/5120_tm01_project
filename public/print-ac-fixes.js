@@ -121,6 +121,10 @@
   function addScreenCTA(){
     if(page()!=='plan-result')return;
     var card=document.getElementById('plan-result__neighbourCard');if(!card)return;
+    // Species gate lives in index0914.html's renderPlanResult(); a hidden card
+    // means the current species isn't macaque, so don't write into or read
+    // stale text out of it here.
+    if(card.classList.contains('hidden')){var leftover=document.getElementById('i2-neighbour-action');if(leftover)leftover.remove();return;}
     var body=document.getElementById('plan-result__neighbourBody');
     if(body){var cleaned=cleanInstructionText(body.textContent);if(cleaned&&clean(body.textContent)!==cleaned)body.textContent=cleaned;}
     var foot=document.getElementById('plan-result__neighbourFootnote');
@@ -163,9 +167,10 @@
 
   function bindNeighbourPrint(){
     if(page()!=='plan-result')return;
+    var card=document.getElementById('plan-result__neighbourCard');if(!card)return;
     var old=document.getElementById('i2-neighbour-print-btn');
+    if(card.classList.contains('hidden')){if(old)old.remove();return;}
     if(!old){
-      var card=document.getElementById('plan-result__neighbourCard');if(!card)return;
       old=document.createElement('button');old.type='button';old.id='i2-neighbour-print-btn';old.className='mt-3 inline-flex items-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-50';old.textContent=lang()==='bm'?'Cetak kad untuk jiran':'Print card for neighbour';card.appendChild(old);
     }
     if(old.getAttribute('data-i2-print-fixed')==='1')return;

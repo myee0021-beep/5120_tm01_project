@@ -90,7 +90,10 @@ function publicAction(r,language){
 }
 
 export async function handlePlanRequest(request,env){
-  if(!env.DATABASE_URL)return json({ok:false,error:'DATABASE_URL is not configured',actions:[]},500);
+  if(!env.DATABASE_URL){
+    console.error('[stable-plan-route] DATABASE_URL is not configured');
+    return json({ok:false,error:'Database/API request failed',actions:[]},500);
+  }
   let payload;
   try{payload=await request.json();}catch{return json({ok:false,error:'Request body must be JSON',actions:[]},400);}
   try{

@@ -37,9 +37,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 })();
 </script>
 <script src="/plan-db-client.js?v=20260916-1"></script>
-<script src="/ecosystem-occurrences-current.js?v=20260916-1"></script>
 <script src="/iteration2-0916-fixes.js?v=20260916-1"></script>
-<script src="/plan-signals-client.js?v=20260916-1"></script>
 <script src="/plan-snapshot-sync.js?v=20260914-1"></script>
 <script src="/home-live-data.js?v=20260915-4"></script>
 <script src="/plan-ai-summary.js?v=20260914-2"></script>

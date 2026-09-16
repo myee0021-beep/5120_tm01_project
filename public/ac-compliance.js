@@ -345,7 +345,13 @@
   function ensureNeighbourPrintButton(){
     if(currentPage() !== 'plan-result') return;
     var card = document.getElementById('plan-result__neighbourCard');
-    if(!card || document.getElementById('i2-neighbour-print-btn')) return;
+    if(!card) return;
+    var existingBtn = document.getElementById('i2-neighbour-print-btn');
+    // Never add/keep this button on a card the species gate has hidden
+    // (macaque-only content) — it must not survive into a later render of
+    // an unrelated species' plan.
+    if(card.classList.contains('hidden')){ if(existingBtn) existingBtn.remove(); return; }
+    if(existingBtn) return;
 
     var btn = document.createElement('button');
     btn.type = 'button';

@@ -2866,7 +2866,7 @@ function buildGenericFallback(stateKey, homeAnswers) {
     summaryPartsBm.push(foodText);
   }
   if (wasteStorage) {
-    var wasteText = wasteStorage.replace(/-/g, ' ');
+    var wasteText = String(wasteStorage).replace(/-/g, ' ');
     summaryPartsEn.push(wasteText);
     summaryPartsBm.push(wasteText);
   }
@@ -3500,6 +3500,43 @@ function renderPlanResult() {
 
   plan = getMockPlanResult(stateKey, homeAnswers);
 
+  // This card cites macaque-specific feeding guidance. Until every species has
+  // an equivalent, sourced version, show it only when macaque was selected.
+  // Applied first, right after `plan` is computed and before any other
+  // rendering below (species list, actions, seasonality) runs — those can
+  // throw on malformed/legacy sessionStorage data, and if they do, this gate
+  // must already be in its correct state rather than being skipped, which
+  // would otherwise leave a *previous* render's species-specific text (e.g.
+  // macaque feeding copy) visible on an unrelated species' plan.
+  (function () {
+    var selectedSpecies = homeAnswers && (homeAnswers.speciesSeen || homeAnswers.species_seen || homeAnswers.species) || [];
+    if (!Array.isArray(selectedSpecies)) selectedSpecies = [selectedSpecies];
+    var macaqueSelected = selectedSpecies.some(function (species) {
+      var key = String(species || '').toLowerCase().replace(/[\s_]+/g, '-');
+      return key === 'long-tailed-macaque' || key === 'macaque';
+    });
+    var neighbourCard = document.getElementById('plan-result__neighbourCard');
+    var titleEl = document.getElementById('plan-result__neighbourTitle');
+    var bodyEl = document.getElementById('plan-result__neighbourBody');
+    var footEl = document.getElementById('plan-result__neighbourFootnote');
+    neighbourCard.classList.toggle('hidden', !macaqueSelected);
+    if (macaqueSelected) {
+      titleEl.textContent = plan.preventionPlan.neighbourCard.title;
+      bodyEl.textContent = plan.preventionPlan.neighbourCard.body;
+      footEl.textContent = plan.preventionPlan.neighbourCard.footnote;
+    } else {
+      // Clear any text left over from a previous (macaque) render in this
+      // session — hiding the card is not enough on its own, since other
+      // scripts (ac-compliance.js, print-ac-fixes.js) read this text
+      // directly and do not re-check species themselves.
+      titleEl.textContent = '';
+      bodyEl.textContent = '';
+      footEl.textContent = '';
+      var leftoverBtn = document.getElementById('i2-neighbour-print-btn');
+      if (leftoverBtn) leftoverBtn.remove();
+    }
+  })();
+
   document.getElementById('plan-result__stateHeading').textContent = plan.stateLabel;
 
   document.getElementById('plan-result__dataNotice').classList.toggle('hidden', !plan.dataNotice);
@@ -3572,22 +3609,6 @@ function renderPlanResult() {
     progressLabel.textContent = done + ' of ' + plan.preventionPlan.actions.length + ' done';
   }
   renderActions();
-
-  // This card cites macaque-specific feeding guidance. Until every species has
-  // an equivalent, sourced version, show it only when macaque was selected.
-  var selectedSpecies = homeAnswers && (homeAnswers.speciesSeen || homeAnswers.species_seen || homeAnswers.species) || [];
-  if (!Array.isArray(selectedSpecies)) selectedSpecies = [selectedSpecies];
-  var macaqueSelected = selectedSpecies.some(function (species) {
-    var key = String(species || '').toLowerCase().replace(/[\s_]+/g, '-');
-    return key === 'long-tailed-macaque' || key === 'macaque';
-  });
-  var neighbourCard = document.getElementById('plan-result__neighbourCard');
-  neighbourCard.classList.toggle('hidden', !macaqueSelected);
-  if (macaqueSelected) {
-    document.getElementById('plan-result__neighbourTitle').textContent = plan.preventionPlan.neighbourCard.title;
-    document.getElementById('plan-result__neighbourBody').textContent = plan.preventionPlan.neighbourCard.body;
-    document.getElementById('plan-result__neighbourFootnote').textContent = plan.preventionPlan.neighbourCard.footnote;
-  }
 
   // ---- encounters ----
   document.getElementById('plan-result__encountersDescription').textContent = plan.encounters.description;
@@ -4368,7 +4389,7 @@ function renderList(filtered) {
   }
 
   if (speciesFilter === 'all') {
-    label.textContent = lang === 'bm' ? 'Mengikut negeri, semua tujuh spesies' : 'By state, all seven species';
+    label.textContent = lang === 'bm' ? 'Mengikut negeri, semua tujuh spesies, 2017 hingga 2026' : 'By state, all seven species, 2017 to 2026';
     var byState = {};
     filtered.forEach(function (r) { byState[r[0]] = (byState[r[0]] || 0) + r[4]; });
     var ranked = STATE_ORDER.filter(function (k) { return byState[k]; }).sort(function (a, b) { return byState[b] - byState[a]; });
@@ -4645,7 +4666,7 @@ renderStatusChips();
 if (speciesCode === 'macaque') {
   document.getElementById('species__twoFactsCard').classList.remove('hidden');
   document.getElementById('species__twoFactsBody').textContent =
-    'Endangered on the IUCN Red List since 2022 (criterion A3cd, projected decline across its whole range) and, at the same time, the species behind most wildlife complaints in Peninsular Malaysia: 61.22 per cent of the 54,224 cases logged from 2011 to 2018.';
+    'Endangered on the IUCN Red List (criterion A2cd+3cd+4cd, last assessed 28 October 2024) and, at the same time, the species behind most wildlife complaints in Peninsular Malaysia: 61.22 per cent of the 54,224 cases logged from 2011 to 2018.';
   document.getElementById('species__twoFactsExplain').textContent =
     'The Red List measures the species across its whole range. The complaint figures measure how often it meets people at the forest edge in Malaysia. A species can be common at your gate and declining overall.';
 } else {
@@ -4725,7 +4746,7 @@ var TEXT_LANG = {
     topStateLabel: function () { return topState ? 'most records (' + fmt(byState[topState]) + ')' : 'no state-attributed records'; },
     stateListLabel: 'Top states, records',
     noStateRecords: 'No state-attributed records for this species.',
-    seeOnMap: function () { return 'See ' + meta.name.toLowerCase() + ' records on the map'; },
+    seeOnMap: function () { return 'See ' + meta.name.toLowerCase() + ' records on the map, 2017 to 2026'; },
     invasiveNative: 'No. Native, so it is not a Community invasive-sighting report — check the full reasoning',
     invasiveIntroduced: 'Introduced (GRIIS Malaysia) — check the full reasoning and who handles it'
   },
@@ -4734,7 +4755,7 @@ var TEXT_LANG = {
     topStateLabel: function () { return topState ? 'rekod paling banyak (' + fmt(byState[topState]) + ')' : 'tiada rekod dikaitkan dengan negeri'; },
     stateListLabel: 'Negeri teratas, rekod',
     noStateRecords: 'Tiada rekod dikaitkan dengan negeri bagi spesies ini.',
-    seeOnMap: function () { return 'Lihat rekod ' + meta.name.toLowerCase() + ' di peta'; },
+    seeOnMap: function () { return 'Lihat rekod ' + meta.name.toLowerCase() + ' di peta, 2017 hingga 2026'; },
     invasiveNative: 'Tidak. Asli, jadi ia bukan laporan penampakan invasif Komuniti — semak sebab penuh',
     invasiveIntroduced: 'Diperkenalkan (GRIIS Malaysia) — semak sebab penuh dan siapa yang mengendalikannya'
   }
@@ -4784,7 +4805,7 @@ document.getElementById('species__invasiveLink').href = 'invasive.html?species='
 
 // ---- sources ----
 document.getElementById('species__sourcesLine').textContent = speciesCode === 'macaque'
-  ? 'Sources: IUCN Red List assessment 2022; PERHILITAN Laporan Tahunan 2020 Jadual 29; GBIF occurrence extract; MyBIS.'
+  ? 'Sources: IUCN Red List assessment 2024; PERHILITAN Laporan Tahunan 2020 Jadual 29; GBIF occurrence extract; MyBIS.'
   : 'Sources: IUCN Red List; GRIIS Malaysia; GBIF occurrence extract.';
 
 currentRenderLangText = renderLangDependentText;
@@ -5402,13 +5423,17 @@ document.addEventListener('click', function(e){
 </script>
 
 <!-- Plan-result seasonality (AC 1.2.3/1.2.4): reuses the Ecosystem page's
-     OCCURRENCES_ALL_YEARS full-history computation. Loaded statically (relative path, no
-     leading slash) so it does not depend on the worker's server-side script
-     injection being in front of this file, and still resolves correctly
-     when this file is opened directly as file://index0914.html — a leading
-     "/" resolves against the filesystem root under file:// and 404s. -->
-<script src="ecosystem-occurrences-current.js"></script>
-<script src="plan-signals-client.js"></script>
+     OCCURRENCES_ALL_YEARS full-history computation. This is now the ONLY place
+     these two scripts are loaded from — worker-state-persistence.js used to also
+     inject them via its server-side script list, which double-loaded both files
+     on every request (duplicate fetches of iteration2_map_aggregated.json, duplicate
+     event listeners on roomforboth:all-years-occurrence-data-ready/hashchange, racing
+     re-renders of the plan-result species list). Do not re-add them to that list.
+     Kept as a relative path (no leading slash) so it still resolves correctly when
+     this file is opened directly as file://index0914.html — a leading "/" resolves
+     against the filesystem root under file:// and 404s. -->
+<script src="ecosystem-occurrences-current.js?v=20260916-1"></script>
+<script src="plan-signals-client.js?v=20260916-1"></script>
 
 </body>
 </html>
