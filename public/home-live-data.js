@@ -69,8 +69,48 @@
     var token=++seq;
     api(st).then(function(b){if(token===seq)apply(st,b);}).catch(function(){if(token===seq)apply(st,{rows:[],summary:null});});
   }
+
+  function findByText(selector,text){
+    var nodes=document.querySelectorAll(selector);
+    for(var i=0;i<nodes.length;i++){if(clean(nodes[i].textContent)===text)return nodes[i];}
+    return null;
+  }
+  function alignD42Hero(){
+    if(page()!=='index')return;
+    var brand=findByText('a,div,span,strong','Room for Both');
+    var title=findByText('h1,h2,div','Wild animals visit Malaysian homes. Which situation is yours?');
+    if(!title){
+      var hs=document.querySelectorAll('h1,h2');
+      for(var i=0;i<hs.length;i++){if(clean(hs[i].textContent).indexOf('Wild animals visit Malaysian homes.')===0){title=hs[i];break;}}
+    }
+    if(!title)return;
+    var eyebrow=findByText('span,p,div','SDG 15 · LIFE ON LAND · COEXISTENCE PLANNING');
+    var stand=findByText('span,p,div','Seven animals, sixteen states, every figure from a public record. Nothing here tells you to catch, trap or harm an animal.');
+    var left=brand?Math.round(brand.getBoundingClientRect().left):42;
+    if(left<24||left>120)left=42;
+    var shell=title.parentElement;
+    if(eyebrow&&shell&&!shell.contains(eyebrow)){
+      var n=title.parentElement;
+      while(n&&n!==document.body){if(n.contains(eyebrow)&&(!stand||n.contains(stand))){shell=n;break;}n=n.parentElement;}
+    }
+    var style=document.getElementById('home-d42-final-header-style');
+    if(!style){style=document.createElement('style');style.id='home-d42-final-header-style';document.head.appendChild(style);}
+    style.textContent='@media (min-width:900px){body .home-d42-hero-shell{box-sizing:border-box!important;width:calc(100% - '+(left*2)+'px)!important;max-width:none!important;margin-left:'+left+'px!important;margin-right:'+left+'px!important;padding-left:0!important;padding-right:0!important;align-items:flex-start!important;text-align:left!important}body .home-d42-hero-block{width:100%!important;max-width:none!important;margin:0!important;text-align:left!important}body .home-d42-eyebrow{width:100%!important;margin-left:0!important;text-align:left!important}body .home-d42-title{width:100%!important;max-width:1180px!important;margin-left:0!important;margin-right:0!important;text-align:left!important;line-height:1.08!important}body .home-d42-standfirst{width:100%!important;max-width:980px!important;margin-left:0!important;margin-right:0!important;text-align:left!important;line-height:1.35!important}}';
+    if(shell) shell.classList.add('home-d42-hero-shell');
+    title.classList.add('home-d42-title');
+    if(eyebrow)eyebrow.classList.add('home-d42-eyebrow');
+    if(stand)stand.classList.add('home-d42-standfirst');
+    if(lang()==='en'){
+      var en=title.matches&&title.matches('[data-en]')?title:(title.querySelector?title.querySelector('[data-en]'):null);
+      if(en)en.innerHTML='Wild animals visit Malaysian<br>homes. Which situation is yours?';
+      else title.innerHTML='Wild animals visit Malaysian<br>homes. Which situation is yours?';
+    }
+  }
+  function scheduleHero(){setTimeout(alignD42Hero,650);setTimeout(alignD42Hero,1000);}
+
   document.addEventListener('change',function(e){if(e.target&&e.target.id==='index__home_stateSelect')setTimeout(load,0);},true);
   document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#index__home_goBtn'))setTimeout(load,0);},true);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(load,120);},{once:true});else setTimeout(load,120);
-  window.addEventListener('hashchange',function(){setTimeout(load,120);});document.addEventListener('roomforboth:pageshow',function(){setTimeout(load,120);});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(load,120);scheduleHero();},{once:true});else{setTimeout(load,120);scheduleHero();}
+  window.addEventListener('hashchange',function(){setTimeout(load,120);scheduleHero();});document.addEventListener('roomforboth:pageshow',function(){setTimeout(load,120);scheduleHero();});
+  window.addEventListener('resize',function(){setTimeout(alignD42Hero,80);});
 })();
