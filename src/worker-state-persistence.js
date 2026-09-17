@@ -84,18 +84,14 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   }
   function alignHero(){
     if(!onHome()||window.innerWidth<900)return;
-    var brand=findExact('Room for Both');
     var eyebrow=findExact('SDG 15 · LIFE ON LAND · COEXISTENCE PLANNING');
     var title=findExact('Wild animals visit Malaysian homes. Which situation is yours?');
     var stand=findExact('Seven animals, sixteen states, every figure from a public record. Nothing here tells you to catch, trap or harm an animal.');
-    if(!brand||!title)return;
-    var brandLeft=brand.getBoundingClientRect().left;
-    var titleLeft=title.getBoundingClientRect().left;
-    var delta=Math.round(brandLeft-titleLeft+114);
     [eyebrow,title,stand].forEach(function(el){
       if(!el)return;
-      el.style.transform='translateX('+delta+'px)';
-      el.style.transformOrigin='left top';
+      el.style.setProperty('transform','none','important');
+      el.style.setProperty('position','relative','important');
+      el.style.setProperty('left','76px','important');
     });
   }
   function apply(){applyCopy();requestAnimationFrame(alignHero);}
