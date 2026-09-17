@@ -37,7 +37,6 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 })();
 </script>
 <script src="/plan-db-client.js?v=20260916-1"></script>
-<script src="/iteration2-0916-fixes.js?v=20260916-1"></script>
 <script src="/plan-snapshot-sync.js?v=20260914-1"></script>
 <script src="/home-live-data.js?v=20260915-4"></script>
 <script src="/plan-ai-summary.js?v=20260914-2"></script>
@@ -49,10 +48,25 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/print-ac-fixes.js?v=20260916-1"></script>
 <script src="/remove-print-epic.js?v=20260915-2316"></script>
 <script src="/emergency-flow-ac.js?v=20260915-1759"></script>
-<script src="/about-ai-routes.js?v=20260914-1"></script>
-<script src="/iteration2-final-consistency.js?v=20260916-2"></script>`;
+<script src="/about-ai-routes.js?v=20260914-1"></script>`;
 
 class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}}
+
+class HomeCopyText {
+  text(chunk) {
+    const replacements = new Map([
+      ['Coexistence planning for Malaysian homes','SDG 15 · Life on Land · Coexistence planning'],
+      ['Perancangan kewujudan bersama untuk rumah di Malaysia','SDG 15 · Kehidupan di Darat · Perancangan kewujudan bersama'],
+      ['Clear, practical next steps for people and wildlife to share space safely.','Seven animals, sixteen states, every figure from a public record. Nothing here tells you to catch, trap or harm an animal.'],
+      ['Langkah seterusnya yang jelas dan praktikal agar manusia serta hidupan liar dapat berkongsi ruang dengan selamat.','Tujuh haiwan, enam belas negeri, setiap angka daripada rekod awam. Tiada apa-apa di sini yang menyuruh anda menangkap, memerangkap atau mencederakan haiwan.'],
+      ['See ecosystem map','See what lives there'],
+      ['Lihat peta ekosistem','Lihat apa yang hidup di sana']
+    ]);
+    const next = replacements.get(chunk.text);
+    if (next) chunk.replace(next);
+  }
+}
+
 export default{
   async fetch(request,env,ctx){
     const url=new URL(request.url);
@@ -65,6 +79,10 @@ export default{
     const response=await planSummaryWorker.fetch(upstreamRequest,env,ctx);
     const type=response.headers.get('content-type')||'';
     if(!type.toLowerCase().includes('text/html'))return response;
-    return new HTMLRewriter().on('body',new BodyInjector()).transform(response);
+    return new HTMLRewriter()
+      .on('body',new BodyInjector())
+      .on('span[data-en]',new HomeCopyText())
+      .on('span[data-bm]',new HomeCopyText())
+      .transform(response);
   }
 };
