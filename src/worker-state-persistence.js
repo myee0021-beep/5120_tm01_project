@@ -69,7 +69,12 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   };
   function norm(s){return String(s||'').replace(/\s+/g,' ').trim();}
   function onHome(){var p=String(location.hash||'#index').replace(/^#/,'').split('?')[0]||'index';return p==='index'||p==='index0914';}
-  function apply(){
+  function findExact(text){
+    var els=document.querySelectorAll('span,p,h1,h2,h3,a,button,strong,div');
+    for(var i=0;i<els.length;i++){if(norm(els[i].textContent)===text)return els[i];}
+    return null;
+  }
+  function applyCopy(){
     if(!onHome())return;
     var els=document.querySelectorAll('span,p,h1,h2,h3,a,button,strong');
     for(var i=0;i<els.length;i++){
@@ -77,9 +82,26 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
       if(next&&t!==next)els[i].textContent=next;
     }
   }
+  function alignHero(){
+    if(!onHome()||window.innerWidth<900)return;
+    var brand=findExact('Room for Both');
+    var eyebrow=findExact('SDG 15 · LIFE ON LAND · COEXISTENCE PLANNING');
+    var title=findExact('Wild animals visit Malaysian homes. Which situation is yours?');
+    var stand=findExact('Seven animals, sixteen states, every figure from a public record. Nothing here tells you to catch, trap or harm an animal.');
+    if(!brand||!title)return;
+    var brandLeft=brand.getBoundingClientRect().left;
+    var titleLeft=title.getBoundingClientRect().left;
+    var delta=Math.round(brandLeft-titleLeft);
+    [eyebrow,title,stand].forEach(function(el){
+      if(!el)return;
+      el.style.transform='translateX('+delta+'px)';
+      el.style.transformOrigin='left top';
+    });
+  }
+  function apply(){applyCopy();requestAnimationFrame(alignHero);}
   function schedule(){setTimeout(apply,0);setTimeout(apply,120);setTimeout(apply,400);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
-  window.addEventListener('hashchange',schedule);document.addEventListener('roomforboth:pageshow',schedule);
+  window.addEventListener('hashchange',schedule);document.addEventListener('roomforboth:pageshow',schedule);window.addEventListener('resize',function(){setTimeout(alignHero,60);});
 })();
 </script>`;
 
