@@ -74,17 +74,28 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
     return null;
   }
   function setText(el,text){if(!el)return;var span=el.matches&&el.matches('[data-en]')?el:el.querySelector&&el.querySelector('[data-en]');if(span)span.textContent=text;else el.textContent=text;}
+  function commonAncestor(items){
+    items=items.filter(Boolean);if(!items.length)return null;
+    var n=items[0];
+    while(n&&n!==document.body){var ok=true;for(var i=1;i<items.length;i++){if(!n.contains(items[i])){ok=false;break;}}if(ok)return n;n=n.parentElement;}
+    return null;
+  }
   function closestCard(el){
     var n=el;
-    for(var i=0;n&&i<5;i++,n=n.parentElement){
-      if(n.querySelector&&n.querySelector('a,button')&&n.querySelectorAll('h2,h3').length===1)return n;
+    for(var i=0;n&&i<8;i++,n=n.parentElement){
+      try{
+        var cs=getComputedStyle(n), bg=cs.backgroundColor, r=parseFloat(cs.borderRadius)||0, rect=n.getBoundingClientRect();
+        if(rect.width>220 && r>=12 && bg && bg!=='rgba(0, 0, 0, 0)' && bg!=='transparent')return n;
+      }catch(e){}
     }
+    n=el;
+    for(var j=0;n&&j<6;j++,n=n.parentElement){if(n.querySelector&&n.querySelector('a,button')&&n.querySelectorAll('h2,h3').length===1)return n;}
     return el&&el.parentElement;
   }
   function ensureStyle(){
     if(document.getElementById('home-d42-prototype-style'))return;
     var st=document.createElement('style');st.id='home-d42-prototype-style';
-    st.textContent='@media (min-width:900px){.home-d42-hero-block{max-width:820px!important;text-align:left!important}.home-d42-eyebrow{display:block!important;margin:0 0 22px!important;text-align:left!important}.home-d42-title{max-width:790px!important;margin:0 0 18px!important;text-align:left!important;line-height:1.08!important}.home-d42-standfirst{max-width:690px!important;margin:0!important;text-align:left!important;line-height:1.35!important}.home-d42-card-row{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:24px!important;align-items:stretch!important}.home-d42-card{height:100%!important;min-height:180px!important;box-sizing:border-box!important;text-align:left!important}.home-d42-card h2,.home-d42-card h3,.home-d42-card p,.home-d42-card a,.home-d42-card button{text-align:left!important}.home-d42-quiet-row{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;flex-wrap:wrap!important}.home-d42-privacy{text-align:left!important;width:100%!important;box-sizing:border-box!important}}';
+    st.textContent='@media (min-width:900px){.home-d42-hero-shell{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:flex-start!important;text-align:left!important}.home-d42-hero-block{width:100%!important;max-width:820px!important;margin-left:0!important;margin-right:auto!important;text-align:left!important;align-items:flex-start!important}.home-d42-eyebrow{display:block!important;width:100%!important;margin:0 0 22px!important;text-align:left!important}.home-d42-title{display:block!important;width:100%!important;max-width:790px!important;margin:0 0 18px!important;text-align:left!important;line-height:1.08!important}.home-d42-standfirst{display:block!important;width:100%!important;max-width:690px!important;margin:0!important;text-align:left!important;line-height:1.35!important}.home-d42-card-row{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:20px!important;align-items:stretch!important}.home-d42-card{height:auto!important;min-height:150px!important;max-height:none!important;padding:22px 24px!important;box-sizing:border-box!important;overflow:hidden!important;text-align:left!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;align-items:flex-start!important}.home-d42-card h2,.home-d42-card h3{margin-top:0!important;margin-bottom:8px!important;line-height:1.15!important}.home-d42-card p{margin-top:0!important;margin-bottom:14px!important;line-height:1.35!important;max-width:100%!important}.home-d42-card a,.home-d42-card button{margin-top:auto!important;text-align:left!important}.home-d42-card h2,.home-d42-card h3,.home-d42-card p,.home-d42-card a,.home-d42-card button{max-width:100%!important;text-align:left!important;overflow-wrap:break-word!important}.home-d42-quiet-row{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;flex-wrap:wrap!important}.home-d42-privacy{text-align:left!important;width:100%!important;box-sizing:border-box!important}}';
     document.head.appendChild(st);
   }
   function apply(){
@@ -98,6 +109,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
     if(eyebrow)eyebrow.classList.add('home-d42-eyebrow');
     if(title){title.classList.add('home-d42-title');var hb=title.parentElement;if(hb)hb.classList.add('home-d42-hero-block');}
     if(stand)stand.classList.add('home-d42-standfirst');
+    var heroShell=commonAncestor([eyebrow,title,stand]);if(heroShell)heroShell.classList.add('home-d42-hero-shell');
 
     var eTitle=findElement(function(t){return t===TARGETS.emergencyTitle;});
     var pTitle=findElement(function(t){return t===TARGETS.planTitle;});
@@ -110,7 +122,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
     function replaceWithin(card,tests,text){if(!card)return;var els=card.querySelectorAll('p,span,a,button');for(var i=0;i<els.length;i++){var t=norm(els[i].textContent);for(var j=0;j<tests.length;j++){if(tests[j](t)){setText(els[i],text);return els[i];}}}}
     replaceWithin(cards[0],[function(t){return /^Snake question first\./i.test(t)||/^Snake/i.test(t)&&/safe steps|who to call/i.test(t);}],TARGETS.emergencyBody);
     replaceWithin(cards[0],[function(t){return /^Open Emergency/i.test(t);}],TARGETS.emergencyCta);
-    replaceWithin(cards[1],[function(t){return /^Five questions about your home\./i.test(t)||/Three counted signals/i.test(t);}],TARGETS.planBody);
+    replaceWithin(cards[1],[function(t){return /^Five questions about your home\./i.test(t)||/Three counted signals/i.test(t)||/^A few questions about your home/i.test(t);}],TARGETS.planBody);
     replaceWithin(cards[1],[function(t){return /^Start my plan/i.test(t);}],TARGETS.planCta);
     replaceWithin(cards[2],[function(t){return /^See which of the seven/i.test(t)||/recorded in that state/i.test(t);}],TARGETS.moveBody);
     replaceWithin(cards[2],[function(t){return /^See what lives there/i.test(t)||/^See the ecosystem map/i.test(t);}],TARGETS.moveCta);
