@@ -47,61 +47,16 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/print-selected-actions.js?v=20260915-1759"></script>
 <script src="/print-ac-fixes.js?v=20260916-1"></script>
 <script src="/emergency-flow-ac.js?v=20260915-1759"></script>
-<script src="/about-ai-routes.js?v=20260914-1"></script>
-<script id="home-d42-copy-only">
-(function(){
-  'use strict';
-  var replacements={
-    'Coexistence planning for Malaysian homes':'SDG 15 · LIFE ON LAND · COEXISTENCE PLANNING',
-    'SDG 15 · Life on Land · Coexistence planning':'SDG 15 · LIFE ON LAND · COEXISTENCE PLANNING',
-    'Wild animals visit Malaysian homes. Which situation is yours?':'Wild animals visit Malaysian homes. Which situation is yours?',
-    'Clear, practical next steps for people and wildlife to share space safely.':'Seven animals, sixteen states, every figure from a public record. Nothing here tells you to catch, trap or harm an animal.',
-    'Safety steps first, then keep it findable and know who to call.':'Snake question first. Then the safe steps, keep it findable, and who to call.',
-    'A few questions about your home, then a practical plan with a source on every line.':'Five questions about your home. Three counted signals for each animal and a plan with a source on every line.',
-    'Explore the ecosystem map, then choose a state to see what is recorded there.':'See which of the seven are recorded in that state and what each is drawn to, before you unpack.',
-    'See the ecosystem map':'See what lives there →',
-    'See what lives there':'See what lives there →',
-    'Open Emergency':'Open Emergency →',
-    'Start my plan':'Start my plan →',
-    'Room for Both. A coexistence planning tool, not an atlas.':'Room for Both. A coexistence planning tool, not an atlas.',
-    'Open data: PERHILITAN, APM, GBIF occurrence records, IUCN, GRIIS, Global Forest Watch.':'Open data: PERHILITAN, GBIF occurrence records, IUCN, GRIIS Malaysia. About the data · Monash FIT5120 · TM01',
-    'No account. No location detection. You choose a state inside the plan. Your answers are never stored.':'No account. No location detection. You choose a state inside the plan. Your answers are never stored.'
-  };
-  function norm(s){return String(s||'').replace(/\s+/g,' ').trim();}
-  function onHome(){var p=String(location.hash||'#index').replace(/^#/,'').split('?')[0]||'index';return p==='index'||p==='index0914';}
-  function findExact(text){
-    var els=document.querySelectorAll('span,p,h1,h2,h3,a,button,strong,div');
-    for(var i=0;i<els.length;i++){if(norm(els[i].textContent)===text)return els[i];}
-    return null;
-  }
-  function applyCopy(){
-    if(!onHome())return;
-    var els=document.querySelectorAll('span,p,h1,h2,h3,a,button,strong');
-    for(var i=0;i<els.length;i++){
-      var t=norm(els[i].textContent),next=replacements[t];
-      if(next&&t!==next)els[i].textContent=next;
-    }
-  }
-  function alignHero(){
-    if(!onHome()||window.innerWidth<900)return;
-    var eyebrow=findExact('SDG 15 · LIFE ON LAND · COEXISTENCE PLANNING');
-    var title=findExact('Wild animals visit Malaysian homes. Which situation is yours?');
-    var stand=findExact('Seven animals, sixteen states, every figure from a public record. Nothing here tells you to catch, trap or harm an animal.');
-    [eyebrow,title,stand].forEach(function(el){
-      if(!el)return;
-      el.style.setProperty('transform','none','important');
-      el.style.setProperty('position','relative','important');
-      el.style.setProperty('left','76px','important');
-    });
-  }
-  function apply(){applyCopy();requestAnimationFrame(alignHero);}
-  function schedule(){setTimeout(apply,0);setTimeout(apply,120);setTimeout(apply,400);}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
-  window.addEventListener('hashchange',schedule);document.addEventListener('roomforboth:pageshow',schedule);window.addEventListener('resize',function(){setTimeout(alignHero,60);});
-})();
-</script>`;
+<script src="/about-ai-routes.js?v=20260914-1"></script>`;
 
 class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}}
+
+class HomeHeroContainerShift {
+  element(el) {
+    const current = el.getAttribute('style') || '';
+    el.setAttribute('style', current + ';transform:translateX(76px) !important;');
+  }
+}
 
 class HomeCopyText {
   text(chunk) {
@@ -111,8 +66,14 @@ class HomeCopyText {
       ['Perancangan kewujudan bersama untuk rumah di Malaysia','SDG 15 · Kehidupan di Darat · Perancangan kewujudan bersama'],
       ['Clear, practical next steps for people and wildlife to share space safely.','Seven animals, sixteen states, every figure from a public record. Nothing here tells you to catch, trap or harm an animal.'],
       ['Langkah seterusnya yang jelas dan praktikal agar manusia serta hidupan liar dapat berkongsi ruang dengan selamat.','Tujuh haiwan, enam belas negeri, setiap angka daripada rekod awam. Tiada apa-apa di sini yang menyuruh anda menangkap, memerangkap atau mencederakan haiwan.'],
+      ['Safety steps first, then keep it findable and know who to call.','Snake question first. Then the safe steps, keep it findable, and who to call.'],
+      ['A few questions about your home, then a practical plan with a source on every line.','Five questions about your home. Three counted signals for each animal and a plan with a source on every line.'],
+      ['Explore the ecosystem map, then choose a state to see what is recorded there.','See which of the seven are recorded in that state and what each is drawn to, before you unpack.'],
       ['See the ecosystem map','See what lives there →'],
       ['See what lives there','See what lives there →'],
+      ['Open Emergency','Open Emergency →'],
+      ['Start my plan','Start my plan →'],
+      ['Open data: PERHILITAN, APM, GBIF occurrence records, IUCN, GRIIS, Global Forest Watch.','Open data: PERHILITAN, GBIF occurrence records, IUCN, GRIIS Malaysia. About the data · Monash FIT5120 · TM01'],
       ['Lihat peta ekosistem','Lihat apa yang hidup di sana']
     ]);
     const next = replacements.get(chunk.text);
@@ -134,6 +95,7 @@ export default{
     if(!type.toLowerCase().includes('text/html'))return response;
     return new HTMLRewriter()
       .on('body',new BodyInjector())
+      .on('div.relative.z-20.max-w-5xl.mx-auto.px-6.text-left',new HomeHeroContainerShift())
       .on('span[data-en]',new HomeCopyText())
       .on('span[data-bm]',new HomeCopyText())
       .transform(response);
