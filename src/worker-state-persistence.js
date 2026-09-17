@@ -46,7 +46,6 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/ac-compliance.js?v=20260916-1"></script>
 <script src="/print-selected-actions.js?v=20260915-1759"></script>
 <script src="/print-ac-fixes.js?v=20260916-1"></script>
-<script src="/remove-print-epic.js?v=20260915-2316"></script>
 <script src="/emergency-flow-ac.js?v=20260915-1759"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>`;
 
@@ -59,7 +58,7 @@ class HomeCopyText {
       ['Perancangan kewujudan bersama untuk rumah di Malaysia','SDG 15 · Kehidupan di Darat · Perancangan kewujudan bersama'],
       ['Clear, practical next steps for people and wildlife to share space safely.','Seven animals, sixteen states, every figure from a public record. Nothing here tells you to catch, trap or harm an animal.'],
       ['Langkah seterusnya yang jelas dan praktikal agar manusia serta hidupan liar dapat berkongsi ruang dengan selamat.','Tujuh haiwan, enam belas negeri, setiap angka daripada rekod awam. Tiada apa-apa di sini yang menyuruh anda menangkap, memerangkap atau mencederakan haiwan.'],
-      ['See ecosystem map','See what lives there'],
+      ['See the ecosystem map','See what lives there'],
       ['Lihat peta ekosistem','Lihat apa yang hidup di sana']
     ]);
     const next = replacements.get(chunk.text);
