@@ -91,7 +91,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
     if(!brand||!title)return;
     var brandLeft=brand.getBoundingClientRect().left;
     var titleLeft=title.getBoundingClientRect().left;
-    var delta=Math.round(brandLeft-titleLeft+38);
+    var delta=Math.round(brandLeft-titleLeft+114);
     [eyebrow,title,stand].forEach(function(el){
       if(!el)return;
       el.style.transform='translateX('+delta+'px)';
