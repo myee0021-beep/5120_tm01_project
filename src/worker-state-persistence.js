@@ -58,6 +58,14 @@ class HomeHeroContainerShift {
   }
 }
 
+class FooterPlaceholderLinkHider {
+  element(el) {
+    el.setAttribute('style', 'display:none !important;');
+    el.setAttribute('aria-hidden', 'true');
+    el.setAttribute('tabindex', '-1');
+  }
+}
+
 class HomeCopyText {
   text(chunk) {
     const replacements = new Map([
@@ -96,6 +104,7 @@ export default{
     return new HTMLRewriter()
       .on('body',new BodyInjector())
       .on('div.relative.z-20.max-w-5xl.mx-auto.px-6.text-left',new HomeHeroContainerShift())
+      .on('footer a[href="#"]',new FooterPlaceholderLinkHider())
       .on('span[data-en]',new HomeCopyText())
       .on('span[data-bm]',new HomeCopyText())
       .transform(response);
