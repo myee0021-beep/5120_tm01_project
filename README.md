@@ -1,4 +1,4 @@
-# Room for Both — Iteration 2
+# Room for Both — Iteration 3 / Final
 
 **Room for Both** is a bilingual wildlife-coexistence web application for Malaysian residents. Iteration 2 focuses on four resident tasks:
 
@@ -7,7 +7,8 @@
 3. understand evidence-based signals for the selected state/species;
 4. generate and print a sourced prevention plan for the home.
 
-**Iteration 2 deployment target:** `https://iteration2.myee0021.workers.dev`
+**Iteration 3 Worker name:** `roomforboth-final`  
+The Iteration 2 deployment remains unchanged. Deploy this branch separately after the Iteration 3 database migration and secrets are configured.
 
 The application is designed for resident-facing use rather than expert wildlife identification. It deliberately avoids presenting a probability or synthetic “risk score” for a household. Where evidence is incomplete, the UI shows the underlying records, source and verification status instead of inventing a result.
 
@@ -428,7 +429,11 @@ Required secrets:
 ```text
 DATABASE_URL       Neon PostgreSQL connection string
 MINIMAX_API_KEY    MiniMax API key for active AI routes
+REVIEWER_KEY       Iteration 3 team-only Community review key
+RATE_LIMIT_SALT    random salt used to hash per-client rate-limit keys
 ```
+
+Iteration 3 also supports `AI3_ENABLED` as a non-secret feature switch. Optional photo storage is not enabled unless the team explicitly configures an R2 binding.
 
 Example:
 
@@ -443,6 +448,8 @@ Production secrets should be configured through Wrangler, for example:
 ```bash
 npx wrangler secret put DATABASE_URL
 npx wrangler secret put MINIMAX_API_KEY
+npx wrangler secret put REVIEWER_KEY
+npx wrangler secret put RATE_LIMIT_SALT
 ```
 
 ---
@@ -461,7 +468,7 @@ Run locally:
 npm run dev
 ```
 
-Deploy Iteration 2:
+Deploy the Worker configured for this branch:
 
 ```bash
 npm run deploy
@@ -505,5 +512,5 @@ Iteration 2 follows these implementation rules:
 
 ---
 
-**Room for Both — Iteration 2**  
+**Room for Both — Iteration 3 / Final**  
 Supporting safer, more evidence-based coexistence between Malaysian residents and urban wildlife.
