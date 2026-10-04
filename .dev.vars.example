@@ -6,3 +6,10 @@ DATABASE_URL=postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
 # route). Get a key from https://platform.minimax.io — in production set it
 # with `wrangler secret put MINIMAX_API_KEY`, never commit it.
 MINIMAX_API_KEY=your-minimax-api-key
+
+# Iteration 3
+REVIEWER_KEY=replace-with-reviewer-key
+RATE_LIMIT_SALT=replace-with-random-salt
+AI3_ENABLED=true
+# Optional: bind an R2 bucket as COMMUNITY_PHOTOS after photo storage/review is approved.
+PHOTO_REVIEW_ENABLED=false
