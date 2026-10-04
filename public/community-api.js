@@ -4,9 +4,20 @@
   function reviewerHeaders(key){return {'x-reviewer-key':String(key||'')};}
   function stateRecordSummary(state){
     try{
-      var all=window.OCCURRENCES_ALL_YEARS||[];var key=String(state||'').toLowerCase();var rows=all.filter(function(r){return String(r.state||r.state_key||'').toLowerCase()===key;});
-      if(!rows.length)return Promise.resolve(null);var by={};var total=0;rows.forEach(function(r){var n=Number(r.count||r.records||r.total||0)||0;var sp=String(r.species||r.species_id||'unknown');by[sp]=(by[sp]||0)+n;total+=n;});var top=Object.keys(by).sort(function(a,b){return by[b]-by[a];})[0]||null;return Promise.resolve({total:total,top:top,topCount:top?by[top]:0});
-    }catch(e){return Promise.resolve(null);}
+      var all=window.OCCURRENCES_ALL_YEARS||[];
+      var key=String(state||'').toLowerCase();
+      var rows=all.filter(function(r){return String(r.state||r.state_key||'').toLowerCase()===key;});
+      if(!rows.length)return null;
+      var by={},total=0;
+      rows.forEach(function(r){
+        var n=Number(r.count||r.records||r.total||0)||0;
+        var sp=String(r.species||r.species_id||'unknown');
+        by[sp]=(by[sp]||0)+n;
+        total+=n;
+      });
+      var top=Object.keys(by).sort(function(a,b){return by[b]-by[a];})[0]||null;
+      return {total:total,top:top,topCount:top?by[top]:0};
+    }catch(e){return null;}
   }
   window.CommunityAPI={
     listPublished:function(q){var p=new URLSearchParams();if(q&&q.state)p.set('state',q.state);if(q&&q.district)p.set('district',q.district);return fetch('/api/community/reports?'+p.toString(),{cache:'no-store'}).then(j).then(function(x){return x.reports||[];});},
