@@ -139,3 +139,66 @@ npm run deploy
 ## Recommended database permission
 
 For stronger protection, use a PostgreSQL role that has `SELECT` permission only for the tables the website needs. This protects the database even if application code changes later.
+
+
+---
+
+## Iteration 3 / final branch
+
+The `roomforboth-final` branch adds the Iteration 3 Community and signal-threshold backend.
+
+### 1. Apply the database migration
+
+Run:
+
+```sql
+database_code/iteration3_create_tables.sql
+```
+
+against the same Neon database used by `DATABASE_URL`. This creates:
+
+- `signal_threshold`
+- `community_report`
+- `community_review_log`
+- `community_report_seq`
+
+The migration also loads the D46 signed threshold rows, including the shared `min_records = 30` row.
+
+### 2. Configure Worker secrets
+
+```bash
+npx wrangler secret put DATABASE_URL
+npx wrangler secret put MINIMAX_API_KEY
+npx wrangler secret put REVIEWER_KEY
+npx wrangler secret put RATE_LIMIT_SALT
+```
+
+`REVIEWER_KEY` is the team-only review key. Do not commit or paste it into portfolio documents, LeanKit cards or chat messages.
+
+`RATE_LIMIT_SALT` is used only to hash the per-client rate-limit key. Raw client addresses are not stored.
+
+### 3. AI 3 feature switch
+
+The final branch supports:
+
+```text
+AI3_ENABLED=true
+```
+
+Set it to `false` to make the model-assisted form fill fail closed while the manual three-step form remains available.
+
+### 4. 15-day cleanup
+
+`wrangler.jsonc` contains a daily Cron Trigger. The scheduled Worker deletes the content of held Community reports after 15 days unless they were published, and records the deletion in `community_review_log`.
+
+### 5. Photos
+
+Photo storage remains a team decision. The backend does not assume a production bucket. If an R2 bucket named `COMMUNITY_PHOTOS` is later bound, keep `PHOTO_REVIEW_ENABLED=false` until the required identifying-content review/removal path is approved.
+
+### 6. Validation smoke tests
+
+```bash
+npm run test:i3
+```
+
+This checks the fixed Community option rules, snake/invasive constraints, personal-detail detection, fixed review reasons and AI 3 evidence binding.
