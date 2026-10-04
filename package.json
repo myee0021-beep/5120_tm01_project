@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test:i3": "node scripts/test-iteration3-validators.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0"
