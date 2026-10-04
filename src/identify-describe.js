@@ -2,6 +2,8 @@ function json(data,status=200,headers={}){
   return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...headers}});
 }
 
+const SNAKE_BLOCK=/\b(?:snake|snakes|ular|sawa|tedung|senduk|python|cobra|viper|krait|legless|slither(?:ing)?|no\s+legs?|hiss(?:ing)?|fang(?:ed)?|strik(?:e|ing))\b/i;
+
 const DESCRIBE_SPECIES=[
   {id:'house-crow',en:'House Crow',bm:'Gagak Rumah',sci:'Corvus splendens',hints:'noisy black bird, raids open rubbish bins and food waste, nests on roofs/eaves'},
   {id:'macaque',en:'Long-tailed Macaque',bm:'Kera',sci:'Macaca fascicularis',hints:'monkey, often in a troop, grey or brown, long tail, enters through windows/roofs, takes fruit or food from kitchens or bins'},
@@ -15,12 +17,15 @@ export async function handleIdentifyDescribe(request,env){
 
   let body;
   try{body=await request.json();}catch{return json({ok:false,error:'Request body must be JSON.'},400);}
-  const text=String(body?.text||'').trim().slice(0,500);
+  const text=String(body?.text||'').replace(/[\u0000-\u001F\u007F]/g,' ').replace(/\s+/g,' ').trim().slice(0,500);
   if(!text)return json({ok:false,error:'text is required.'},400);
+  // Defence in depth: the browser already routes snake-like descriptions to safety.
+  // Never send a snake/legless description to the general wildlife classifier.
+  if(SNAKE_BLOCK.test(text))return json({ok:true,species_ids:[],matches:[],status:'snake_blocked'});
 
   const allowedIds=DESCRIBE_SPECIES.map(s=>s.id);
   const speciesList=DESCRIBE_SPECIES.map(s=>`- id: "${s.id}" | ${s.en} (${s.sci}, Malay: ${s.bm}) — ${s.hints}`).join('\n');
-  const systemPrompt=`You identify which wildlife species is most likely being described in a report of an animal causing a problem at a home in Malaysia. You may ONLY choose from this fixed list of species ids — never invent a new id or name:\n${speciesList}\n\nThe user's text may be in English, Malay, or a mix of the two.\n\nHow to decide:\n- If the text describes ANY behaviour, damage, sound, appearance, or location that is even loosely consistent with one of the species above, include that species as a match — use low confidence if vague rather than leaving it out.\n- Only return an empty list when the text has NO real connection to any species above.\n- None of the species above is a snake. If the text sounds like a snake or another legless reptile (long, slithering, no legs, hissing, striking, fanged), return an empty list rather than matching water-monitor or another species.\n\nRespond with ONLY a JSON object matching this shape — no explanation, reasoning or markdown: {"matches":[{"species_id":"<one of the ids above>","confidence":"high"|"medium"|"low"}]}. List at most 3 matches, most likely first.`;
+  const systemPrompt=`You identify which wildlife species is most likely being described in a report of an animal causing a problem at a home in Malaysia. You may ONLY choose from this fixed list of species ids — never invent a new id or name:\n${speciesList}\n\nThe user's text may be in English, Malay, or a mix of the two.\n\nHow to decide:\n- If the text describes ANY behaviour, damage, sound, appearance, or location that is even loosely consistent with one of the species above, include that species as a match — use low confidence if vague rather than leaving it out.\n- Only return an empty list when the text has NO real connection to any species above.\n- None of the species above is a snake. If the text sounds like a snake or another legless reptile (long, slithering, no legs, hissing, striking, fanged), return an empty list rather than matching water-monitor or another species.\n\nRespond with ONLY a JSON object matching this shape — no explanation, reasoning or markdown: {"matches":[{"species_id":"<one of the ids above>","confidence":"high"|"medium"|"low","evidence":"<an exact verbatim substring from the user's text that supports this match>"}]}. Every match MUST include evidence copied exactly from the user's text. List at most 3 matches, most likely first.`;
 
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),8000);
@@ -28,7 +33,7 @@ export async function handleIdentifyDescribe(request,env){
     const response=await fetch('https://api.minimax.io/v1/text/chatcompletion_v2',{
       method:'POST',
       headers:{'content-type':'application/json',authorization:`Bearer ${env.MINIMAX_API_KEY}`},
-      body:JSON.stringify({model:'MiniMax-Text-01',temperature:0.1,max_tokens:300,messages:[{role:'system',content:systemPrompt},{role:'user',content:text}]}),
+      body:JSON.stringify({model:'MiniMax-Text-01',temperature:0,max_tokens:300,messages:[{role:'system',content:systemPrompt},{role:'user',content:text}]}),
       signal:controller.signal
     });
     clearTimeout(timeout);
@@ -45,7 +50,11 @@ export async function handleIdentifyDescribe(request,env){
     }
     let parsed;
     try{parsed=JSON.parse(jsonMatch[0]);}catch{return json({ok:false,error:'AI returned malformed JSON.'},502);}
-    const matches=Array.isArray(parsed?.matches)?parsed.matches.filter(m=>allowedIds.includes(m?.species_id)).slice(0,3):[];
+    const matches=Array.isArray(parsed?.matches)?parsed.matches
+      .filter(m=>allowedIds.includes(m?.species_id))
+      .filter(m=>typeof m?.evidence==='string'&&m.evidence.trim()&&text.includes(m.evidence.trim()))
+      .map(m=>({species_id:m.species_id,confidence:['high','medium','low'].includes(m.confidence)?m.confidence:'low',evidence:m.evidence.trim()}))
+      .slice(0,3):[];
     const speciesIds=matches.map(m=>m.species_id);
     return json({ok:true,species_ids:speciesIds,matches,status:speciesIds.length?'matched':'no_match'});
   }catch(err){
