@@ -5,7 +5,10 @@ import { handlePlanRequest } from './plan-db-route.js';
 const SPA_ROUTES = new Set([
   '/index.html','/plan.html','/plan-result.html','/plan-how-computed.html',
   '/emergency.html','/ecosystem.html','/ecosystem-redlist.html','/invasive.html',
-  '/community-how-review-works.html','/about-the-data.html'
+  '/ecosystem-forecast.html','/ecosystem-forecast-method.html',
+  '/community.html','/community-report.html','/community-share.html','/community-sent.html',
+  '/community-review.html','/community-how-review-works.html',
+  '/plan-log.html','/plan-log-new.html','/about-the-data.html'
 ]);
 
 const STATE_PERSISTENCE_CLIENT = String.raw`
@@ -36,7 +39,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();window.addEventListener('hashchange',run);document.addEventListener('roomforboth:pageshow',run);
 })();
 </script>
-<script src="/community-api.js?v=20261004-1"></script>\n<script src="/plan-db-client.js?v=20260916-1"></script>
+<script src="/plan-db-client.js?v=20260916-1"></script>
 <script src="/plan-snapshot-sync.js?v=20260914-1"></script>
 <script src="/home-live-data.js?v=20260915-4"></script>
 <script src="/plan-ai-summary.js?v=20260914-2"></script>
@@ -49,6 +52,8 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/emergency-flow-ac.js?v=20260915-1759"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>`;
 
+const ITERATION3_HEAD = String.raw`<script src="/community-api.js?v=20261004-2"></script>`;
+class HeadInjector{element(el){el.append(ITERATION3_HEAD,{html:true});}}
 class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}}
 
 class HomeHeroContainerShift {
@@ -102,6 +107,7 @@ export default{
     const type=response.headers.get('content-type')||'';
     if(!type.toLowerCase().includes('text/html'))return response;
     return new HTMLRewriter()
+      .on('head',new HeadInjector())
       .on('body',new BodyInjector())
       .on('div.relative.z-20.max-w-5xl.mx-auto.px-6.text-left',new HomeHeroContainerShift())
       .on('footer a[href="#"]',new FooterPlaceholderLinkHider())
