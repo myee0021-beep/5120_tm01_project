@@ -13,12 +13,26 @@ function extractNumbers(text){return String(text||'').match(/\b\d+(?:[.,]\d+)?%?
 function flatten(value,out=[]){if(value==null)return out;if(Array.isArray(value)){value.forEach(v=>flatten(v,out));return out}if(typeof value==='object'){Object.values(value).forEach(v=>flatten(v,out));return out}var s=clean(value);if(s)out.push(s);return out}
 function normalizedWords(text){return ' '+String(text||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()+' '}
 function containsTerm(text,term){return normalizedWords(text).includes(normalizedWords(term))}
+const BIND_STOP=new Set(['the','and','with','from','that','this','your','you','for','into','near','keep','use','make','atau','dan','yang','untuk','dengan','pada','ini','itu','anda']);
+function contentTokens(text){
+  return String(text||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').split(/\s+/)
+    .filter(t=>t.length>3&&!BIND_STOP.has(t));
+}
+function sentenceBoundToRow(sentence,rows){
+  const st=new Set(contentTokens(sentence)); if(!st.size)return false;
+  return rows.some(r=>{
+    const rt=contentTokens(r&&r.action); let overlap=0;
+    for(const t of rt)if(st.has(t))overlap++;
+    return overlap>=2 || (overlap>=1&&rt.length<=4);
+  });
+}
 
 const KNOWN_ANIMAL_TERMS=['macaque','monkey','kera','wild boar','boar','babi hutan','myna','crow','python','cobra','snake','ular','monitor lizard','water monitor','biawak'];
 
 function validate(summary,rows){
   var text=clean(summary);
   if(!text)return{ok:false,reason:'api_error',detail:'empty_summary'};
+  if(text.length>900)return{ok:false,reason:'too_long',detail:{length:text.length,max:900}};
 
   var sentences=text.split(/(?<=[.!?])\s+/).map(clean).filter(Boolean);
   if(sentences.length<4||sentences.length>6){
@@ -30,6 +44,12 @@ function validate(summary,rows){
   var newNumbers=Array.from(new Set(extractNumbers(text).filter(function(n){return!allowedNumbers.has(n)})));
   if(newNumbers.length){
     return{ok:false,reason:'new_number',detail:{numbers:newNumbers}};
+  }
+
+  for(let i=0;i<sentences.length;i++){
+    if(!sentenceBoundToRow(sentences[i],rows)){
+      return{ok:false,reason:'unbound_sentence',detail:{sentence:i+1}};
+    }
   }
 
   var lower=text.toLowerCase();
@@ -50,6 +70,8 @@ function validationRetryNote(result){
   if(result.reason==='sentence_count')return'\nPrevious output had the wrong sentence count. Return exactly 4 to 6 complete sentences.';
   if(result.reason==='new_number')return'\nPrevious output introduced a number that was not present in the supplied rows. Do not introduce any new numbers.';
   if(result.reason==='new_species')return'\nPrevious output introduced an animal/species term that was not present in the supplied rows. Do not name any animal/species unless that exact term is present in the rows.';
+  if(result.reason==='unbound_sentence')return'\nEvery sentence must clearly rephrase one supplied prevention row. Do not add an opening, closing, general advice or summary sentence.';
+  if(result.reason==='too_long')return'\nKeep the complete paragraph under 900 characters.';
   return'\nPrevious output could not be used. Stay strictly within the supplied rows and keep exactly 4 to 6 sentences.';
 }
 
@@ -80,7 +102,7 @@ async function writeCachedSummary(rows,language,payload){try{await caches.defaul
 async function askMiniMax(env,rows,language,retryNote=''){
   if(!env.MINIMAX_API_KEY)throw new Error('MINIMAX_API_KEY is not configured');
   var langName=language==='bm'?'Bahasa Melayu':'English';
-  var prompt=`You write the "Plan in plain words" summary for Room for Both.\n- Write exactly 4 to 6 short sentences in ${langName}.\n- The prevention rows supplied below are the ONLY source of truth.\n- Use ONLY facts, species, numbers and actions explicitly present in those rows.\n- Do not add any risk, place, date, cause, action, recommendation, prediction or safety advice that is not present.\n- Do not imply probability for the resident's home.\n- Lightly rephrase and connect the rows so a resident can understand the priorities.\n- Return only the paragraph text. No heading, bullets, markdown, disclaimer or explanation.${retryNote}`;
+  var prompt=`You write the "Plan in plain words" summary for Room for Both.\n- Write exactly 4 to 6 short sentences in ${langName}.\n- The prevention rows supplied below are the ONLY source of truth.\n- Use ONLY facts, species, numbers and actions explicitly present in those rows.\n- Do not add any risk, place, date, cause, action, recommendation, prediction or safety advice that is not present.\n- Do not imply probability for the resident's home.\n- Each sentence must clearly rephrase one supplied prevention row; do not add an opening, closing or general-summary sentence.\n- Lightly rephrase the row while keeping its action and meaning traceable.\n- Return only the paragraph text. No heading, bullets, markdown, disclaimer or explanation.${retryNote}`;
   var res=await fetch('https://api.minimax.io/v1/text/chatcompletion_v2',{
     method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${env.MINIMAX_API_KEY}`},
     body:JSON.stringify({model:'MiniMax-Text-01',temperature:0.1,max_tokens:300,messages:[{role:'system',content:prompt},{role:'user',content:'Rows already displayed on the page:\n'+JSON.stringify(rows,null,2)}]})
