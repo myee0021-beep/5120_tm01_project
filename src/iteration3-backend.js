@@ -16,6 +16,10 @@ const STATE_ALIASES={
   labuan:'w-p-labuan',
   putrajaya:'w-p-putrajaya'
 };
+const DISTRICT_ALIASES={
+  'hulu-langat':'ulu-langat',
+  'hulu-selangor':'ulu-selangor'
+};
 
 function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...headers}})}
 function sqlFor(env){if(!env.DATABASE_URL)throw new Error('DATABASE_URL is not configured');return neon(env.DATABASE_URL)}
@@ -86,8 +90,9 @@ async function findStateCode(sql,stateSlug){
 async function findDistrictId(sql,stateSlug,districtSlug){
   const stateCode=await findStateCode(sql,stateSlug);
   if(stateCode==null)return null;
+  const wanted=DISTRICT_ALIASES[districtSlug]||districtSlug;
   const rows=await sql`SELECT district_id,name_dosm FROM district WHERE state_id=${stateCode}`;
-  const row=rows.find(r=>slug(r.name_dosm)===districtSlug);
+  const row=rows.find(r=>slug(r.name_dosm)===wanted);
   return row?Number(row.district_id):null;
 }
 async function findSpeciesId(sql,species){
