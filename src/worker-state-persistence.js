@@ -52,6 +52,15 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/print-ac-fixes.js?v=20260916-1"></script>
 <script src="/emergency-flow-ac.js?v=20260915-1759"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>
+<style id="ecosystem-native-arrow-style">
+#page-ecosystem a[href="ecosystem-forecast.html"] > svg,
+#page-ecosystem a[href="ecosystem-redlist.html"] > svg,
+#page-ecosystem a[href="invasive.html"] > svg {
+  color:#166534 !important;
+  opacity:1 !important;
+  visibility:visible !important;
+}
+</style>
 `;
 
 const ITERATION3_HEAD = String.raw`<script src="/community-api.js?v=20261004-2"></script>`;
