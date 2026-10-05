@@ -55,21 +55,29 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <style id="ecosystem-related-links-unified">
 .r4b-ecosystem-related-link{
   position:relative!important;
-  padding-right:44px!important;
+  display:flex!important;
+  align-items:center!important;
+  min-height:92px!important;
+  padding-right:56px!important;
   transition:background-color .15s ease;
+}
+.r4b-ecosystem-related-link:hover{
+  background:rgba(20,83,45,.04);
 }
 .r4b-ecosystem-related-link:hover{
   background:rgba(20,83,45,.04);
 }
 .r4b-ecosystem-related-link .r4b-native-arrow{
   display:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
 }
 .r4b-ecosystem-related-link .r4b-ecosystem-arrow{
   position:absolute!important;
-  right:8px!important;
+  right:18px!important;
   top:50%!important;
   transform:translateY(-50%)!important;
-  display:inline-flex!important;
+  display:flex!important;
   align-items:center!important;
   justify-content:center!important;
   width:18px!important;
@@ -78,7 +86,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   opacity:1!important;
   visibility:visible!important;
   font-size:18px!important;
-  line-height:1!important;
+  line-height:18px!important;
   font-weight:400!important;
   pointer-events:none!important;
 }
