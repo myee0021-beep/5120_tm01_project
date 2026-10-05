@@ -55,17 +55,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <style id="ecosystem-related-links-unified">
 .r4b-ecosystem-related-link{
   position:relative!important;
-  display:flex!important;
-  align-items:center!important;
-  min-height:92px!important;
   padding-right:56px!important;
-  transition:background-color .15s ease;
-}
-.r4b-ecosystem-related-link:hover{
-  background:rgba(20,83,45,.04);
-}
-.r4b-ecosystem-related-link:hover{
-  background:rgba(20,83,45,.04);
 }
 .r4b-ecosystem-related-link .r4b-native-arrow{
   display:none!important;
@@ -77,9 +67,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   right:18px!important;
   top:50%!important;
   transform:translateY(-50%)!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
+  display:block!important;
   width:18px!important;
   height:18px!important;
   color:#166534!important;
@@ -98,44 +86,72 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   var observer=null;
 
   function currentPage(){
-    return String(location.hash||'').replace(/^#/,'').split('?')[0] || String(location.pathname||'').replace(/^\//,'').replace(/\.html$/,'');
+    return String(location.hash||'').replace(/^#/,'').split('?')[0] ||
+      String(location.pathname||'').replace(/^\//,'').replace(/\.html$/,'');
   }
 
   function findTitle(title){
-    return Array.prototype.find.call(document.querySelectorAll('h1,h2,h3,h4,p,span,div,strong'),function(el){
-      return el.children.length===0 && String(el.textContent||'').trim()===title;
-    });
-  }
-
-  function findRow(titleEl){
-    var el=titleEl;
-    for(var i=0;i<6&&el;i++,el=el.parentElement){
-      if(!el)break;
-      var txt=String(el.textContent||'');
-      var hasTitle=txt.indexOf(String(titleEl.textContent||'').trim())!==-1;
-      var hasArrow=el.querySelector&&el.querySelector('svg,[class*="arrow"],[class*="chevron"]');
-      var childCount=el.children?el.children.length:0;
-      if(hasTitle && childCount>=2 && (hasArrow || /Wildlife forecast|Red List and status|Is it invasive\?/.test(txt))){
-        return el.closest('a,button,[role="link"]')||el;
+    return Array.prototype.find.call(
+      document.querySelectorAll('h1,h2,h3,h4,p,span,div,strong'),
+      function(el){
+        return el.children.length===0 && String(el.textContent||'').trim()===title;
       }
-    }
-    return titleEl.closest('a,button,[role="link"]')||titleEl.parentElement;
+    );
   }
 
-  function hideNativeArrows(row){
-    Array.from(row.querySelectorAll('svg,[class*="arrow"],[class*="chevron"],span,i')).forEach(function(el){
-      if(el.classList.contains('r4b-ecosystem-arrow'))return;
-      var t=String(el.textContent||'').trim();
-      var looksLike=t==='→'||t==='›'||t==='>'||el.tagName.toLowerCase()==='svg'||/arrow|chevron/i.test(String(el.className&&el.className.baseVal||el.className||''));
-      if(looksLike)el.classList.add('r4b-native-arrow');
+  function isArrowElement(el){
+    if(!el||el.classList&&el.classList.contains('r4b-ecosystem-arrow'))return false;
+    var t=String(el.textContent||'').replace(/\s+/g,'').trim();
+    var cls=String((el.className&&el.className.baseVal)||el.className||'');
+    return t==='→'||t==='›'||t==='>'||t==='❯'||t==='➜'||
+      el.tagName.toLowerCase()==='svg'||/arrow|chevron/i.test(cls);
+  }
+
+  function findFullRow(titleEl){
+    var el=titleEl;
+    for(var i=0;i<8&&el;i++,el=el.parentElement){
+      if(!el.getBoundingClientRect)continue;
+      var r=el.getBoundingClientRect();
+      var titleRect=titleEl.getBoundingClientRect();
+      var wide=r.width>Math.max(500,titleRect.width*2.2);
+      var sensibleHeight=r.height>=55&&r.height<=180;
+      var containsArrow=Array.from(el.querySelectorAll('svg,span,i,button,a')).some(isArrowElement);
+      if(wide&&sensibleHeight&&containsArrow)return el.closest('a,button,[role="link"]')||el;
+    }
+    el=titleEl;
+    for(var j=0;j<8&&el;j++,el=el.parentElement){
+      if(!el.getBoundingClientRect)continue;
+      var rr=el.getBoundingClientRect();
+      if(rr.width>500&&rr.height>=55&&rr.height<=180)return el.closest('a,button,[role="link"]')||el;
+    }
+    return titleEl.parentElement;
+  }
+
+  function hideRightSideNativeArrows(row){
+    if(!row||!row.getBoundingClientRect)return;
+    var rr=row.getBoundingClientRect();
+    Array.from(row.querySelectorAll('*')).forEach(function(el){
+      if(el.classList&&el.classList.contains('r4b-ecosystem-arrow'))return;
+      if(!el.getBoundingClientRect)return;
+      var er=el.getBoundingClientRect();
+      var nearRight=er.left>rr.right-90;
+      var small=er.width<=48&&er.height<=48;
+      if(isArrowElement(el)||(nearRight&&small&&String(el.textContent||'').trim().length<=2)){
+        el.classList.add('r4b-native-arrow');
+      }
     });
   }
 
   function normalizeRow(title){
     var titleEl=findTitle(title); if(!titleEl)return;
-    var row=findRow(titleEl); if(!row)return;
+    var row=findFullRow(titleEl); if(!row)return;
+
     row.classList.add('r4b-ecosystem-related-link');
-    hideNativeArrows(row);
+    row.style.position='relative';
+    row.style.opacity='1';
+
+    hideRightSideNativeArrows(row);
+
     var arrow=row.querySelector('.r4b-ecosystem-arrow');
     if(!arrow){
       arrow=document.createElement('span');
@@ -151,18 +167,14 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
     TITLES.forEach(normalizeRow);
   }
 
-  function startObserver(){
+  function boot(){
+    run();
+    setTimeout(run,80);
+    setTimeout(run,250);
+    setTimeout(run,700);
     if(observer)observer.disconnect();
     observer=new MutationObserver(function(){setTimeout(run,0);});
     observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden']});
-  }
-
-  function boot(){
-    run();
-    setTimeout(run,100);
-    setTimeout(run,350);
-    setTimeout(run,800);
-    startObserver();
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
