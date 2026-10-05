@@ -84,11 +84,16 @@ export function validateAi3Candidate(candidate, sentence){
   if(Object.keys(candidate).some(k=>!allowedKeys.has(k)))return {ok:false,error:'AI result has unexpected fields.'};
   const evidence=candidate.evidence&&typeof candidate.evidence==='object'&&!Array.isArray(candidate.evidence)?candidate.evidence:{};
   const source=cleanText(sentence,300);
+  const sourceNorm=source.toLowerCase();
+  const evidenceMatches=(quote)=>{
+    const q=cleanText(quote||'',120).toLowerCase();
+    return !!q&&sourceNorm.includes(q);
+  };
   const out={};
   const copyScalar=(field,allowed,extraReject)=>{
     const v=candidate[field]; if(v==null)return;
     if(typeof v!=='string'||!allowed.has(v)||extraReject?.(v))return;
-    const quote=cleanText(evidence[field]||'',120); if(!quote||!source.includes(quote))return;
+    if(!evidenceMatches(evidence[field]))return;
     out[field]=v;
   };
   copyScalar('species',I3.species,v=>v==='snake');
@@ -98,7 +103,7 @@ export function validateAi3Candidate(candidate, sentence){
   const copyArray=(field,allowed)=>{
     const vals=uniqueAllowed(candidate[field],allowed); if(!vals.length)return;
     const ev=evidence[field]; if(!ev||typeof ev!=='object')return;
-    const kept=vals.filter(v=>{const q=cleanText(ev[v]||'',120);return q&&source.includes(q)});
+    const kept=vals.filter(v=>evidenceMatches(ev[v]));
     if(kept.length)out[field]=kept;
   };
   copyArray('did',I3.did); copyArray('worked',I3.worked);
