@@ -125,6 +125,7 @@ async function signalThresholds(env){
 async function listPublished(request,env){
   const sql=sqlFor(env),u=new URL(request.url);
   const state=String(u.searchParams.get('state')||''),district=slug(u.searchParams.get('district')||'');
+  const wantedDistrict=DISTRICT_ALIASES[district]||district;
   const rows=await sql`SELECT cp.*,sp.english_name,d.name_dosm,s.state_name
     FROM community_post cp
     LEFT JOIN species sp ON sp.species_id=cp.species_id
@@ -132,7 +133,7 @@ async function listPublished(request,env){
     LEFT JOIN state s ON s.state_code=d.state_id
     WHERE cp.status='published'
     ORDER BY cp.submitted_at DESC LIMIT 500`;
-  const filtered=rows.filter(r=>(!state||slug(r.state_name)=== (STATE_ALIASES[state]||state))&&(!district||slug(r.name_dosm)===district));
+  const filtered=rows.filter(r=>(!state||slug(r.state_name)=== (STATE_ALIASES[state]||state))&&(!district||slug(r.name_dosm)===wantedDistrict));
   return json({ok:true,reports:filtered.map(reportRow)});
 }
 async function getPublished(idOrRef,env){
