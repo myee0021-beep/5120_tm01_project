@@ -19,8 +19,25 @@ function patchText(doc){
  });
 }
 function progress(doc){
- doc.querySelectorAll('a,button,[role="tab"],li,span').forEach(function(e){var s=t(e.textContent);if((s==='Prevention'||s==='Pencegahan')&&e.children.length<=2){var p=t((e.parentElement&&e.parentElement.textContent)||'');if(/Start|Identify|Action|Contact|Mula|Tindakan|Hubungi/i.test(p))e.style.display='none';}
- if(/^Next:\s*Prevention$/i.test(s)||/^Seterusnya:\s*Pencegahan$/i.test(s)){e.textContent=/^Seterusnya:/i.test(s)?'Seterusnya: Pelan':'Next: Plan';if(!e.dataset.planFixed){e.dataset.planFixed='1';e.addEventListener('click',function(ev){ev.preventDefault();try{window.top.location.hash='#plan';}catch(_){}});}}});
+ var bodyText=t((doc.body&&doc.body.innerText)||'');
+ var isBM=/\bUtama\b|\bKecemasan\b|\bTentang Data\b|\bHubungi\b|\bApa perlu dikata\b/i.test(bodyText);
+ doc.querySelectorAll('a,button,[role="tab"],li,span').forEach(function(e){
+   var s=t(e.textContent);
+   if((s==='Prevention'||s==='Pencegahan')&&e.children.length<=2){
+     var p=t((e.parentElement&&e.parentElement.textContent)||'');
+     if(/Start|Identify|Action|Contact|Mula|Tindakan|Hubungi/i.test(p))e.style.display='none';
+   }
+   if(/^Next:\s*(Prevention|Plan)$/i.test(s)||/^Seterusnya:\s*(Pencegahan|Pelan)$/i.test(s)){
+     e.textContent=isBM?'Seterusnya: Pelan':'Next: Plan';
+     if(!e.dataset.planFixed){
+       e.dataset.planFixed='1';
+       e.addEventListener('click',function(ev){
+         ev.preventDefault();
+         try{window.top.location.hash='#plan';}catch(_){}
+       });
+     }
+   }
+ });
 }
 function notSure(doc){
  doc.querySelectorAll('a,button,[role="button"]').forEach(function(e){
