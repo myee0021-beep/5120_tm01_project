@@ -81,5 +81,20 @@ function scan(){try{patch(document);}catch(e){console.warn('[Emergency AC]',e);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan,{once:true});else scan();
 window.addEventListener('hashchange',function(){setTimeout(scan,30);setTimeout(scan,150);});
 document.addEventListener('roomforboth:pageshow',function(){setTimeout(scan,30);setTimeout(scan,150);});
-new MutationObserver(function(){clearTimeout(window.__emergencyAcTimer);window.__emergencyAcTimer=setTimeout(scan,25);}).observe(document.documentElement,{subtree:true,childList:true,characterData:true});
+new MutationObserver(function(){
+  clearTimeout(window.__emergencyAcTimer);
+  window.__emergencyAcTimer=setTimeout(scan,25);
+}).observe(document.documentElement,{
+  subtree:true,
+  childList:true,
+  characterData:true,
+  attributes:true,
+  attributeFilter:['lang']
+});
+document.addEventListener('click',function(e){
+  var target=e.target&&e.target.closest?e.target.closest('[data-lang],button,a'):null;
+  if(!target)return;
+  var txt=t(target.textContent);
+  if(txt==='EN'||txt==='BM')setTimeout(scan,0);
+},true);
 })();
