@@ -54,51 +54,112 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/about-ai-routes.js?v=20260914-1"></script>
 <style id="ecosystem-related-links-unified">
 .r4b-ecosystem-related-link{
+  position:relative!important;
+  padding-right:44px!important;
   transition:background-color .15s ease;
 }
 .r4b-ecosystem-related-link:hover{
   background:rgba(20,83,45,.04);
 }
+.r4b-ecosystem-related-link .r4b-native-arrow{
+  display:none!important;
+}
 .r4b-ecosystem-related-link .r4b-ecosystem-arrow{
-  color:#14532d !important;
-  opacity:1 !important;
-  font-weight:700 !important;
+  position:absolute!important;
+  right:8px!important;
+  top:50%!important;
+  transform:translateY(-50%)!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:28px!important;
+  height:28px!important;
+  color:#166534!important;
+  opacity:1!important;
+  visibility:visible!important;
+  font-size:28px!important;
+  line-height:1!important;
+  font-weight:500!important;
+  pointer-events:none!important;
 }
 </style>
 <script id="ecosystem-related-links-unifier">
 (function(){
   'use strict';
   var TITLES=['Wildlife forecast','Red List and status','Is it invasive?'];
+  var observer=null;
 
   function currentPage(){
     return String(location.hash||'').replace(/^#/,'').split('?')[0] || String(location.pathname||'').replace(/^\//,'').replace(/\.html$/,'');
   }
 
-  function run(){
-    if(currentPage()!=='ecosystem')return;
-
-    TITLES.forEach(function(title){
-      var titleEl=Array.prototype.find.call(document.querySelectorAll('h1,h2,h3,h4,p,span,div'),function(el){
-        return el.children.length===0 && String(el.textContent||'').trim()===title;
-      });
-      if(!titleEl)return;
-
-      var row=titleEl.closest('a,button,[role="link"]') || titleEl.parentElement;
-      if(!row)return;
-      row.classList.add('r4b-ecosystem-related-link');
-
-      var candidates=Array.from(row.querySelectorAll('svg,span,i'));
-      var arrow=candidates.find(function(el){
-        var t=String(el.textContent||'').trim();
-        return t==='→'||t==='›'||t==='>'||el.tagName.toLowerCase()==='svg';
-      });
-      if(arrow)arrow.classList.add('r4b-ecosystem-arrow');
+  function findTitle(title){
+    return Array.prototype.find.call(document.querySelectorAll('h1,h2,h3,h4,p,span,div,strong'),function(el){
+      return el.children.length===0 && String(el.textContent||'').trim()===title;
     });
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
-  window.addEventListener('hashchange',function(){setTimeout(run,40);});
-  document.addEventListener('roomforboth:pageshow',function(){setTimeout(run,40);});
+  function findRow(titleEl){
+    var el=titleEl;
+    for(var i=0;i<6&&el;i++,el=el.parentElement){
+      if(!el)break;
+      var txt=String(el.textContent||'');
+      var hasTitle=txt.indexOf(String(titleEl.textContent||'').trim())!==-1;
+      var hasArrow=el.querySelector&&el.querySelector('svg,[class*="arrow"],[class*="chevron"]');
+      var childCount=el.children?el.children.length:0;
+      if(hasTitle && childCount>=2 && (hasArrow || /Wildlife forecast|Red List and status|Is it invasive\?/.test(txt))){
+        return el.closest('a,button,[role="link"]')||el;
+      }
+    }
+    return titleEl.closest('a,button,[role="link"]')||titleEl.parentElement;
+  }
+
+  function hideNativeArrows(row){
+    Array.from(row.querySelectorAll('svg,[class*="arrow"],[class*="chevron"],span,i')).forEach(function(el){
+      if(el.classList.contains('r4b-ecosystem-arrow'))return;
+      var t=String(el.textContent||'').trim();
+      var looksLike=t==='→'||t==='›'||t==='>'||el.tagName.toLowerCase()==='svg'||/arrow|chevron/i.test(String(el.className&&el.className.baseVal||el.className||''));
+      if(looksLike)el.classList.add('r4b-native-arrow');
+    });
+  }
+
+  function normalizeRow(title){
+    var titleEl=findTitle(title); if(!titleEl)return;
+    var row=findRow(titleEl); if(!row)return;
+    row.classList.add('r4b-ecosystem-related-link');
+    hideNativeArrows(row);
+    var arrow=row.querySelector('.r4b-ecosystem-arrow');
+    if(!arrow){
+      arrow=document.createElement('span');
+      arrow.className='r4b-ecosystem-arrow';
+      arrow.setAttribute('aria-hidden','true');
+      arrow.textContent='→';
+      row.appendChild(arrow);
+    }
+  }
+
+  function run(){
+    if(currentPage()!=='ecosystem')return;
+    TITLES.forEach(normalizeRow);
+  }
+
+  function startObserver(){
+    if(observer)observer.disconnect();
+    observer=new MutationObserver(function(){setTimeout(run,0);});
+    observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden']});
+  }
+
+  function boot(){
+    run();
+    setTimeout(run,100);
+    setTimeout(run,350);
+    setTimeout(run,800);
+    startObserver();
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  window.addEventListener('hashchange',function(){setTimeout(boot,40);});
+  document.addEventListener('roomforboth:pageshow',function(){setTimeout(boot,40);});
 })();
 </script>`;
 
