@@ -72,14 +72,14 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
-  width:28px!important;
-  height:28px!important;
+  width:18px!important;
+  height:18px!important;
   color:#166534!important;
   opacity:1!important;
   visibility:visible!important;
-  font-size:28px!important;
+  font-size:18px!important;
   line-height:1!important;
-  font-weight:500!important;
+  font-weight:400!important;
   pointer-events:none!important;
 }
 </style>
