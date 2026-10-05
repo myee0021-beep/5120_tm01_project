@@ -137,6 +137,17 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
     var titleEl=leafByText(title);if(!titleEl)return;
     var row=findRow(titleEl,section);if(!row)return;
 
+    // Wildlife forecast: use the page's native arrow, same treatment as the rows below.
+    if(title==='Wildlife forecast'){
+      row.classList.remove('r4b-ecosystem-row');
+      Array.from(row.querySelectorAll('.r4b-native-arrow')).forEach(function(el){
+        el.classList.remove('r4b-native-arrow');
+      });
+      var old=row.querySelector('.r4b-fixed-arrow');
+      if(old)old.remove();
+      return;
+    }
+
     row.classList.add('r4b-ecosystem-row');
     row.style.position='relative';
     row.style.opacity='1';
