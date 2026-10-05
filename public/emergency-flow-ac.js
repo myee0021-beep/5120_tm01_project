@@ -27,8 +27,8 @@ function progress(doc){
      var p=t((e.parentElement&&e.parentElement.textContent)||'');
      if(/Start|Identify|Action|Contact|Mula|Tindakan|Hubungi/i.test(p))e.style.display='none';
    }
-   if(/^Next:\s*(Prevention|Plan)$/i.test(s)||/^Seterusnya:\s*(Pencegahan|Pelan)$/i.test(s)){
-     e.textContent=isBM?'Seterusnya: Pelan':'Next: Plan';
+   if(/^Next:\s*(Prevention|Plan)(?:\s*[→›>])?$/i.test(s)||/^Seterusnya:\s*(Pencegahan|Pelan)(?:\s*[→›>])?$/i.test(s)){
+     e.textContent=(isBM?'Seterusnya: Pelan':'Next: Plan')+' →';
      if(!e.dataset.planFixed){
        e.dataset.planFixed='1';
        e.addEventListener('click',function(ev){
