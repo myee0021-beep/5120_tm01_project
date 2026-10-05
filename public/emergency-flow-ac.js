@@ -20,7 +20,7 @@ function patchText(doc){
 }
 function progress(doc){
  doc.querySelectorAll('a,button,[role="tab"],li,span').forEach(function(e){var s=t(e.textContent);if((s==='Prevention'||s==='Pencegahan')&&e.children.length<=2){var p=t((e.parentElement&&e.parentElement.textContent)||'');if(/Start|Identify|Action|Contact|Mula|Tindakan|Hubungi/i.test(p))e.style.display='none';}
- if(/^Next:\s*Prevention$/i.test(s)||/^Seterusnya:\s*Pencegahan$/i.test(s)){e.textContent='Next: Plan';if(!e.dataset.planFixed){e.dataset.planFixed='1';e.addEventListener('click',function(ev){ev.preventDefault();try{window.top.location.hash='#plan';}catch(_){}});}}});
+ if(/^Next:\s*Prevention$/i.test(s)||/^Seterusnya:\s*Pencegahan$/i.test(s)){e.textContent=/^Seterusnya:/i.test(s)?'Seterusnya: Pelan':'Next: Plan';if(!e.dataset.planFixed){e.dataset.planFixed='1';e.addEventListener('click',function(ev){ev.preventDefault();try{window.top.location.hash='#plan';}catch(_){}});}}});
 }
 function notSure(doc){
  doc.querySelectorAll('a,button,[role="button"]').forEach(function(e){
