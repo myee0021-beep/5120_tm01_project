@@ -83,10 +83,10 @@ class HomeCopyText {
       ['Safety steps first, then keep it findable and know who to call.','Snake question first. Then the safe steps, keep it findable, and who to call.'],
       ['A few questions about your home, then a practical plan with a source on every line.','Five questions about your home. Three counted signals for each animal and a plan with a source on every line.'],
       ['Explore the ecosystem map, then choose a state to see what is recorded there.','See which of the seven are recorded in that state and what each is drawn to, before you unpack.'],
-      ['See the ecosystem map','See what lives there →'],
-      ['See what lives there','See what lives there →'],
-      ['Open Emergency','Open Emergency →'],
-      ['Start my plan','Start my plan →'],
+      ['See the ecosystem map','See what lives there'],
+      ['See what lives there','See what lives there'],
+      ['Open Emergency','Open Emergency'],
+      ['Start my plan','Start my plan'],
       ['Open data: PERHILITAN, APM, GBIF occurrence records, IUCN, GRIIS, Global Forest Watch.','Open data: PERHILITAN, GBIF occurrence records, IUCN, GRIIS Malaysia. About the data · Monash FIT5120 · TM01'],
       ['Lihat peta ekosistem','Lihat apa yang hidup di sana']
     ]);
