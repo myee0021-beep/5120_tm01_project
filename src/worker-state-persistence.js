@@ -51,7 +51,56 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/print-selected-actions.js?v=20260915-1759"></script>
 <script src="/print-ac-fixes.js?v=20260916-1"></script>
 <script src="/emergency-flow-ac.js?v=20260915-1759"></script>
-<script src="/about-ai-routes.js?v=20260914-1"></script>`;
+<script src="/about-ai-routes.js?v=20260914-1"></script>
+<style id="ecosystem-related-links-unified">
+.r4b-ecosystem-related-link{
+  transition:background-color .15s ease;
+}
+.r4b-ecosystem-related-link:hover{
+  background:rgba(20,83,45,.04);
+}
+.r4b-ecosystem-related-link .r4b-ecosystem-arrow{
+  color:#14532d !important;
+  opacity:1 !important;
+  font-weight:700 !important;
+}
+</style>
+<script id="ecosystem-related-links-unifier">
+(function(){
+  'use strict';
+  var TITLES=['Wildlife forecast','Red List and status','Is it invasive?'];
+
+  function currentPage(){
+    return String(location.hash||'').replace(/^#/,'').split('?')[0] || String(location.pathname||'').replace(/^\//,'').replace(/\.html$/,'');
+  }
+
+  function run(){
+    if(currentPage()!=='ecosystem')return;
+
+    TITLES.forEach(function(title){
+      var titleEl=Array.prototype.find.call(document.querySelectorAll('h1,h2,h3,h4,p,span,div'),function(el){
+        return el.children.length===0 && String(el.textContent||'').trim()===title;
+      });
+      if(!titleEl)return;
+
+      var row=titleEl.closest('a,button,[role="link"]') || titleEl.parentElement;
+      if(!row)return;
+      row.classList.add('r4b-ecosystem-related-link');
+
+      var candidates=Array.from(row.querySelectorAll('svg,span,i'));
+      var arrow=candidates.find(function(el){
+        var t=String(el.textContent||'').trim();
+        return t==='→'||t==='›'||t==='>'||el.tagName.toLowerCase()==='svg';
+      });
+      if(arrow)arrow.classList.add('r4b-ecosystem-arrow');
+    });
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+  window.addEventListener('hashchange',function(){setTimeout(run,40);});
+  document.addEventListener('roomforboth:pageshow',function(){setTimeout(run,40);});
+})();
+</script>`;
 
 const ITERATION3_HEAD = String.raw`<script src="/community-api.js?v=20261004-2"></script>`;
 class HeadInjector{element(el){el.append(ITERATION3_HEAD,{html:true});}}
