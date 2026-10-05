@@ -53,23 +53,16 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/emergency-flow-ac.js?v=20260915-1759"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>
 <style id="ecosystem-related-links-unified">
-.r4b-ecosystem-related-link{
-  position:relative!important;
-  padding-right:56px!important;
-}
-.r4b-ecosystem-related-link .r4b-native-arrow{
-  display:none!important;
-  opacity:0!important;
-  visibility:hidden!important;
-}
-.r4b-ecosystem-related-link .r4b-ecosystem-arrow{
+.r4b-ecosystem-card{position:relative!important}
+.r4b-overlay-arrow{
   position:absolute!important;
-  right:18px!important;
-  top:50%!important;
+  right:28px!important;
   transform:translateY(-50%)!important;
-  display:block!important;
   width:18px!important;
   height:18px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
   color:#166534!important;
   opacity:1!important;
   visibility:visible!important;
@@ -77,6 +70,11 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   line-height:18px!important;
   font-weight:400!important;
   pointer-events:none!important;
+  z-index:20!important;
+}
+.r4b-hide-native-arrow{
+  opacity:0!important;
+  visibility:hidden!important;
 }
 </style>
 <script id="ecosystem-related-links-unifier">
@@ -85,100 +83,76 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   var TITLES=['Wildlife forecast','Red List and status','Is it invasive?'];
   var observer=null;
 
-  function currentPage(){
+  function page(){
     return String(location.hash||'').replace(/^#/,'').split('?')[0] ||
       String(location.pathname||'').replace(/^\//,'').replace(/\.html$/,'');
   }
-
-  function findTitle(title){
-    return Array.prototype.find.call(
-      document.querySelectorAll('h1,h2,h3,h4,p,span,div,strong'),
-      function(el){
-        return el.children.length===0 && String(el.textContent||'').trim()===title;
-      }
-    );
+  function leafByText(text){
+    return Array.prototype.find.call(document.querySelectorAll('h1,h2,h3,h4,p,span,div,strong'),function(el){
+      return el.children.length===0 && String(el.textContent||'').trim()===text;
+    });
   }
-
-  function isArrowElement(el){
-    if(!el||el.classList&&el.classList.contains('r4b-ecosystem-arrow'))return false;
+  function findCard(){
+    var head=leafByText('ALSO IN ECOSYSTEM')||leafByText('Also in Ecosystem');
+    if(!head)return null;
+    var el=head;
+    for(var i=0;i<8&&el;i++,el=el.parentElement){
+      if(!el.getBoundingClientRect)continue;
+      var r=el.getBoundingClientRect();
+      if(r.width>900&&r.height>250&&r.height<700)return el;
+    }
+    return head.parentElement;
+  }
+  function isArrowLike(el){
+    if(!el||el.classList&&el.classList.contains('r4b-overlay-arrow'))return false;
     var t=String(el.textContent||'').replace(/\s+/g,'').trim();
     var cls=String((el.className&&el.className.baseVal)||el.className||'');
     return t==='→'||t==='›'||t==='>'||t==='❯'||t==='➜'||
       el.tagName.toLowerCase()==='svg'||/arrow|chevron/i.test(cls);
   }
-
-  function findFullRow(titleEl){
-    var el=titleEl;
-    for(var i=0;i<8&&el;i++,el=el.parentElement){
-      if(!el.getBoundingClientRect)continue;
-      var r=el.getBoundingClientRect();
-      var titleRect=titleEl.getBoundingClientRect();
-      var wide=r.width>Math.max(500,titleRect.width*2.2);
-      var sensibleHeight=r.height>=55&&r.height<=180;
-      var containsArrow=Array.from(el.querySelectorAll('svg,span,i,button,a')).some(isArrowElement);
-      if(wide&&sensibleHeight&&containsArrow)return el.closest('a,button,[role="link"]')||el;
-    }
-    el=titleEl;
-    for(var j=0;j<8&&el;j++,el=el.parentElement){
-      if(!el.getBoundingClientRect)continue;
-      var rr=el.getBoundingClientRect();
-      if(rr.width>500&&rr.height>=55&&rr.height<=180)return el.closest('a,button,[role="link"]')||el;
-    }
-    return titleEl.parentElement;
-  }
-
-  function hideRightSideNativeArrows(row){
-    if(!row||!row.getBoundingClientRect)return;
-    var rr=row.getBoundingClientRect();
-    Array.from(row.querySelectorAll('*')).forEach(function(el){
-      if(el.classList&&el.classList.contains('r4b-ecosystem-arrow'))return;
+  function hideNative(card){
+    var cr=card.getBoundingClientRect();
+    Array.from(card.querySelectorAll('*')).forEach(function(el){
+      if(el.classList&&el.classList.contains('r4b-overlay-arrow'))return;
       if(!el.getBoundingClientRect)return;
-      var er=el.getBoundingClientRect();
-      var nearRight=er.left>rr.right-90;
-      var small=er.width<=48&&er.height<=48;
-      if(isArrowElement(el)||(nearRight&&small&&String(el.textContent||'').trim().length<=2)){
-        el.classList.add('r4b-native-arrow');
-      }
+      var r=el.getBoundingClientRect();
+      var nearRight=r.left>cr.right-120;
+      if(nearRight&&isArrowLike(el))el.classList.add('r4b-hide-native-arrow');
     });
   }
-
-  function normalizeRow(title){
-    var titleEl=findTitle(title); if(!titleEl)return;
-    var row=findFullRow(titleEl); if(!row)return;
-
-    row.classList.add('r4b-ecosystem-related-link');
-    row.style.position='relative';
-    row.style.opacity='1';
-
-    hideRightSideNativeArrows(row);
-
-    var arrow=row.querySelector('.r4b-ecosystem-arrow');
+  function ensureOverlay(card,title,index){
+    var titleEl=leafByText(title);if(!titleEl)return;
+    var cr=card.getBoundingClientRect();
+    var tr=titleEl.getBoundingClientRect();
+    var centerY=(tr.top+tr.height/2)-cr.top;
+    var id='r4b-overlay-arrow-'+index;
+    var arrow=card.querySelector('#'+id);
     if(!arrow){
       arrow=document.createElement('span');
-      arrow.className='r4b-ecosystem-arrow';
+      arrow.id=id;
+      arrow.className='r4b-overlay-arrow';
       arrow.setAttribute('aria-hidden','true');
       arrow.textContent='→';
-      row.appendChild(arrow);
+      card.appendChild(arrow);
     }
+    arrow.style.top=centerY+'px';
   }
-
   function run(){
-    if(currentPage()!=='ecosystem')return;
-    TITLES.forEach(normalizeRow);
+    if(page()!=='ecosystem')return;
+    var card=findCard();if(!card)return;
+    card.classList.add('r4b-ecosystem-card');
+    hideNative(card);
+    TITLES.forEach(function(t,i){ensureOverlay(card,t,i);});
   }
-
   function boot(){
-    run();
-    setTimeout(run,80);
-    setTimeout(run,250);
-    setTimeout(run,700);
+    run();setTimeout(run,80);setTimeout(run,250);setTimeout(run,700);
     if(observer)observer.disconnect();
     observer=new MutationObserver(function(){setTimeout(run,0);});
     observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden']});
   }
-
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('hashchange',function(){setTimeout(boot,40);});
+  window.addEventListener('resize',function(){setTimeout(run,40);});
   document.addEventListener('roomforboth:pageshow',function(){setTimeout(boot,40);});
 })();
 </script>`;
