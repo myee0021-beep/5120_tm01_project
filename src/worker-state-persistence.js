@@ -61,6 +61,31 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   visibility:visible !important;
 }
 </style>
+<script id="ecosystem-arrow-shape-fix">
+(function(){
+  function fix(){
+    var root=document.getElementById('page-ecosystem');
+    if(!root)return;
+    var first=root.querySelector('a[href="ecosystem-forecast.html"] > svg');
+    var second=root.querySelector('a[href="ecosystem-redlist.html"] > svg');
+    if(!first||!second)return;
+    first.innerHTML=second.innerHTML;
+    for(var i=0;i<second.attributes.length;i++){
+      var a=second.attributes[i];
+      if(a.name==='class'||a.name==='style')continue;
+      first.setAttribute(a.name,a.value);
+    }
+    first.setAttribute('class',second.getAttribute('class')||'');
+    first.style.color='#166534';
+    first.style.opacity='1';
+    first.style.visibility='visible';
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(fix,0);},{once:true});else setTimeout(fix,0);
+  window.addEventListener('hashchange',function(){setTimeout(fix,50);});
+  document.addEventListener('roomforboth:pageshow',function(){setTimeout(fix,50);});
+  setTimeout(fix,200);
+})();
+</script>
 `;
 
 const ITERATION3_HEAD = String.raw`<script src="/community-api.js?v=20261004-2"></script>`;
