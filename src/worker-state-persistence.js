@@ -46,6 +46,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/plan-result-cleanup.js?v=20260914-1"></script>
 <script src="/plan-result-consistency.js?v=20260916-1"></script>
 <script src="/print-plan-recovery.js?v=20260915-2"></script>
+<script src="/print-species-consistency.js?v=20261005-1"></script>
 <script src="/ac-compliance.js?v=20260916-1"></script>
 <script src="/print-selected-actions.js?v=20260915-1759"></script>
 <script src="/print-ac-fixes.js?v=20260916-1"></script>
