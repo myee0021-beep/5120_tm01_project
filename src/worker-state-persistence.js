@@ -53,10 +53,19 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/emergency-flow-ac.js?v=20260915-1759"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>
 <style id="ecosystem-related-links-unified">
-.r4b-ecosystem-card{position:relative!important}
-.r4b-overlay-arrow{
+.r4b-ecosystem-row{
+  position:relative!important;
+  padding-right:56px!important;
+}
+.r4b-ecosystem-row .r4b-native-arrow{
+  display:none!important;
+  opacity:0!important;
+  visibility:hidden!important;
+}
+.r4b-ecosystem-row .r4b-fixed-arrow{
   position:absolute!important;
-  right:28px!important;
+  right:18px!important;
+  top:50%!important;
   transform:translateY(-50%)!important;
   width:18px!important;
   height:18px!important;
@@ -70,11 +79,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
   line-height:18px!important;
   font-weight:400!important;
   pointer-events:none!important;
-  z-index:20!important;
-}
-.r4b-hide-native-arrow{
-  opacity:0!important;
-  visibility:hidden!important;
+  z-index:50!important;
 }
 </style>
 <script id="ecosystem-related-links-unifier">
@@ -87,12 +92,15 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
     return String(location.hash||'').replace(/^#/,'').split('?')[0] ||
       String(location.pathname||'').replace(/^\//,'').replace(/\.html$/,'');
   }
+
   function leafByText(text){
-    return Array.prototype.find.call(document.querySelectorAll('h1,h2,h3,h4,p,span,div,strong'),function(el){
-      return el.children.length===0 && String(el.textContent||'').trim()===text;
-    });
+    return Array.prototype.find.call(
+      document.querySelectorAll('h1,h2,h3,h4,p,span,div,strong'),
+      function(el){return el.children.length===0 && String(el.textContent||'').trim()===text;}
+    );
   }
-  function findCard(){
+
+  function findSection(){
     var head=leafByText('ALSO IN ECOSYSTEM')||leafByText('Also in Ecosystem');
     if(!head)return null;
     var el=head;
@@ -103,53 +111,63 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
     }
     return head.parentElement;
   }
+
+  function findRow(titleEl,section){
+    var sr=section.getBoundingClientRect();
+    var el=titleEl;
+    for(var i=0;i<8&&el&&el!==section;i++,el=el.parentElement){
+      if(!el.getBoundingClientRect)continue;
+      var r=el.getBoundingClientRect();
+      var wide=r.width>=sr.width*0.75;
+      var rowHeight=r.height>=70&&r.height<=180;
+      if(wide&&rowHeight)return el;
+    }
+    return titleEl.parentElement;
+  }
+
   function isArrowLike(el){
-    if(!el||el.classList&&el.classList.contains('r4b-overlay-arrow'))return false;
+    if(!el||el.classList&&el.classList.contains('r4b-fixed-arrow'))return false;
     var t=String(el.textContent||'').replace(/\s+/g,'').trim();
     var cls=String((el.className&&el.className.baseVal)||el.className||'');
     return t==='→'||t==='›'||t==='>'||t==='❯'||t==='➜'||
       el.tagName.toLowerCase()==='svg'||/arrow|chevron/i.test(cls);
   }
-  function hideNative(card){
-    var cr=card.getBoundingClientRect();
-    Array.from(card.querySelectorAll('*')).forEach(function(el){
-      if(el.classList&&el.classList.contains('r4b-overlay-arrow'))return;
-      if(!el.getBoundingClientRect)return;
-      var r=el.getBoundingClientRect();
-      var nearRight=r.left>cr.right-120;
-      if(nearRight&&isArrowLike(el))el.classList.add('r4b-hide-native-arrow');
-    });
-  }
-  function ensureOverlay(card,title,index){
+
+  function normalizeRow(title,section){
     var titleEl=leafByText(title);if(!titleEl)return;
-    var cr=card.getBoundingClientRect();
-    var tr=titleEl.getBoundingClientRect();
-    var centerY=(tr.top+tr.height/2)-cr.top;
-    var id='r4b-overlay-arrow-'+index;
-    var arrow=card.querySelector('#'+id);
+    var row=findRow(titleEl,section);if(!row)return;
+
+    row.classList.add('r4b-ecosystem-row');
+    row.style.position='relative';
+    row.style.opacity='1';
+
+    Array.from(row.querySelectorAll('*')).forEach(function(el){
+      if(isArrowLike(el))el.classList.add('r4b-native-arrow');
+    });
+
+    var arrow=row.querySelector('.r4b-fixed-arrow');
     if(!arrow){
       arrow=document.createElement('span');
-      arrow.id=id;
-      arrow.className='r4b-overlay-arrow';
+      arrow.className='r4b-fixed-arrow';
       arrow.setAttribute('aria-hidden','true');
       arrow.textContent='→';
-      card.appendChild(arrow);
+      row.appendChild(arrow);
     }
-    arrow.style.top=centerY+'px';
   }
+
   function run(){
     if(page()!=='ecosystem')return;
-    var card=findCard();if(!card)return;
-    card.classList.add('r4b-ecosystem-card');
-    hideNative(card);
-    TITLES.forEach(function(t,i){ensureOverlay(card,t,i);});
+    var section=findSection();if(!section)return;
+    TITLES.forEach(function(t){normalizeRow(t,section);});
   }
+
   function boot(){
     run();setTimeout(run,80);setTimeout(run,250);setTimeout(run,700);
     if(observer)observer.disconnect();
     observer=new MutationObserver(function(){setTimeout(run,0);});
     observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden']});
   }
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.addEventListener('hashchange',function(){setTimeout(boot,40);});
   window.addEventListener('resize',function(){setTimeout(run,40);});
