@@ -55,9 +55,20 @@ function notSure(doc){
    },true);
  });
 }
+
+function syncPlanCtaLanguage(doc){
+  try{
+    var bm=String((doc.documentElement&&doc.documentElement.lang)||'').toLowerCase()==='bm';
+    doc.querySelectorAll('span[data-en][data-plan-fixed],span[data-bm][data-plan-fixed]').forEach(function(s){
+      if(bm && s.hasAttribute('data-bm')) s.textContent='Seterusnya: Pelan';
+      if(!bm && s.hasAttribute('data-en')) s.textContent='Next: Plan';
+    });
+  }catch(_){}
+}
+
 function patch(doc){
  if(!doc||!doc.documentElement)return;
- patchText(doc);progress(doc);notSure(doc);
+ patchText(doc);progress(doc);syncPlanCtaLanguage(doc);notSure(doc);
  doc.querySelectorAll('iframe').forEach(function(f){
    try{patch(f.contentDocument);}catch(_){}
    if(!f.dataset.acBound){
