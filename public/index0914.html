@@ -961,6 +961,13 @@
       <a href="plan.html" class="group rounded-2xl border border-emerald-300 bg-emerald-300 p-7 transition-transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-950/10">
         <p class="text-sm font-bold text-[#0b130e]"><span data-en="">One keeps coming back</span><span data-bm="">Seekor haiwan terus kembali</span></p>
         <p class="mt-3 text-sm leading-relaxed text-[#1b4332]"><span data-en="">A few questions about your home, then a practical plan with a source on every line.</span><span data-bm="">Beberapa soalan tentang rumah anda, kemudian pelan praktikal dengan sumber pada setiap baris.</span></p>
+        <ol id="index__planQuestions" class="mt-4 space-y-1.5 text-xs text-[#0b130e]">
+          <li class="flex items-start gap-2"><span class="shrink-0 w-5 h-5 rounded-full bg-[#0b130e] text-emerald-300 text-[10px] font-bold flex items-center justify-center">1</span><span class="pt-0.5"><span data-en="">Which state you live in</span><span data-bm="">Negeri tempat anda tinggal</span></span></li>
+          <li class="flex items-start gap-2"><span class="shrink-0 w-5 h-5 rounded-full bg-[#0b130e] text-emerald-300 text-[10px] font-bold flex items-center justify-center">2</span><span class="pt-0.5"><span data-en="">Which animals you have seen</span><span data-bm="">Haiwan yang anda pernah lihat</span></span></li>
+          <li class="flex items-start gap-2"><span class="shrink-0 w-5 h-5 rounded-full bg-[#0b130e] text-emerald-300 text-[10px] font-bold flex items-center justify-center">3</span><span class="pt-0.5"><span data-en="">Food sources at your home</span><span data-bm="">Sumber makanan di rumah anda</span></span></li>
+          <li class="flex items-start gap-2"><span class="shrink-0 w-5 h-5 rounded-full bg-[#0b130e] text-emerald-300 text-[10px] font-bold flex items-center justify-center">4</span><span class="pt-0.5"><span data-en="">How your rubbish is stored</span><span data-bm="">Cara sampah anda disimpan</span></span></li>
+          <li class="flex items-start gap-2"><span class="shrink-0 w-5 h-5 rounded-full bg-[#0b130e] text-emerald-300 text-[10px] font-bold flex items-center justify-center">5</span><span class="pt-0.5"><span data-en="">Whether anyone nearby feeds wildlife</span><span data-bm="">Sama ada sesiapa berdekatan memberi makan haiwan liar</span></span></li>
+        </ol>
         <span class="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#0b130e]"><span data-en="">Start my plan</span><span data-bm="">Mulakan pelan saya</span><span aria-hidden="true">→</span></span>
       </a>
       <a href="ecosystem.html" class="group rounded-2xl border border-blue-100 bg-blue-50 p-7 transition-transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-950/10">
@@ -1524,6 +1531,8 @@
 <div class="flex flex-wrap gap-2" id="ecosystem__speciesPills"></div>
 <div class="relative mt-4" id="ecosystem__mapWrap">
 <div id="ecosystem__map"></div>
+<button class="hidden absolute top-2 right-2 z-[1000] inline-flex items-center gap-1.5 rounded-full bg-forest-950 hover:bg-black text-white text-xs font-semibold px-3.5 py-2 shadow-lg" id="ecosystem__mapNationalBtn" type="button"><span aria-hidden="true">←</span><span data-en="">Back to the national map</span><span data-bm="">Kembali ke peta kebangsaan</span></button>
+<div class="hidden absolute bottom-7 left-2 right-2 sm:right-auto sm:max-w-sm z-[1000] rounded-lg bg-white/95 border border-slate-200 px-3 py-2 text-[11px] leading-snug text-slate-600 shadow" id="ecosystem__clusterNote" role="status"></div>
 <div class="absolute bottom-1.5 left-2 text-[10px] text-slate-500 bg-white/70 px-1.5 py-0.5 rounded pointer-events-none">Leaflet · © OpenStreetMap contributors · records: GBIF extract</div>
 </div>
 <div class="mt-3 flex items-center gap-2 text-xs text-slate-500" id="ecosystem__mapLegend">
@@ -3927,7 +3936,7 @@ function initMap(statesGeoJson) {
   // every zoomend — panning alone doesn't change pixel distances, so no
   // moveend listener is needed. "Tap again to zoom in" only makes sense
   // against the cluster grouping it was armed on, so any zoom/drag clears it.
-  map.on('zoomend', function () { drawBubbles(lastByState); });
+  map.on('zoomend', function () { drawBubbles(lastByState); syncNationalBtn(); });
   map.on('zoomstart dragstart', function () { lastClickedClusterKey = null; });
 }
 
@@ -3988,6 +3997,19 @@ function drawBubbles(byState) {
           break;
         }
       }
+    }
+  }
+
+  // U2-4: say so whenever states are merged into one circle at this zoom.
+  var clusters = items.filter(function (it) { return it.keys.length > 1; });
+  var clusterNote = document.getElementById('ecosystem__clusterNote');
+  if (clusterNote) {
+    clusterNote.classList.toggle('hidden', !clusters.length);
+    if (clusters.length) {
+      var merged = clusters.reduce(function (n, it) { return n + it.keys.length; }, 0);
+      clusterNote.textContent = currentLang() === 'bm'
+        ? 'Pada zum ini, ' + merged + ' negeri berdekatan digabungkan menjadi ' + clusters.length + ' bulatan, dan nombornya ialah jumlah gabungan. Ketik bulatan untuk melihat setiap negeri, atau zum masuk untuk memisahkannya.'
+        : 'At this zoom, ' + merged + ' nearby states are merged into ' + clusters.length + (clusters.length === 1 ? ' circle' : ' circles') + ', and the number is their combined total. Tap a circle to see each state, or zoom in to split them.';
     }
   }
 
@@ -4092,7 +4114,16 @@ function backToNational() {
   renderAll();
   map.fitBounds(statesLayer.getBounds(), { padding: [8, 8] });
 }
+// U2-4: the way back to the national map sits on the map itself, shown
+// whenever a state is open or the map is zoomed in past the national view.
+function syncNationalBtn() {
+  var btn = document.getElementById('ecosystem__mapNationalBtn');
+  if (!btn || !map || !statesLayer) return;
+  var fitZoom = map.getBoundsZoom(statesLayer.getBounds(), false, L.point(16, 16));
+  btn.classList.toggle('hidden', !(selectedState || map.getZoom() > fitZoom));
+}
 document.getElementById('ecosystem__backToNationalBtn').addEventListener('click', backToNational);
+document.getElementById('ecosystem__mapNationalBtn').addEventListener('click', backToNational);
 document.getElementById('ecosystem__showAllStatesBtn').addEventListener('click', function () {
   showAllStates = true;
   renderList(currentFiltered());
@@ -4116,6 +4147,7 @@ function renderAll() {
   renderChart(filtered);
   renderList(filtered);
   renderStateActions();
+  syncNationalBtn();
   renderRecordCount(filtered);
   renderOpenSpeciesPageBtn();
 }
