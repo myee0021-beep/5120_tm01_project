@@ -40,16 +40,15 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 })();
 </script>
 <script src="/plan-db-client.js?v=20261006-1"></script>
-<script src="/plan-snapshot-sync.js?v=20260914-1"></script>
 <script src="/home-live-data.js?v=20260915-4"></script>
 <script src="/plan-ai-summary.js?v=20261006-1"></script>
 <script src="/plan-result-cleanup.js?v=20260914-1"></script>
-<script src="/plan-result-consistency.js?v=20261006-1"></script>
+<script src="/plan-result-consistency.js?v=20261006-2"></script>
 <script src="/print-plan-recovery.js?v=20261006-1"></script>
-<script src="/ac-compliance.js?v=20261006-2"></script>
+<script src="/ac-compliance.js?v=20261006-3"></script>
 <script src="/plan-print-sheet.js?v=20261006-2"></script>
 <script src="/print-ac-fixes.js?v=20260916-1"></script>
-<script src="/emergency-flow-ac.js?v=20261006-2"></script>
+<script src="/emergency-flow-ac.js?v=20261006-3"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>
 <style id="ecosystem-native-arrow-style">
 #page-ecosystem a[href="ecosystem-forecast.html"] > svg,
@@ -91,44 +90,6 @@ const ITERATION3_HEAD = String.raw`<script src="/community-api.js?v=20261004-2">
 class HeadInjector{element(el){el.append(ITERATION3_HEAD,{html:true});}}
 class BodyInjector{element(el){el.append(STATE_PERSISTENCE_CLIENT,{html:true});}}
 
-class HomeHeroContainerShift {
-  element(el) {
-    const current = el.getAttribute('style') || '';
-    el.setAttribute('style', current + ';transform:translateX(76px) !important;');
-  }
-}
-
-class FooterPlaceholderLinkHider {
-  element(el) {
-    el.setAttribute('style', 'display:none !important;');
-    el.setAttribute('aria-hidden', 'true');
-    el.setAttribute('tabindex', '-1');
-  }
-}
-
-class HomeCopyText {
-  text(chunk) {
-    const replacements = new Map([
-      ['Coexistence planning for Malaysian homes','SDG 15 · LIFE ON LAND · COEXISTENCE PLANNING'],
-      ['SDG 15 · Life on Land · Coexistence planning','SDG 15 · LIFE ON LAND · COEXISTENCE PLANNING'],
-      ['Perancangan kewujudan bersama untuk rumah di Malaysia','SDG 15 · Kehidupan di Darat · Perancangan kewujudan bersama'],
-      ['Clear, practical next steps for people and wildlife to share space safely.','Seven animals, sixteen states, every figure from a public record. Nothing here tells you to catch, trap or harm an animal.'],
-      ['Langkah seterusnya yang jelas dan praktikal agar manusia serta hidupan liar dapat berkongsi ruang dengan selamat.','Tujuh haiwan, enam belas negeri, setiap angka daripada rekod awam. Tiada apa-apa di sini yang menyuruh anda menangkap, memerangkap atau mencederakan haiwan.'],
-      ['Safety steps first, then keep it findable and know who to call.','Snake question first. Then the safe steps, keep it findable, and who to call.'],
-      ['A few questions about your home, then a practical plan with a source on every line.','Five questions about your home. Three counted signals for each animal and a plan with a source on every line.'],
-      ['Explore the ecosystem map, then choose a state to see what is recorded there.','See which of the seven are recorded in that state and what each is drawn to, before you unpack.'],
-      ['See the ecosystem map','See what lives there'],
-      ['See what lives there','See what lives there'],
-      ['Open Emergency','Open Emergency'],
-      ['Start my plan','Start my plan'],
-      ['Open data: PERHILITAN, APM, GBIF occurrence records, IUCN, GRIIS, Global Forest Watch.','Open data: PERHILITAN, GBIF occurrence records, IUCN, GRIIS Malaysia. About the data · Monash FIT5120 · TM01'],
-      ['Lihat peta ekosistem','Lihat apa yang hidup di sana']
-    ]);
-    const next = replacements.get(chunk.text);
-    if (next) chunk.replace(next);
-  }
-}
-
 export default{
   async fetch(request,env,ctx){
     const url=new URL(request.url);
@@ -144,10 +105,6 @@ export default{
     return new HTMLRewriter()
       .on('head',new HeadInjector())
       .on('body',new BodyInjector())
-      .on('div.relative.z-20.max-w-5xl.mx-auto.px-6.text-left',new HomeHeroContainerShift())
-      .on('footer a[href="#"]',new FooterPlaceholderLinkHider())
-      .on('span[data-en]',new HomeCopyText())
-      .on('span[data-bm]',new HomeCopyText())
       .transform(response);
   }
 };

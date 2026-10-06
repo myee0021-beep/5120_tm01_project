@@ -1,7 +1,6 @@
 (function(){
   'use strict';
 
-  var SNAPSHOT_KEY = 'roomForBoth.currentPlanSnapshot';
   var timer = null;
   var attractantsChecked = false;
 
@@ -14,13 +13,6 @@
     try { if(!l) l = String(localStorage.getItem('owm-lang') || '').toLowerCase(); } catch(e) {}
     return (l === 'bm' || l === 'ms') ? 'bm' : 'en';
   }
-  function hashText(text){
-    var h=2166136261;
-    text=String(text||'');
-    for(var i=0;i<text.length;i++){ h^=text.charCodeAt(i); h=Math.imul(h,16777619); }
-    return (h>>>0).toString(16);
-  }
-
   function replaceVisibleText(root, replacements){
     root = root || document.body;
     if(!root) return;
@@ -55,11 +47,8 @@
 
   function applyDataCorrections(){
     replaceVisibleText(document.body, [
-      ['5,807', '5,153'],
       ['1960 to 2026', '1860 to 2026'],
-      ['1960 hingga 2026', '1860 hingga 2026'],
-      [' and now fines feeding birds up to RM2,000', ''],
-      [' dan kini mendenda pemberian makanan sehingga RM2,000', '']
+      ['1960 hingga 2026', '1860 hingga 2026']
     ]);
   }
 
@@ -138,34 +127,6 @@
     });
   }
 
-  function removeIteration3Leakage(){
-    document.querySelectorAll('a[href*="community-how-review-works"]').forEach(function(a){
-      var t=clean(a.textContent).toLowerCase();
-      if(t.indexOf('read reports')!==-1 || t.indexOf('baca laporan')!==-1){
-        var card=a.closest('.reveal, .card, [class*="rounded-2xl"]');
-        if(card) card.style.display='none'; else a.style.display='none';
-      }
-      if(t.indexOf('share what turned up')!==-1 || t.indexOf('kongsi apa yang muncul')!==-1 || t.indexOf('community: report a sighting')!==-1){
-        a.style.display='none';
-      }
-    });
-
-    var speciesCommunity=document.getElementById('species__communityLink');
-    if(speciesCommunity) speciesCommunity.style.display='none';
-
-    replaceVisibleText(document.body,[
-      ['Structured, anonymous reports from your district: what turned up, what worked, invasive species seen.',''],
-      ['Laporan berstruktur dan tanpa nama daripada daerah anda: apa yang muncul, apa yang berkesan, spesies invasif dilihat.',''],
-      ['before you file an invasive sighting in Community, so the sighting means something.',''],
-      ['sebelum anda memfailkan penampakan invasif di Komuniti, supaya laporan itu bermakna.',''],
-      ['Share what turned up (Community)',''],
-      ['Share what turned up',''],
-      ['Community: report a sighting so it goes on record',''],
-      ['Kongsi apa yang muncul',''],
-      ['Komuniti: laporkan penampakan supaya ia direkodkan','']
-    ]);
-  }
-
   function sourcedAndVerified(row){
     if(!row) return false;
     var source = clean(row.source_url || row.reference_url || row.url || row.source || row.source_institution || row.source_name);
@@ -224,122 +185,6 @@
         setPetFoodVisible(valid);
       })
       .catch(function(){ setPetFoodVisible(false); });
-  }
-
-  function readSnapshot(){
-    try { return JSON.parse(sessionStorage.getItem(SNAPSHOT_KEY) || 'null'); }
-    catch(e){ return null; }
-  }
-
-  function ensurePrintInteractionStyle(){
-    if(document.getElementById('i2-print-action-style')) return;
-    var style = document.createElement('style');
-    style.id = 'i2-print-action-style';
-    style.textContent = [
-      '#plan-print__sheetActions .action-row{display:flex;align-items:flex-start;gap:10px}',
-      '#plan-print__sheetActions .print-action-check{width:20px;height:20px;min-width:20px;margin-top:3px;cursor:pointer;accent-color:#166534;pointer-events:auto!important}',
-      '#plan-print__sheetActions .action-main{min-width:0;line-height:1.5}',
-      '#plan-print__sheetActions .action-meta{font-size:10px;color:#94a3b8;margin-left:5px;white-space:normal}',
-      '#plan-print__sheetActions .action-meta a{color:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer;pointer-events:auto!important}',
-      '#plan-print__sheetActions .action-meta a:hover{color:#047857}',
-      '@media print{#plan-print__sheetActions .print-action-check{cursor:default}.action-meta{font-size:8.5pt!important;color:#64748b!important}.action-meta a{text-decoration:none!important;color:#64748b!important}}'
-    ].join('');
-    document.head.appendChild(style);
-  }
-
-  function renderPrintFromSnapshot(){
-    if(currentPage() !== 'plan-print') return;
-    var actionsWrap = document.getElementById('plan-print__sheetActions');
-    var speciesWrap = document.getElementById('plan-print__sheetSpecies');
-    if(!actionsWrap || !speciesWrap) return;
-
-    ensurePrintInteractionStyle();
-
-    var snapshot = readSnapshot();
-    var fingerprint = hashText(JSON.stringify(snapshot || null));
-    if(actionsWrap.getAttribute('data-snapshot-fingerprint') === fingerprint) return;
-    actionsWrap.setAttribute('data-snapshot-fingerprint', fingerprint);
-
-    actionsWrap.innerHTML = '';
-    speciesWrap.innerHTML = '';
-
-    var stateEl = document.getElementById('plan-print__sheetState');
-    var summaryEl = document.getElementById('plan-print__sheetSummary');
-    var emergencyHeading = document.getElementById('plan-print__sheetEmergencyHeading');
-    var emergencyLine = document.getElementById('plan-print__sheetEmergencyLine');
-
-    if(!snapshot || !Array.isArray(snapshot.actions)){
-      if(stateEl) stateEl.textContent = '—';
-      if(summaryEl) summaryEl.textContent = currentLanguage()==='bm'
-        ? 'Kembali ke pelan dan jana pelan sebelum mencetak.'
-        : 'Return to the plan and generate it before printing.';
-      if(emergencyHeading) emergencyHeading.parentElement.style.display = 'none';
-      return;
-    }
-
-    if(stateEl) stateEl.textContent = clean(snapshot.stateLabel || snapshot.state) || '—';
-    if(summaryEl) summaryEl.textContent = clean(snapshot.summaryLine);
-
-    if(snapshot.signalsText){
-      var signal = document.createElement('div');
-      signal.className = 'text-xs text-slate-700 whitespace-pre-line leading-relaxed';
-      signal.textContent = snapshot.signalsText;
-      speciesWrap.appendChild(signal);
-    }
-
-    if(snapshot.seasonText){
-      var season = document.createElement('div');
-      season.className = 'mt-2 text-xs text-slate-500 whitespace-pre-line leading-relaxed';
-      season.textContent = snapshot.seasonText;
-      speciesWrap.appendChild(season);
-    }
-
-    snapshot.actions.forEach(function(a){
-      var text = clean(a.action_text);
-      var sourceUrl = clean(a.source_url);
-      var source = clean(a.source_person || a.source_institution || sourceUrl);
-      if(a.source_person && a.source_institution && clean(a.source_person)!==clean(a.source_institution)){
-        source = clean(a.source_person) + ' · ' + clean(a.source_institution);
-      }
-      var verified = plainDate(a.date_verified);
-      if(!text || !source || !verified) return;
-
-      var row = document.createElement('div');
-      row.className = 'action-row';
-      row.setAttribute('data-print-prevention-id', clean(a.prevention_id));
-
-      var checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.className = 'print-action-check';
-      checkbox.setAttribute('aria-label', text);
-
-      var main = document.createElement('span');
-      main.className = 'action-main';
-      main.appendChild(document.createTextNode(text));
-
-      var meta = document.createElement('span');
-      meta.className = 'action-meta';
-      if(sourceUrl){
-        var link = document.createElement('a');
-        link.href = sourceUrl;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.textContent = source;
-        link.addEventListener('click', function(e){ e.stopPropagation(); });
-        meta.appendChild(link);
-      }else{
-        meta.appendChild(document.createTextNode(source));
-      }
-      meta.appendChild(document.createTextNode(' · ' + verified));
-      main.appendChild(meta);
-
-      row.appendChild(checkbox);
-      row.appendChild(main);
-      actionsWrap.appendChild(row);
-    });
-
-    if(emergencyHeading && emergencyHeading.parentElement) emergencyHeading.parentElement.style.display = 'none';
-    if(emergencyLine) emergencyLine.textContent = '';
   }
 
   function ensureNeighbourPrintButton(){

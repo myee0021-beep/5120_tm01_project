@@ -11,9 +11,14 @@ const TABLES={
   failures:['search_failure_log','search_failures','search_failure','lookup_failure_log','lookup_failures','lookup_failure','failure_log','failed_lookup','failed_search','search_log']
 };
 const safeIdent=s=>/^[a-z_][a-z0-9_]*$/i.test(s||'');
-async function existingTables(sql){const rows=await sql`SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_name`;return rows.map(r=>r.table_name)}
+// The schema rarely changes, so table and column lookups are cached per
+// Worker isolate instead of hitting information_schema on every request.
+const SCHEMA_TTL_MS=10*60*1000;
+const schemaCache=new Map();
+async function cachedSchema(key,load){const hit=schemaCache.get(key);if(hit&&Date.now()-hit.at<SCHEMA_TTL_MS)return hit.value;const value=await load();schemaCache.set(key,{at:Date.now(),value});return value}
+async function existingTables(sql){return cachedSchema('tables',async()=>{const rows=await sql`SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_name`;return rows.map(r=>r.table_name)})}
 function choose(existing,candidates,pattern){const exact=candidates.find(x=>existing.includes(x));if(exact)return exact;if(pattern){const fuzzy=existing.find(x=>pattern.test(x));if(fuzzy)return fuzzy}return null}
-async function columns(sql,table){if(!table)return[];return (await sql`SELECT column_name,data_type,is_nullable,column_default FROM information_schema.columns WHERE table_schema='public' AND table_name=${table} ORDER BY ordinal_position`).map(r=>r)}
+async function columns(sql,table){if(!table)return[];return cachedSchema('columns:'+table,async()=>(await sql`SELECT column_name,data_type,is_nullable,column_default FROM information_schema.columns WHERE table_schema='public' AND table_name=${table} ORDER BY ordinal_position`).map(r=>r))}
 async function rowsFrom(sql,table,limit=5000){if(!table||!safeIdent(table))return[];const q=`SELECT to_jsonb(t) AS row FROM public."${table}" t LIMIT $1`;const rows=await sql.query(q,[limit]);return rows.map(x=>x.row)}
 function norm(v){return String(v??'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
 function pick(row,keys){for(const k of keys)if(row&&row[k]!=null&&row[k]!=='')return row[k];return null}
@@ -220,7 +225,10 @@ async function buildPlan(sql,found,payload={}){
 }
 async function insertFailure(sql,table,payload){if(!table||!safeIdent(table))return {logged:false,reason:'failure_table_not_found'};const cols=await columns(sql,table);const names=new Set(cols.map(c=>c.column_name));const values=[];const outCols=[];const add=(aliases,val)=>{const c=aliases.find(x=>names.has(x));if(c&&val!=null){outCols.push(c);values.push(val)}};add(['kind','lookup_kind','event_type','type'],String(payload.kind||'lookup').slice(0,80));add(['query_text','query','search_term','term','lookup_value'],String(payload.query||'').slice(0,200));add(['failure_reason','reason','error','status'],String(payload.reason||'no_match').slice(0,120));add(['page','route','path'],String(payload.page||payload.route||'').slice(0,160));if(!outCols.length){try{await sql.query(`INSERT INTO public."${table}" DEFAULT VALUES`);return {logged:true,table,columns:[]}}catch(e){return {logged:false,table,error:e.message}}}const quoted=outCols.map(c=>`"${c}"`).join(',');const params=values.map((_,i)=>`$${i+1}`).join(',');try{await sql.query(`INSERT INTO public."${table}" (${quoted}) VALUES (${params})`,values);return {logged:true,table,columns:outCols}}catch(e){return {logged:false,table,error:e.message}}}
 async function api(request,env){
-  const url=new URL(request.url);const sql=getSql(env);const existing=await existingTables(sql);
+  const url=new URL(request.url);
+  // Pages and static files never need the database.
+  if(!url.pathname.startsWith('/api/'))return null;
+  const sql=getSql(env);const existing=await existingTables(sql);
   const found={
     complaints:choose(existing,TABLES.complaints,/complain/i),
     attractants:choose(existing,TABLES.attractants,/attract/i),

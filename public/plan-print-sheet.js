@@ -1,7 +1,7 @@
 // The one renderer for the A4 "Print my plan" sheet (#page-plan-print).
 //
 // It replaces the print rendering that used to be split across
-// ac-compliance.js, print-selected-actions.js and print-species-consistency.js:
+// ac-compliance.js and two print-* scripts that have since been removed:
 //  - U2-2  follows the site language and re-renders on every EN/BM switch.
 //  - U2-3  prints exactly the actions on the plan screen, in the same order,
 //          with empty tick boxes (only actions ticked on screen print ticked).
