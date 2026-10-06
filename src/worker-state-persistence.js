@@ -46,7 +46,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/plan-result-consistency.js?v=20261006-2"></script>
 <script src="/print-plan-recovery.js?v=20261006-1"></script>
 <script src="/ac-compliance.js?v=20261006-3"></script>
-<script src="/plan-print-sheet.js?v=20261006-2"></script>
+<script src="/plan-print-sheet.js?v=20261007-1"></script>
 <script src="/print-ac-fixes.js?v=20260916-1"></script>
 <script src="/emergency-flow-ac.js?v=20261006-3"></script>
 <script src="/about-ai-routes.js?v=20260914-1"></script>

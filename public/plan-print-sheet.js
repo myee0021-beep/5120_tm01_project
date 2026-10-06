@@ -23,11 +23,11 @@
     cobra:{en:'Equatorial Spitting Cobra',bm:'Ular Senduk Sembur'}
   };
   var T={
-    en:{printed:'Printed: ',reports:'reports in your state',complaints:'complaints to PERHILITAN in ',noComplaints:'no published complaint figure',draws:'things at your home draw it in',draws1:'thing at your home draws it in',
-        recordNote:'One record is one report, not one animal.',sources:'Sources',verified:'verified ',noPlan:'Return to the plan and generate it before printing.',
+    en:{printed:'Printed: ',reports:'records in your state',complaints:'complaints to PERHILITAN, ',noComplaints:'no figure in PERHILITAN\'s 2020 complaint table',draws:'things at your home that attract it',draws1:'thing at your home that attracts it',
+        recordNote:'One record is one report by a person, not one animal.',complaintNote:function(y){return 'Complaints made in '+y+', not animals.';},sources:'Sources',verified:'verified ',noPlan:'Return to the plan and generate it before printing.',
         noSpecies:'No animal was picked in the questions, so there are no counts to show.',tick:'Tick when done',level:'combined level',bands:{low:'Low',medium:'Medium',high:'High'}},
-    bm:{printed:'Dicetak: ',reports:'laporan di negeri anda',complaints:'aduan kepada PERHILITAN pada ',noComplaints:'tiada angka aduan diterbitkan',draws:'perkara di rumah anda menariknya',draws1:'perkara di rumah anda menariknya',
-        recordNote:'Satu rekod ialah satu laporan, bukan seekor haiwan.',sources:'Sumber',verified:'disahkan ',noPlan:'Kembali ke pelan dan jana pelan sebelum mencetak.',
+    bm:{printed:'Dicetak: ',reports:'rekod di negeri anda',complaints:'aduan kepada PERHILITAN, ',noComplaints:'tiada angka dalam jadual aduan PERHILITAN 2020',draws:'perkara di rumah anda yang menariknya',draws1:'perkara di rumah anda yang menariknya',
+        recordNote:'Satu rekod ialah satu laporan oleh seseorang, bukan seekor haiwan.',complaintNote:function(y){return 'Aduan yang dibuat pada '+y+', bukan haiwan.';},sources:'Sumber',verified:'disahkan ',noPlan:'Kembali ke pelan dan jana pelan sebelum mencetak.',
         noSpecies:'Tiada haiwan dipilih dalam soalan, jadi tiada kiraan untuk ditunjukkan.',tick:'Tandakan apabila selesai',level:'tahap gabungan',bands:{low:'Rendah',medium:'Sederhana',high:'Tinggi'}}
   };
   var fetched={};   // lang -> actions fetched in that language
@@ -65,7 +65,7 @@
       '#plan-print__sheetActions .pps-ref,#plan-print__sheetSpecies .pps-ref{font-size:10px;color:#64748b;vertical-align:super;margin-left:2px}',
       '#plan-print__sheetSpecies .pps-species{font-size:12px;line-height:1.45;color:#334155}',
       '#plan-print__sheetSpecies .pps-species strong{color:#0b2018}',
-      '#plan-print__sheetSpecies .pps-note{font-size:11px;color:#64748b;margin-top:4px}',
+      '#plan-print__sheetSpecies .pps-inline-note{font-size:10px;color:#64748b}',
       '#plan-print-sheet__sources{margin-top:14px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;line-height:1.4;color:#64748b}',
       '#plan-print-sheet__sources ol{margin:4px 0 0;padding-left:16px}',
       '#plan-print-sheet__sources a{color:inherit;text-decoration:underline;text-underline-offset:2px}',
@@ -158,10 +158,12 @@
         row.appendChild(el('strong',null,name+': '));
         row.appendChild(document.createTextNode(Number(it.occurrences||0).toLocaleString()+' '+t.reports));
         row.appendChild(ref(gbif));
+        row.appendChild(el('span','pps-inline-note',' ('+t.recordNote+')'));
         row.appendChild(document.createTextNode(' · '));
         if(it.complaint){
           row.appendChild(document.createTextNode(Number(it.complaint.cases||0).toLocaleString()+' '+t.complaints+it.complaint.year));
           row.appendChild(ref(cite(l==='bm'?'Jadual 29 PERHILITAN':'PERHILITAN Table 29',it.complaint.source_url,it.complaint.date_verified)));
+          row.appendChild(el('span','pps-inline-note',' ('+t.complaintNote(it.complaint.year)+')'));
         }else row.appendChild(document.createTextNode(t.noComplaints));
         var n=(it.attractants||[]).length;
         row.appendChild(document.createTextNode(' · '+n+' '+(n===1?t.draws1:t.draws)));
@@ -169,7 +171,6 @@
         if(it.level&&t.bands[it.level])row.appendChild(document.createTextNode(' · '+t.level+': '+t.bands[it.level]));
         speciesWrap.appendChild(row);
       });
-      speciesWrap.appendChild(el('div','pps-note',t.recordNote));
     }
 
     // ---- actions: one per line ----

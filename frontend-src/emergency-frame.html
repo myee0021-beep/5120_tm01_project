@@ -410,10 +410,10 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
 <nav id="iteration1FlowNav" aria-label="Emergency flow">
   <div class="flow-inner">
     <span class="flow-label"><span data-en>Steps</span><span data-bm>Langkah</span></span>
-    <a href="#" class="flow-start" data-flow-target="start" onclick="APP.snakeGateAnswered=false;goTo('identify');return false;"><span data-en>1. Start / snake check</span><span data-bm>1. Mula / semakan ular</span></a>
-    <a href="#" data-nav="identify" data-flow-target="identify" onclick="goTo('identify');return false;"><span data-en>2. Identify</span><span data-bm>2. Kenal pasti</span></a>
-    <a href="#" data-nav="action" data-flow-target="action" onclick="goToAction();return false;"><span data-en>3. Action</span><span data-bm>3. Tindakan</span></a>
-    <a href="#" data-nav="prevention" data-flow-target="prevention" onclick="goToPrevention();return false;"><span data-en>4. Prevention</span><span data-bm>4. Pencegahan</span></a>
+    <a href="#" class="flow-start" data-flow-target="start" onclick="APP.snakeGateAnswered=false;goTo('identify');return false;"><span data-en>1. Snake check</span><span data-bm>1. Semakan ular</span></a>
+    <a href="#" data-nav="identify" data-flow-target="identify" onclick="goTo('identify');return false;"><span data-en>2. Identify the animal</span><span data-bm>2. Kenal pasti haiwan</span></a>
+    <a href="#" data-nav="action" data-flow-target="action" onclick="goToAction();return false;"><span data-en>3. What to do now</span><span data-bm>3. Apa perlu dibuat sekarang</span></a>
+    <a href="#" data-nav="prevention" data-flow-target="prevention" onclick="goToPrevention();return false;"><span data-en>4. Stop it coming back</span><span data-bm>4. Cegah ia kembali</span></a>
     <a href="#" data-nav="contact" data-flow-target="contact" onclick="goToContact();return false;"><span data-en>5. Who to call</span><span data-bm>5. Siapa perlu dihubungi</span></a>
   </div>
 </nav>
@@ -431,7 +431,7 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
     </div>
     <div class="p-7 md:p-8 text-center">
     <span class="inline-flex items-center gap-2 rounded-full border border-rose-300/60 bg-rose-50 px-4 py-1.5 text-xs font-semibold tracking-wide uppercase text-rose-600">
-      <span data-en>Step 0 · One question first</span><span data-bm>Langkah 0 · Satu soalan dahulu</span>
+      <span data-en>Step 1 · Snake check</span><span data-bm>Langkah 1 · Semakan ular</span>
     </span>
     <h1 class="font-display mt-5 text-2xl md:text-3xl font-bold tracking-tight text-forest-950">
       <span data-en>Is it a snake?</span><span data-bm>Adakah ia seekor ular?</span>
@@ -659,7 +659,7 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
   <div class="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[600px] h-[420px] rounded-full bg-emerald-500/10 blur-3xl"></div>
   <div class="relative max-w-4xl mx-auto px-6 text-center">
     <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1.5 text-xs font-semibold tracking-wide uppercase text-emerald-300">
-      <span data-en>Step 1 · Identification</span><span data-bm>Langkah 1 · Pengenalan</span>
+      <span data-en>Step 2 · Identify the animal</span><span data-bm>Langkah 2 · Kenal pasti haiwan</span>
     </span>
     <h1 class="reveal font-display mt-6 text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white">
       <span data-en>What did you see?</span><span data-bm>Apa yang anda nampak?</span>
@@ -920,8 +920,8 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
     <div class="flex items-center gap-3 px-7 md:px-9 py-6 border-b border-slate-100">
       <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-600">
         <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-        <span data-en>Step 2 · Immediate Safety</span>
-        <span data-bm>Langkah 2 · Keselamatan Segera</span>
+        <span data-en>Step 3 · What to do now</span>
+        <span data-bm>Langkah 3 · Apa perlu dibuat sekarang</span>
       </span>
     </div>
 
@@ -983,7 +983,7 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
     </h3>
     <div class="flex flex-col sm:flex-row gap-3">
       <a id="wtd_authorityLink" href="#" onclick="goTo('authority');return false;" class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-full bg-forest-900 hover:bg-black transition-colors text-white font-bold px-7 py-4">
-        <span data-en>Who deals with this</span><span data-bm>Siapa Mengendalikannya</span>
+        <span data-en>Who to call</span><span data-bm>Siapa perlu dihubungi</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
       <a id="wtd_findableLink" href="#" onclick="goTo('findable');return false;" class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-full bg-forest-900 hover:bg-black transition-colors text-white font-bold px-7 py-4">
@@ -1066,8 +1066,8 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
     <div class="flex items-center gap-3 px-7 md:px-9 py-6 border-b border-slate-100">
       <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-600">
         <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-        <span data-en>Step 2 · Immediate Safety</span>
-        <span data-bm>Langkah 2 · Keselamatan Segera</span>
+        <span data-en>Step 3 · What to do now</span>
+        <span data-bm>Langkah 3 · Apa perlu dibuat sekarang</span>
       </span>
     </div>
 
@@ -1147,7 +1147,7 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
     </h3>
     <div class="flex flex-col sm:flex-row gap-3">
       <a id="snake_authorityLink" href="#" onclick="goTo('authority',{id:'snake'});return false;" class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-full bg-forest-900 hover:bg-black transition-colors text-white font-bold px-7 py-4">
-        <span data-en>Who deals with this</span><span data-bm>Siapa Mengendalikannya</span>
+        <span data-en>Who to call</span><span data-bm>Siapa perlu dihubungi</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
       <a id="snake_findableLink" href="#" onclick="goTo('findable',{id:'snake'});return false;" class="flex-1 inline-flex items-center justify-center gap-2.5 rounded-full bg-forest-900 hover:bg-black transition-colors text-white font-bold px-7 py-4">
@@ -1184,7 +1184,7 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
       <span>/</span>
       <a id="auth_crumbWhatToDo" href="#" onclick="goTo('whattodo');return false;" class="hover:text-slate-200 transition-colors"><span data-en>What to do now</span><span data-bm>Apa Perlu Dibuat</span></a>
       <span>/</span>
-      <span class="text-slate-300 font-semibold"><span data-en>Who deals with this</span><span data-bm>Siapa Mengendalikannya</span></span>
+      <span class="text-slate-300 font-semibold"><span data-en>Who to call</span><span data-bm>Siapa perlu dihubungi</span></span>
     </div>
 
     <a id="auth_backToWhatToDo" href="#" onclick="goTo('whattodo');return false;" class="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors">
@@ -1245,8 +1245,8 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
     <div class="flex items-center justify-between gap-4 flex-wrap px-7 md:px-9 py-6 border-b border-slate-100">
       <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-forest-600">
         <span class="w-2 h-2 rounded-full bg-forest-600"></span>
-        <span data-en>Step 3 · Authority &amp; Contact</span>
-        <span data-bm>Langkah 3 · Agensi &amp; Hubungan</span>
+        <span data-en>Step 5 · Who to call</span>
+        <span data-bm>Langkah 5 · Siapa perlu dihubungi</span>
       </span>
       <button id="auth_printBtn" class="no-print inline-flex items-center gap-2 rounded-full border border-slate-200 hover:border-forest-600 hover:text-forest-700 transition-colors bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -1460,8 +1460,8 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
     <div class="flex items-center gap-3 px-7 md:px-9 py-6 border-b border-slate-100">
       <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-forest-600">
         <span class="w-2 h-2 rounded-full bg-forest-600"></span>
-        <span data-en>Step 4 · During the Wait</span>
-        <span data-bm>Langkah 4 · Semasa Menunggu</span>
+        <span data-en>Step 3 · While you wait</span>
+        <span data-bm>Langkah 3 · Semasa menunggu</span>
       </span>
     </div>
 
@@ -1622,8 +1622,8 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
     <div class="flex items-center justify-between gap-4 flex-wrap px-7 md:px-9 py-6 border-b border-slate-100">
       <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-forest-600">
         <span class="w-2 h-2 rounded-full bg-forest-600"></span>
-        <span data-en>Step 2 · Prevention Checklist</span>
-        <span data-bm>Langkah 2 · Senarai Semak Pencegahan</span>
+        <span data-en>Step 4 · Stop it coming back</span>
+        <span data-bm>Langkah 4 · Cegah ia kembali</span>
       </span>
       <button id="sicb_printBtn" class="no-print inline-flex items-center gap-2 rounded-full border border-slate-200 hover:border-forest-600 hover:text-forest-700 transition-colors bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -3074,7 +3074,7 @@ function goToAction() {
   goTo('whattodo', { id: APP.speciesId || 'general' });
 }
 function goToPrevention() {
-  goTo('findable', { id: APP.speciesId || 'general' });
+  goTo('stopback', { id: APP.speciesId || 'general' });
 }
 function goToContact() {
   goTo('authority', { id: APP.speciesId || 'general' });
@@ -3796,7 +3796,7 @@ function render_authority() {
   var s = getSpecies(APP.speciesId || 'macaque');
   document.getElementById('auth_generalBanner').classList.toggle('hidden', s.id !== 'general');
 
-  document.title = (s.id === 'snake' ? 'Who deals with this' : 'Who deals with this — ' + s.en) + ' | Room for Both';
+  document.title = (s.id === 'snake' ? 'Who to call' : 'Who to call — ' + s.en) + ' | Room for Both';
   renderCrumb('auth', s, 'Immediate safety', 'Keselamatan segera');
   // Snakes have their own dedicated what-to-do-now page (page-snakewhattodo),
   // not the shared page-whattodo every confirmed species uses.
@@ -3807,7 +3807,7 @@ function render_authority() {
   // now, not sequential to each other — this page's forward action goes to
   // species information, the last step in the flow.
   linkTo('auth_findableLink', 'species');
-  renderIdentityHeader('auth', s, 'Who Deals With This', 'Siapa Mengendalikannya');
+  renderIdentityHeader('auth', s, 'Who to call', 'Siapa perlu dihubungi');
   document.getElementById('auth_statusText').innerHTML = '<span data-en>' + s.statusEn + '</span><span data-bm>' + s.statusBm + '</span>';
 
   // AC 4.2.1 — species name (EN & BM) is one of the fixed fields the
@@ -4624,7 +4624,7 @@ document.addEventListener('click', function (e) {
 <script id="iteration1-flow-sync">
 (function(){
   function setFlowActive(page){
-    var map={identify:'identify',whattodo:'action',snakewhattodo:'action',findable:'prevention',authority:'contact'};
+    var map={identify:'identify',whattodo:'action',snakewhattodo:'action',findable:'action',stopback:'prevention',authority:'contact'};
     var target=map[page]||'';
     document.querySelectorAll('#iteration1FlowNav a[data-flow-target]').forEach(function(a){
       a.classList.toggle('active', a.getAttribute('data-flow-target')===target);

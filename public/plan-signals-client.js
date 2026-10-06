@@ -150,16 +150,17 @@
   }
   function howLink(l){return' <a class="underline underline-offset-2" href="plan-how-computed.html">'+esc(l==='bm'?'Cara ini dikira':'How this is computed')+'</a>';}
 
-  var RECORD_NOTE={en:'One record is one report, not one animal.',bm:'Satu rekod ialah satu laporan, bukan seekor haiwan.'};
+  var RECORD_NOTE={en:'One record is one report by a person, not one animal.',bm:'Satu rekod ialah satu laporan oleh seseorang, bukan seekor haiwan.'};
   function recordNote(l){return' <span class="text-xs text-slate-400">('+esc(RECORD_NOTE[l])+')</span>';}
+  function complaintNote(l,year){return' <span class="text-xs text-slate-400">('+esc(l==='bm'?'Aduan yang dibuat pada '+year+', bukan haiwan.':'Complaints made in '+year+', not animals.')+')</span>';}
 
   function renderEmpty(list,st,l){
     var stateQ=st?'?state='+encodeURIComponent(st):'';
     var opts=l==='bm'
-      ?[['plan.html','Pilih haiwan yang anda lihat'],['emergency.html','Tidak pasti haiwan apa? Kenal pasti dahulu'],['ecosystem.html'+stateQ,'Lihat haiwan yang direkodkan di negeri anda']]
-      :[['plan.html','Pick the animal you saw'],['emergency.html','Not sure what it was? Identify it first'],['ecosystem.html'+stateQ,'See which animals are recorded in your state']];
+      ?[['plan.html','Pilih haiwan yang anda lihat'],['emergency.html','Tidak pasti apa ia? Kenal pasti dahulu'],['ecosystem.html'+stateQ,'Lihat haiwan yang direkodkan di negeri anda']]
+      :[['plan.html','Choose the animal you saw'],['emergency.html','Not sure what it is? Identify it first'],['ecosystem.html'+stateQ,'See which animals are recorded in your state']];
     list.innerHTML='<div class="rounded-xl border border-slate-100 bg-slate-50 p-4" id="plan-result__noSpecies">'+
-      '<p class="text-sm text-forest-950">'+esc(l==='bm'?'Anda belum memilih haiwan, jadi tiada angka untuk ditunjukkan. Anda boleh:':'You did not pick an animal, so there are no numbers to show yet. You can:')+'</p>'+
+      '<p class="text-sm text-forest-950">'+esc(l==='bm'?'Anda belum memilih haiwan, jadi belum ada angka untuk ditunjukkan. Anda boleh:':'You have not chosen an animal, so there are no numbers to show yet. You can:')+'</p>'+
       '<div class="mt-3 flex flex-wrap gap-2">'+opts.map(function(o){return'<a href="'+esc(o[0])+'" class="inline-flex items-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-50">'+esc(o[1])+'</a>';}).join('')+'</div></div>';
   }
 
@@ -172,8 +173,8 @@
     list.innerHTML='';
     var desc=document.getElementById('plan-result__signalsDescription');
     if(desc)desc.textContent=codes.length?(l==='bm'
-      ?'Tiga angka bagi setiap haiwan yang anda pilih: berapa kali orang melaporkannya di negeri anda, berapa aduan dibuat kepada PERHILITAN, dan berapa perkara di rumah anda yang diketahui menariknya. Ini bukan peluang haiwan itu datang ke rumah anda.'
-      :'Three numbers for each animal you picked: how often people reported it in your state, how many complaints were made to PERHILITAN, and how many things at your home are known to draw it in. They are not the chance it will come to your house.'):'';
+      ?'Bagi setiap haiwan yang anda pilih ada tiga angka: berapa kali ia telah direkodkan di negeri anda, berapa aduan tentangnya yang diterima PERHILITAN di negeri anda pada 2020, dan berapa perkara di rumah anda yang diketahui menariknya. Tiada satu pun daripadanya ialah peluang ia datang ke rumah anda.'
+      :'For each animal you chose there are three numbers: how many times it has been recorded in your state, how many complaints PERHILITAN received about it in your state in 2020, and how many things at your home are known to attract it. None of these is the chance of it visiting your home.'):'';
     if(!codes.length){renderEmpty(list,st,l);storeSignals(stored);return;}
     codes.forEach(function(code){
       var meta=SPECIES[code],occ=occurrenceFor(st,code),att=matchAttractants(attractants,code),name=l==='bm'?meta.bm:meta.en;
@@ -188,15 +189,15 @@
       else if(TH()&&(TH().hasSigned('records')||TH().hasSigned('complaints')||TH().hasSigned('attractants')))topChip='<span class="info-pill shrink-0">'+esc(l==='bm'?'Tiada tahap':'No level')+'</span>';
       var html='<div class="flex items-baseline justify-between gap-3 flex-wrap"><div class="flex items-center gap-2"><div class="font-semibold text-forest-950">'+esc(name)+'</div>'+topChip+'</div>'+
         '<a href="invasive.html?species='+code+'" class="text-xs font-semibold text-emerald-700 underline underline-offset-2">'+esc(l==='bm'?'Adakah ia invasif? Semak':'Is it invasive? Check')+' →</a></div><div class="mt-3 space-y-2 text-sm text-slate-700">';
-      html+='<div><strong>'+(l==='bm'?'Laporan di negeri anda':'Reports in your state')+':</strong> '+occ.total.toLocaleString()+bandChip('records',occ.total)+recordNote(l)+' · '+sourceLink('#about-the-data',l==='bm'?'rekod GBIF':'GBIF records')+'</div>';
+      html+='<div><strong>'+(l==='bm'?'Rekod di negeri anda':'Records in your state')+':</strong> '+occ.total.toLocaleString()+bandChip('records',occ.total)+recordNote(l)+' · '+sourceLink('#about-the-data',l==='bm'?'rekod GBIF':'GBIF records')+'</div>';
       if(meta.absentComplaint||!complaint){
-        html+='<div><strong>'+(l==='bm'?'Aduan kepada PERHILITAN':'Complaints to PERHILITAN')+':</strong> '+esc(l==='bm'?'Tiada angka aduan diterbitkan untuk haiwan ini di negeri ini; jumlah semua haiwan tidak digunakan sebagai ganti.':'No complaint figure is published for this animal in this state; the all-animal total is not used instead.')+'</div>';
+        html+='<div><strong>'+(l==='bm'?'Aduan kepada PERHILITAN, 2020':'Complaints to PERHILITAN, 2020')+':</strong> '+esc(l==='bm'?'Jadual aduan PERHILITAN 2020 tiada angka bagi haiwan ini di negeri ini. Kami tidak menunjukkan jumlah bagi semua haiwan sebagai gantinya.':'PERHILITAN\'s 2020 complaint table has no figure for this animal in this state. We do not show the total for all animals in its place.')+'</div>';
       }else{
         var cSource=clean(complaint.source_url||(cs&&cs.source_url)),cDate=plainDate(complaint.date_verified||(cs&&cs.date_verified)),cYear=Number(complaint.year)||(cs&&cs.year)||2020;
         item.complaint={cases:Number(complaint.cases||0),year:cYear,source_url:cSource,date_verified:cDate};
-        html+='<div><strong>'+(l==='bm'?'Aduan kepada PERHILITAN':'Complaints to PERHILITAN')+':</strong> '+Number(complaint.cases||0).toLocaleString()+bandChip('complaints',Number(complaint.cases||0))+' '+esc(l==='bm'?'pada '+cYear:'in '+cYear)+recordNote(l)+' · '+sourceLink(cSource||'#about-the-data',l==='bm'?'Jadual 29 PERHILITAN':'PERHILITAN Table 29')+(cDate?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(cDate):'')+'</div>';
+        html+='<div><strong>'+(l==='bm'?'Aduan kepada PERHILITAN, ':'Complaints to PERHILITAN, ')+cYear+':</strong> '+Number(complaint.cases||0).toLocaleString()+bandChip('complaints',Number(complaint.cases||0))+complaintNote(l,cYear)+' · '+sourceLink(cSource||'#about-the-data',l==='bm'?'Jadual 29 PERHILITAN':'PERHILITAN Table 29')+(cDate?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(cDate):'')+'</div>';
       }
-      html+='<div><strong>'+(l==='bm'?'Perkara di rumah anda yang menariknya':'Things at your home that draw it in')+':</strong> '+att.length+bandChip('attractants',att.length)+'</div>';
+      html+='<div><strong>'+(l==='bm'?'Perkara di rumah anda yang menariknya':'Things at your home that attract it')+':</strong> '+att.length+bandChip('attractants',att.length)+'</div>';
       if(att.length){html+='<ul class="ml-4 list-disc text-xs text-slate-500">'+att.map(function(x){var r=x.row;var src=sourceName(r);var d=plainDate(r.date_verified);item.attractants.push({label:x.answer,source:src,source_url:clean(r.source_url),date_verified:d});return'<li>'+esc(answerLabel(x.answer,l))+' · '+sourceLink(r.source_url,src)+(d?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(d):'')+'</li>';}).join('')+'</ul>';}
       else html+='<div class="text-xs text-slate-500">'+esc(l==='bm'?'Tiada jawapan di rumah ini sepadan dengan sebab yang didokumenkan untuk haiwan ini.':'Nothing at this home matched the documented causes for this animal.')+'</div>';
       html+='</div>';
@@ -230,7 +231,7 @@
     var chart=document.getElementById('plan-result__seasonChart'),wrap=document.getElementById('plan-result__seasonChartWrap'),desc=document.getElementById('plan-result__seasonDescription');if(!chart||!wrap||!desc)return;
     var l=lang(),threshold=(window.SignalThresholds&&SignalThresholds.rows&&SignalThresholds.signedRows('min_records')[0]||{lower_bound:30}).lower_bound;
     chart.innerHTML='';wrap.classList.add('hidden');
-    if(!codes.length){desc.textContent=l==='bm'?'Pilih seekor haiwan untuk melihat bulan ia paling kerap dilaporkan.':'Pick an animal to see which months it is reported most.';return;}
+    if(!codes.length){desc.textContent=l==='bm'?'Pilih seekor haiwan untuk melihat bulan ia paling kerap direkodkan.':'Choose an animal to see the months it is recorded most.';return;}
     desc.textContent=l==='bm'?'Setiap spesies yang dipilih ditunjukkan secara berasingan. Rekod menunjukkan tempat spesies dilaporkan, bukan bilangan haiwan.':'Each selected species is shown separately. Records show where the species was reported, not the number of animals.';
     var monthsShort=l==='bm'?['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis']:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     codes.forEach(function(code){
