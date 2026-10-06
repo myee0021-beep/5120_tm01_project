@@ -1,14 +1,35 @@
 import { neon } from '@neondatabase/serverless';
 
 function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...headers}})}
-// Broken links still stored in immediate_action, mapped to the checked
-// replacements in database_code/fix_immediate_action_sources.sql. Once that
-// script has been run these keys no longer match and this map does nothing.
+// action_id -> [broken link still stored in immediate_action, checked replacement],
+// from database_code/fix_immediate_action_sources.sql. A row is only rewritten
+// while it still holds the old link, so once that script has been run this does nothing.
 const SOURCE_URL_FIXES={
-  'https://www.thestar.com.my/news/nation/2024/02/20/monkeys-are-wild-animals-dont-feed-or-provoke-them':'https://www.thestar.com.my/metro/metro-news/2024/10/18/perhilitan-stop-feeding-releasing-trapped-monkeys',
-  'https://www.um.edu.my/news/monkey-encounter-guide':'https://sustainability.um.edu.my/news/balancing-coexistence-and-conservation-addressing-the-human-macaque-conflict-at-universiti-malaya',
-  'https://www.langurprojectpenang.com/encounter-guide':'https://langurprojectpenang.com/ada-monyet-monkey-encounter-guide/',
-  'https://www.langurprojectpenang.com/faq':'https://langurprojectpenang.com/2020/08/22/faq/'
+  1:['https://www.malaymail.com/news/malaysia/2024/01/16/king-cobra-squad-formed-to-tackle-snake-related-emergencies/112893','https://www.malaymail.com/news/malaysia/2025/11/16/know-your-snakes-a-guide-to-malaysias-venomous-reptiles-and-how-to-stay-safe-video/194052'],
+  2:['https://www.malaymail.com/news/malaysia/2024/01/16/king-cobra-squad-formed-to-tackle-snake-related-emergencies/112893','https://www.malaymail.com/news/malaysia/2025/11/16/know-your-snakes-a-guide-to-malaysias-venomous-reptiles-and-how-to-stay-safe-video/194052'],
+  3:['https://www.malaymail.com/news/malaysia/2024/01/16/king-cobra-squad-formed-to-tackle-snake-related-emergencies/112893','https://www.malaymail.com/news/malaysia/2025/11/16/know-your-snakes-a-guide-to-malaysias-venomous-reptiles-and-how-to-stay-safe-video/194052'],
+  4:['https://www.malaymail.com/news/malaysia/2024/01/16/king-cobra-squad-formed-to-tackle-snake-related-emergencies/112893','https://www.malaymail.com/news/malaysia/2025/11/16/know-your-snakes-a-guide-to-malaysias-venomous-reptiles-and-how-to-stay-safe-video/194052'],
+  6:['https://www.thestar.com.my/news/nation/2024/02/20/monkeys-are-wild-animals-dont-feed-or-provoke-them','https://www.thestar.com.my/metro/metro-news/2024/10/18/perhilitan-stop-feeding-releasing-trapped-monkeys'],
+  7:['https://www.um.edu.my/news/monkey-encounter-guide','https://sustainability.um.edu.my/news/balancing-coexistence-and-conservation-addressing-the-human-macaque-conflict-at-universiti-malaya'],
+  8:['https://www.langurprojectpenang.com/encounter-guide','https://langurprojectpenang.com/ada-monyet-monkey-encounter-guide/'],
+  9:['https://www.langurprojectpenang.com/faq','https://langurprojectpenang.com/2020/08/22/faq/'],
+  12:['https://www.nparks.gov.sg/avs/wildlife/wild-boars','https://avs.nparks.gov.sg/wildlife/encountering-wildlife/wild-boars/'],
+  13:['https://www.nparks.gov.sg/avs/wildlife/wild-boars','https://avs.nparks.gov.sg/wildlife/encountering-wildlife/wild-boars/'],
+  16:['https://www.nparks.gov.sg/avs/diseases/avian-influenza','https://avs.nparks.gov.sg/about-us/what-we-do/animal-health/bird-flu/'],
+  17:['https://www.nparks.gov.sg/avs/diseases/avian-influenza','https://avs.nparks.gov.sg/about-us/what-we-do/animal-health/bird-flu/'],
+  20:['https://www.nparks.gov.sg/avs/wildlife/house-crows','https://avs.nparks.gov.sg/wildlife/encountering-wildlife/house-crows-pigeons-javan-mynas/house-crows/'],
+  21:['https://www.nparks.gov.sg/avs/wildlife/house-crows','https://avs.nparks.gov.sg/wildlife/encountering-wildlife/house-crows-pigeons-javan-mynas/house-crows/'],
+  22:['https://www.sinarharian.com.my/article/123457/biawak','https://www.sinarharian.com.my/article/689127/edisi/selangor-kl/bukan-buaya-tetapi-biawak-di-tasik-seksyen-7'],
+  23:['https://www.sinarharian.com.my/article/123457/biawak','https://www.sinarharian.com.my/article/689127/edisi/selangor-kl/bukan-buaya-tetapi-biawak-di-tasik-seksyen-7'],
+  24:['https://www.nparks.gov.sg/avs/wildlife/monitor-lizards','https://avs.nparks.gov.sg/wildlife/encountering-wildlife/monitor-lizards/'],
+  25:['https://www.nparks.gov.sg/avs/wildlife/monitor-lizards','https://avs.nparks.gov.sg/wildlife/encountering-wildlife/monitor-lizards/'],
+  26:['https://www.nparks.gov.sg/-/media/avs/avs-eguide_feb-2024-new-v2.pdf','https://avs.nparks.gov.sg/about-us/what-we-do/animal-health/bird-flu/'],
+  28:['https://www.nparks.gov.sg/-/media/avs/avs-eguide_feb-2024-new-v2.pdf','https://avs.nparks.gov.sg/about-us/what-we-do/animal-health/bird-flu/'],
+  29:['https://www.nparks.gov.sg/avs/wildlife/wildlife-rehabilitation','https://avs.nparks.gov.sg/wildlife/wildlife-management/centre-for-wildlife-rehabilitation/'],
+  30:['https://www.nparks.gov.sg/avs/wildlife/wildlife-rehabilitation','https://avs.nparks.gov.sg/wildlife/wildlife-management/centre-for-wildlife-rehabilitation/'],
+  31:['https://www.wildlife.gov.my/index.php/en/faq','https://www.wildlife.gov.my/sistem-e-aduan/'],
+  32:['https://www.nparks.gov.sg/avs/wildlife/biodiversity','https://www.nparks.gov.sg/visit/when-visiting-parks/when-encountering-animals'],
+  33:['https://www.malaysia.gov.my/portal/content/30943','https://www.malaysia.gov.my/en/topics/mers-999-emergency-line']
 };
 function isoDay(v){if(!v)return null;const d=v instanceof Date?v:new Date(v);return isNaN(d)?String(v):d.toISOString().slice(0,10)}
 function positiveIntParam(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isInteger(n)&&n>0?n:null}
@@ -291,7 +312,7 @@ async function api(request,env){
     const rows=immediate
       ?await sql`SELECT * FROM immediate_action WHERE (${speciesId}::int IS NULL OR species_id=${speciesId}) AND (${categoryId}::int IS NULL OR category_id=${categoryId}) ORDER BY step_order NULLS LAST, action_id`
       :await sql`SELECT * FROM prevention_action WHERE (${speciesId}::int IS NULL OR species_id=${speciesId}) AND (${categoryId}::int IS NULL OR category_id=${categoryId}) ORDER BY harm_rank NULLS LAST, prevention_id`;
-    const actions=rows.map(r=>({...r,source_url:SOURCE_URL_FIXES[r.source_url]||r.source_url,date_verified:isoDay(r.date_verified)}));
+    const actions=rows.map(r=>({...r,source_url:(SOURCE_URL_FIXES[r.action_id]&&SOURCE_URL_FIXES[r.action_id][0]===r.source_url)?SOURCE_URL_FIXES[r.action_id][1]:r.source_url,date_verified:isoDay(r.date_verified)}));
     return json({ok:true,count:actions.length,actions});
   }
   if(request.method==='GET'&&url.pathname==='/api/states'){
