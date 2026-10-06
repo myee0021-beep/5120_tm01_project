@@ -1,6 +1,8 @@
 import { neon } from '@neondatabase/serverless';
 
 function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...headers}})}
+function isoDay(v){if(!v)return null;const d=v instanceof Date?v:new Date(v);return isNaN(d)?String(v):d.toISOString().slice(0,10)}
+function positiveIntParam(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isInteger(n)&&n>0?n:null}
 function getSql(env){if(!env.DATABASE_URL)throw new Error('DATABASE_URL is not configured');return neon(env.DATABASE_URL)}
 const TABLES={
   complaints:['complaint_series','complaints','complaint','complain','complain_table','complain_data','wildlife_complaints','wildlife_complaint'],
@@ -265,6 +267,29 @@ async function api(request,env){
   }
   if(request.method==='POST'&&url.pathname==='/api/i2/search-failure'){let payload={};try{payload=await request.json()}catch{};const result=await insertFailure(sql,found.failures,payload);return json({ok:true,...result},result.logged?201:202)}
   if(request.method==='POST'&&url.pathname==='/api/identify-describe')return json({ok:false,error:'AI backend is not enabled in the Iteration 2 branch; frontend fallback remains active.'},501);
+  // Iteration 1 tables read by the Emergency flow (immediate safety steps,
+  // prevention actions and the state list). These used to be answered by a
+  // mock-data shim inside the Emergency page.
+  if(request.method==='GET'&&(url.pathname==='/api/immediate-actions'||url.pathname==='/api/prevention-actions')){
+    const immediate=url.pathname==='/api/immediate-actions';
+    const table=immediate?'immediate_action':'prevention_action';
+    const rawSpecies=url.searchParams.get('species_id'),rawCategory=url.searchParams.get('category_id');
+    const speciesId=positiveIntParam(rawSpecies),categoryId=positiveIntParam(rawCategory);
+    if(rawSpecies!==null&&speciesId===null)return json({ok:false,error:'species_id must be a positive integer.'},400);
+    if(rawCategory!==null&&categoryId===null)return json({ok:false,error:'category_id must be a positive integer.'},400);
+    if(speciesId===null&&categoryId===null)return json({ok:false,error:'Provide species_id or category_id.'},400);
+    if(!existing.includes(table))return json({ok:true,count:0,actions:[]});
+    const rows=immediate
+      ?await sql`SELECT * FROM immediate_action WHERE (${speciesId}::int IS NULL OR species_id=${speciesId}) AND (${categoryId}::int IS NULL OR category_id=${categoryId}) ORDER BY step_order NULLS LAST, action_id`
+      :await sql`SELECT * FROM prevention_action WHERE (${speciesId}::int IS NULL OR species_id=${speciesId}) AND (${categoryId}::int IS NULL OR category_id=${categoryId}) ORDER BY harm_rank NULLS LAST, prevention_id`;
+    const actions=rows.map(r=>({...r,date_verified:isoDay(r.date_verified)}));
+    return json({ok:true,count:actions.length,actions});
+  }
+  if(request.method==='GET'&&url.pathname==='/api/states'){
+    if(!existing.includes('state'))return json({ok:true,count:0,states:[]});
+    const rows=await sql`SELECT state_code,state_name,jurisdiction_type FROM state ORDER BY state_name,state_code`;
+    return json({ok:true,count:rows.length,states:rows});
+  }
   if(url.pathname.startsWith('/api/'))return json({ok:false,error:'API route not found'},404);
   return null
 }
