@@ -23,6 +23,10 @@ WHERE action_id IN (8) AND source_url = 'https://www.langurprojectpenang.com/enc
 UPDATE immediate_action SET source_url = 'https://langurprojectpenang.com/2020/08/22/faq/'
 WHERE action_id IN (9) AND source_url = 'https://www.langurprojectpenang.com/faq';
 
+-- actions 10, 11: Sinar Harian, 13 Apr 2019, Salman Saaban (Director, Johor PERHILITAN): "pihak jabatan menasihatkan orang ramai agar tidak melakukan tindakan sendiri dalam menangani masalah kacau ganggu babi ... elakkan melakukan provokasi atau cubaan untuk mengancam haiwan ini"; the article also advises reporting to the nearest District PERHILITAN Office
+UPDATE immediate_action SET source_url = 'https://www.sinarharian.com.my/article/23242/edisi/johor/lebih-10-tahun-diganggu-babi'
+WHERE action_id IN (10, 11) AND source_url = 'https://www.sinarharian.com.my/article/123456/babi-hutan';
+
 -- actions 12, 13: AVS: "Do not touch, chase, or corner the wild boars, especially if there are piglets"; injured/distressed/trapped -> trained professionals
 UPDATE immediate_action SET source_url = 'https://avs.nparks.gov.sg/wildlife/encountering-wildlife/wild-boars/'
 WHERE action_id IN (12, 13) AND source_url = 'https://www.nparks.gov.sg/avs/wildlife/wild-boars';
@@ -55,9 +59,17 @@ WHERE action_id IN (29, 30) AND source_url = 'https://www.nparks.gov.sg/avs/wild
 UPDATE immediate_action SET source_url = 'https://www.wildlife.gov.my/sistem-e-aduan/'
 WHERE action_id IN (31) AND source_url = 'https://www.wildlife.gov.my/index.php/en/faq';
 
--- actions 32: NParks: "Contact our Animal Response Centre (1800 476 1600) if you have further queries about animal encounters"
-UPDATE immediate_action SET source_url = 'https://www.nparks.gov.sg/visit/when-visiting-parks/when-encountering-animals'
-WHERE action_id IN (32) AND source_url = 'https://www.nparks.gov.sg/avs/wildlife/biodiversity';
+-- action 32: replace the Singapore step ("contact NParks' Animal Response Centre") with the Malaysian hotline.
+-- PERHILITAN Sistem e-Aduan page: complaints via wildlife.spab.gov.my or "talian PERHILITAN hotline 1-800-88-5151".
+-- Note: PERHILITAN covers Peninsular Malaysia; Sabah and Sarawak have their own wildlife authorities.
+UPDATE immediate_action SET
+  action_text_en = 'Call the PERHILITAN hotline, 1-800-88-5151, to report a wildlife disturbance.',
+  action_text_ms = 'Hubungi talian hotline PERHILITAN, 1-800-88-5151, untuk melaporkan gangguan hidupan liar.',
+  source_person = NULL,
+  source_institution = 'Department of Wildlife and National Parks Peninsular Malaysia (PERHILITAN)',
+  source_url = 'https://www.wildlife.gov.my/sistem-e-aduan/',
+  date_verified = '2026-10-06'
+WHERE action_id = 32;
 
 -- actions 33: MyGov official page for the NG MERS 999 emergency line
 UPDATE immediate_action SET source_url = 'https://www.malaysia.gov.my/en/topics/mers-999-emergency-line'
@@ -65,7 +77,6 @@ WHERE action_id IN (33) AND source_url = 'https://www.malaysia.gov.my/portal/con
 
 -- Not changed: no page was found that carries the cited advice from the cited person/institution.
 --   5      The Star 2024/01/17 (404), Ahmad Khaldun Ismail: no Star article found with 'do not wait for symptoms / no folk remedies'.
---   10, 11 Sinar Harian article/123456 (placeholder id, opens an unrelated article), Salman Saaban, Johor PERHILITAN, wild boar.
 --   27     NParks e-guide PDF (404): 'stay calm and move away slowly' as general advice (only species pages say this).
 --   34     ResearchGate (blocked to automated checks; a conference abstract, unlikely to carry first-aid advice).
 -- Option for 5 and 34 (changes the attribution, so it is left for the team to decide):

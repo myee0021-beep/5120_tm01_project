@@ -13,6 +13,8 @@ const SOURCE_URL_FIXES={
   7:['https://www.um.edu.my/news/monkey-encounter-guide','https://sustainability.um.edu.my/news/balancing-coexistence-and-conservation-addressing-the-human-macaque-conflict-at-universiti-malaya'],
   8:['https://www.langurprojectpenang.com/encounter-guide','https://langurprojectpenang.com/ada-monyet-monkey-encounter-guide/'],
   9:['https://www.langurprojectpenang.com/faq','https://langurprojectpenang.com/2020/08/22/faq/'],
+  10:['https://www.sinarharian.com.my/article/123456/babi-hutan','https://www.sinarharian.com.my/article/23242/edisi/johor/lebih-10-tahun-diganggu-babi'],
+  11:['https://www.sinarharian.com.my/article/123456/babi-hutan','https://www.sinarharian.com.my/article/23242/edisi/johor/lebih-10-tahun-diganggu-babi'],
   12:['https://www.nparks.gov.sg/avs/wildlife/wild-boars','https://avs.nparks.gov.sg/wildlife/encountering-wildlife/wild-boars/'],
   13:['https://www.nparks.gov.sg/avs/wildlife/wild-boars','https://avs.nparks.gov.sg/wildlife/encountering-wildlife/wild-boars/'],
   16:['https://www.nparks.gov.sg/avs/diseases/avian-influenza','https://avs.nparks.gov.sg/about-us/what-we-do/animal-health/bird-flu/'],
@@ -28,7 +30,6 @@ const SOURCE_URL_FIXES={
   29:['https://www.nparks.gov.sg/avs/wildlife/wildlife-rehabilitation','https://avs.nparks.gov.sg/wildlife/wildlife-management/centre-for-wildlife-rehabilitation/'],
   30:['https://www.nparks.gov.sg/avs/wildlife/wildlife-rehabilitation','https://avs.nparks.gov.sg/wildlife/wildlife-management/centre-for-wildlife-rehabilitation/'],
   31:['https://www.wildlife.gov.my/index.php/en/faq','https://www.wildlife.gov.my/sistem-e-aduan/'],
-  32:['https://www.nparks.gov.sg/avs/wildlife/biodiversity','https://www.nparks.gov.sg/visit/when-visiting-parks/when-encountering-animals'],
   33:['https://www.malaysia.gov.my/portal/content/30943','https://www.malaysia.gov.my/en/topics/mers-999-emergency-line']
 };
 function isoDay(v){if(!v)return null;const d=v instanceof Date?v:new Date(v);return isNaN(d)?String(v):d.toISOString().slice(0,10)}
