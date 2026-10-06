@@ -4,7 +4,7 @@
   var SPECIES={
     macaque:{id:1,en:'Long-tailed Macaque',bm:'Kera'},
     boar:{id:2,en:'Wild Boar',bm:'Babi Hutan'},
-    myna:{id:3,en:'Common Myna',bm:'Gembala Kerbau',absentComplaint:true},
+    myna:{id:3,en:'Common Myna',bm:'Tiong Biasa',absentComplaint:true},
     python:{id:4,en:'Reticulated Python',bm:'Ular Sawa Batik'},
     crow:{id:5,en:'House Crow',bm:'Gagak Rumah',absentComplaint:true},
     monitor:{id:6,en:'Water Monitor Lizard',bm:'Biawak Air'},
@@ -45,6 +45,13 @@
     datedRows.forEach(function(r){var y=Number(r[2]),m=Number(r[3]),c=Number(r[4])||0;datedTotal+=c;if(y)years.push(y);if(m>=1&&m<=12)months[m-1]+=c;});
     return{total:total,datedTotal:datedTotal,months:months,minYear:years.length?Math.min.apply(null,years):null,maxYear:years.length?Math.max.apply(null,years):null};
   }
+  var ANSWER_LABELS={
+    'fruit trees':{en:'fruit trees',bm:'pokok buah'},
+    'open bins':{en:'open bins',bm:'tong sampah terbuka'},
+    'outdoor pet food':{en:'pet food left outside',bm:'makanan haiwan peliharaan di luar'},
+    'neighbour feeding':{en:'a neighbour feeds animals',bm:'jiran memberi makan haiwan'}
+  };
+  function answerLabel(label,l){var m=ANSWER_LABELS[label];return m?m[l]:label;}
   function answerValues(v){if(v==null)return[];return Array.isArray(v)?v:[v];}
   function documentedAnswers(){
     var a=answers(),seen={},out=[];
@@ -110,32 +117,56 @@
   function apiJson(url){return fetch(url,{headers:{accept:'application/json'},cache:'no-store'}).then(function(r){return r.json().then(function(b){if(!r.ok||b&&b.ok===false)throw new Error((b&&b.error)||('HTTP '+r.status));return b;});});}
   function sourceLink(url,label){return url?'<a class="underline underline-offset-2" target="_blank" rel="noopener" href="'+esc(url)+'">'+esc(label)+'</a>':esc(label);}
 
+  var RECORD_NOTE={en:'One record is one report, not one animal.',bm:'Satu rekod ialah satu laporan, bukan seekor haiwan.'};
+  function recordNote(l){return' <span class="text-xs text-slate-400">('+esc(RECORD_NOTE[l])+')</span>';}
+
+  function renderEmpty(list,st,l){
+    var stateQ=st?'?state='+encodeURIComponent(st):'';
+    var opts=l==='bm'
+      ?[['plan.html','Pilih haiwan yang anda lihat'],['emergency.html','Tidak pasti haiwan apa? Kenal pasti dahulu'],['ecosystem.html'+stateQ,'Lihat haiwan yang direkodkan di negeri anda']]
+      :[['plan.html','Pick the animal you saw'],['emergency.html','Not sure what it was? Identify it first'],['ecosystem.html'+stateQ,'See which animals are recorded in your state']];
+    list.innerHTML='<div class="rounded-xl border border-slate-100 bg-slate-50 p-4" id="plan-result__noSpecies">'+
+      '<p class="text-sm text-forest-950">'+esc(l==='bm'?'Anda belum memilih haiwan, jadi tiada angka untuk ditunjukkan. Anda boleh:':'You did not pick an animal, so there are no numbers to show yet. You can:')+'</p>'+
+      '<div class="mt-3 flex flex-wrap gap-2">'+opts.map(function(o){return'<a href="'+esc(o[0])+'" class="inline-flex items-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-50">'+esc(o[1])+'</a>';}).join('')+'</div></div>';
+  }
+
+  var lastData=null;
   function render(st,codes,complaints,attractants){
     var list=document.getElementById('plan-result__speciesList');if(!list)return;
+    lastData={st:st,codes:codes,complaints:complaints,attractants:attractants};
     var l=lang(),stateLabel=STATE_LABELS[st]||st,cs=complaints&&complaints.summary||null,complaintRows=complaints&&Array.isArray(complaints.rows)?complaints.rows:[];
+    var stored={state:st,stateLabel:stateLabel,items:[]};
     list.innerHTML='';
-    if(!codes.length){list.innerHTML='<div class="text-sm text-slate-500">'+esc(l==='bm'?'Tiada spesies dipilih dalam soal selidik. Tiada isyarat spesies direka.':'No species was selected in the questionnaire. No species signal is invented.')+'</div>';return;}
+    var desc=document.getElementById('plan-result__signalsDescription');
+    if(desc)desc.textContent=codes.length?(l==='bm'
+      ?'Tiga angka bagi setiap haiwan yang anda pilih: berapa kali orang melaporkannya di negeri anda, berapa aduan dibuat kepada PERHILITAN, dan berapa perkara di rumah anda yang diketahui menariknya. Ini bukan peluang haiwan itu datang ke rumah anda.'
+      :'Three numbers for each animal you picked: how often people reported it in your state, how many complaints were made to PERHILITAN, and how many things at your home are known to draw it in. They are not the chance it will come to your house.'):'';
+    if(!codes.length){renderEmpty(list,st,l);storeSignals(stored);return;}
     codes.forEach(function(code){
       var meta=SPECIES[code],occ=occurrenceFor(st,code),att=matchAttractants(attractants,code),name=l==='bm'?meta.bm:meta.en;
       var complaint=complaintRowFor(complaintRows,meta.id,cs&&cs.year);
+      var item={code:code,occurrences:occ.total,complaint:null,attractants:[]};
       var card=document.createElement('div');card.className='rounded-xl border border-slate-100 p-4 mb-3';
       var html='<div class="font-semibold text-forest-950">'+esc(name)+'</div><div class="mt-3 space-y-2 text-sm text-slate-700">';
-      html+='<div><strong>'+(l==='bm'?'Rekod kejadian':'Recorded occurrences')+':</strong> '+occ.total.toLocaleString()+' · '+sourceLink('#about-the-data','GBIF occurrence extract')+'</div>';
+      html+='<div><strong>'+(l==='bm'?'Laporan di negeri anda':'Reports in your state')+':</strong> '+occ.total.toLocaleString()+recordNote(l)+' · '+sourceLink('#about-the-data',l==='bm'?'rekod GBIF':'GBIF records')+'</div>';
       if(meta.absentComplaint||!complaint){
-        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+esc(l==='bm'?'Tiada baris aduan khusus spesies yang diterbitkan untuk spesies ini di negeri ini; jumlah semua spesies tidak digunakan sebagai ganti.':'No published species-specific complaint row is available for this species in this state; the all-species total is not substituted.')+'</div>';
+        html+='<div><strong>'+(l==='bm'?'Aduan kepada PERHILITAN':'Complaints to PERHILITAN')+':</strong> '+esc(l==='bm'?'Tiada angka aduan diterbitkan untuk haiwan ini di negeri ini; jumlah semua haiwan tidak digunakan sebagai ganti.':'No complaint figure is published for this animal in this state; the all-animal total is not used instead.')+'</div>';
       }else{
         var cSource=clean(complaint.source_url||(cs&&cs.source_url)),cDate=plainDate(complaint.date_verified||(cs&&cs.date_verified)),cYear=Number(complaint.year)||(cs&&cs.year)||2020;
-        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+Number(complaint.cases||0).toLocaleString()+' · '+esc(cYear+' '+(l==='bm'?'aduan khusus spesies':'species-specific complaints'))+' · '+sourceLink(cSource||'#about-the-data','PERHILITAN Table 29')+(cDate?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(cDate):'')+'</div>';
+        item.complaint={cases:Number(complaint.cases||0),year:cYear,source_url:cSource,date_verified:cDate};
+        html+='<div><strong>'+(l==='bm'?'Aduan kepada PERHILITAN':'Complaints to PERHILITAN')+':</strong> '+Number(complaint.cases||0).toLocaleString()+' '+esc(l==='bm'?'pada '+cYear:'in '+cYear)+recordNote(l)+' · '+sourceLink(cSource||'#about-the-data',l==='bm'?'Jadual 29 PERHILITAN':'PERHILITAN Table 29')+(cDate?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(cDate):'')+'</div>';
       }
-      html+='<div><strong>'+(l==='bm'?'Tarikan rumah yang didokumenkan':'Documented attractants matched')+':</strong> '+att.length+'</div>';
-      if(att.length){html+='<ul class="ml-4 list-disc text-xs text-slate-500">'+att.map(function(x){var r=x.row;var src=sourceName(r);var d=plainDate(r.date_verified);return'<li>'+esc(x.answer)+' · '+sourceLink(r.source_url,src)+(d?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(d):'')+'</li>';}).join('')+'</ul>';}
-      else html+='<div class="text-xs text-slate-500">'+esc(l==='bm'?'Tiada jawapan di rumah ini sepadan dengan sebab yang didokumenkan untuk spesies ini.':'Nothing at this home matched the documented causes for this species.')+'</div>';
-      html+='</div><div class="mt-3 text-xs text-slate-500">'+esc(l==='bm'?'Tahap gabungan tidak dipaparkan sehingga baris ambang D34 tersedia daripada satu sumber data. Isyarat di atas ialah rekod negeri dan panduan terdokumen, bukan kebarangkalian bagi alamat anda.':'Combined level is not displayed until the D34 threshold row is available from one data source. The signals above are state records and documented guidance, not a probability for your address.')+'</div>';
+      html+='<div><strong>'+(l==='bm'?'Perkara di rumah anda yang menariknya':'Things at your home that draw it in')+':</strong> '+att.length+'</div>';
+      if(att.length){html+='<ul class="ml-4 list-disc text-xs text-slate-500">'+att.map(function(x){var r=x.row;var src=sourceName(r);var d=plainDate(r.date_verified);item.attractants.push({label:x.answer,source:src,source_url:clean(r.source_url),date_verified:d});return'<li>'+esc(answerLabel(x.answer,l))+' · '+sourceLink(r.source_url,src)+(d?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(d):'')+'</li>';}).join('')+'</ul>';}
+      else html+='<div class="text-xs text-slate-500">'+esc(l==='bm'?'Tiada jawapan di rumah ini sepadan dengan sebab yang didokumenkan untuk haiwan ini.':'Nothing at this home matched the documented causes for this animal.')+'</div>';
+      html+='</div>';
       card.innerHTML=html;list.appendChild(card);
+      stored.items.push(item);
     });
-    var desc=document.getElementById('plan-result__signalsDescription');if(desc)desc.textContent=l==='bm'?'Tiga isyarat berasingan dengan kiraan dan sumbernya. Aduan menggunakan baris negeri dan spesies yang dipilih daripada jadual PERHILITAN yang telah diselaraskan; jumlah semua spesies tidak digunakan sebagai ganti.':'Three separate signals with their counts and sources. Complaints use the selected state/species row from the reconciled PERHILITAN table; the all-species total is not substituted.';
+    storeSignals(stored);
     var heading=document.getElementById('plan-result__stateHeading');if(heading)heading.textContent=stateLabel;
   }
+  function storeSignals(v){try{sessionStorage.setItem('roomForBoth.planSignals',JSON.stringify(v));}catch(e){}}
 
   function renderMonthly(st,codes){
     var chart=document.getElementById('plan-result__seasonChart'),wrap=document.getElementById('plan-result__seasonChartWrap'),desc=document.getElementById('plan-result__seasonDescription');if(!chart||!wrap||!desc)return;
@@ -182,6 +213,14 @@
     if(currentPage()!=='plan-result')return;var st=state(),codes=speciesCodes();if(!st)return;var token=++runToken;
     Promise.all([apiJson('/api/i2/complaints?state='+encodeURIComponent(st)).catch(function(){return{rows:[],summary:null};}),apiJson('/api/i2/attractants').then(function(b){return Array.isArray(b.rows)?b.rows:[];}).catch(function(){return[];})]).then(function(xs){if(token!==runToken)return;render(st,codes,xs[0],xs[1]);renderMonthly(st,codes);window.dispatchEvent(new Event('roomforboth:signals-ready'));});
   }
+
+  function rerender(){
+    if(currentPage()!=='plan-result'||!lastData)return;
+    render(lastData.st,lastData.codes,lastData.complaints,lastData.attractants);renderMonthly(lastData.st,lastData.codes);
+    window.dispatchEvent(new Event('roomforboth:signals-ready'));
+  }
+  var lastLang=lang();
+  new MutationObserver(function(){var l=lang();if(l!==lastLang){lastLang=l;rerender();}}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else setTimeout(load,0);
   window.addEventListener('hashchange',function(){setTimeout(load,0);});window.addEventListener('popstate',function(){setTimeout(load,0);});document.addEventListener('roomforboth:pageshow',function(){setTimeout(load,0);});window.addEventListener('roomforboth:db-plan-ready',function(){setTimeout(load,0);});window.addEventListener('roomforboth:all-years-occurrence-data-ready',function(){setTimeout(load,0);});

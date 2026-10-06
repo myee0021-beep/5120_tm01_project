@@ -389,7 +389,6 @@
     fixStatePlaceholders();
     removeIteration3Leakage();
     enforceAttractantOptions();
-    renderPrintFromSnapshot();
     ensureNeighbourPrintButton();
   }
 

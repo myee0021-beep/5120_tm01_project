@@ -6,7 +6,7 @@
   var SPECIES={
     macaque:{en:'Long-tailed macaque',bm:'Kera'},
     boar:{en:'Wild boar',bm:'Babi hutan'},
-    myna:{en:'Common myna',bm:'Gembala kerbau'},
+    myna:{en:'Common myna',bm:'Tiong biasa'},
     python:{en:'Reticulated python',bm:'Ular sawa batik'},
     crow:{en:'House crow',bm:'Gagak rumah'},
     monitor:{en:'Water monitor lizard',bm:'Biawak air'},
@@ -33,12 +33,17 @@
     return out.filter(function(v,i,a2){return a2.indexOf(v)===i;});
   }
 
+  var FACTOR_LABELS={
+    'fruit-trees':{en:'fruit trees',bm:'pokok buah'},
+    'open-bins':{en:'open bins',bm:'tong sampah terbuka'},
+    'outdoor-pet-food':{en:'pet food left outside',bm:'makanan haiwan peliharaan di luar'}
+  };
   function factorLabels(){
     var a=answers(),out=[],seen={};
     function add(v,key){
       var n=norm(v);if(!n||n==='no'||n==='false'||n==='none'||n==='not-sure'||n==='unknown'||n==='yes'||n==='true')return;
       if(key==='wasteStorage'&&(n==='closed-bins'||n==='covered-bins'||n==='secured-bins'||n==='bins-with-lids'||n==='kept-indoors'||n==='indoors'))return;
-      var label=n.replace(/-/g,' ');if(seen[label])return;seen[label]=1;out.push(label);
+      var label=FACTOR_LABELS[n]?FACTOR_LABELS[n][lang()]:n.replace(/-/g,' ');if(seen[label])return;seen[label]=1;out.push(label);
     }
     ['foodSources','wasteStorage','attractants'].forEach(function(key){values(a[key]).forEach(function(v){add(v,key);});});
     var feed=norm(a.neighboursFeed||a.neighborsFeed||'');
@@ -59,6 +64,8 @@
     factorLabels().forEach(function(x){parts.push(x);});
     return parts.length?parts.join(' · ')+'.':'';
   }
+
+  window.RoomForBothSummaryLine=buildSummaryLine;
 
   function syncSummaryLine(){
     if(currentPage()!=='plan-result')return;
