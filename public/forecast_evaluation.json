@@ -1,0 +1,7 @@
+{
+  "note": "The recorded test run for the wildlife forecast (AC 11.2.2, Safeguards 6.8). The page shows results ONLY when run_by names the person who ran the test, who must not be the person who trained the model. Replace this file with the evaluation report of that run; keep the same shape.",
+  "run_by": null,
+  "date": null,
+  "rolling": [],
+  "final_test_2024": null
+}

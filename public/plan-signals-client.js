@@ -110,6 +110,39 @@
   function apiJson(url){return fetch(url,{headers:{accept:'application/json'},cache:'no-store'}).then(function(r){return r.json().then(function(b){if(!r.ok||b&&b.ok===false)throw new Error((b&&b.error)||('HTTP '+r.status));return b;});});}
   function sourceLink(url,label){return url?'<a class="underline underline-offset-2" target="_blank" rel="noopener" href="'+esc(url)+'">'+esc(label)+'</a>':esc(label);}
 
+  // ---- Draft AC 1.3.2: bands and the combined level, from signal_threshold (shared with How this is computed) ----
+  function TH(){var t=window.SignalThresholds;return t&&t.rows?t:null;}
+  var BAND_TXT={low:['Low','Rendah'],medium:['Medium','Sederhana'],high:['High','Tinggi']};
+  function bandChip(signal,n){
+    var t=TH();if(!t||!t.hasSigned(signal))return'';
+    var r=t.bandFor(signal,n),l=lang();
+    if(!r)return' <span class="info-pill">'+esc(l==='bm'?'Tiada':'None')+'</span>';
+    return' <span class="level-pill level-'+r.band+'">'+esc(BAND_TXT[r.band][l==='bm'?1:0])+'</span>';
+  }
+  function levelWord(row){return row?BAND_TXT[row.band][lang()==='bm'?1:0]:'';}
+  function rowsFor(signal){var t=TH();return t?t.signedRows(signal):[];}
+  function boundsText(signal){return rowsFor(signal).map(function(r){return r.lower_bound;}).join(', ');}
+  function sumRangeText(l){
+    var rows=rowsFor('combined');
+    return rows.map(function(r,i){var top=rows[i+1]?rows[i+1].lower_bound-1:TH().maxSum();return BAND_TXT[r.band][l==='bm'?1:0]+' '+r.lower_bound+(l==='bm'?' hingga ':' to ')+top;}).join(', ');
+  }
+  // The sentence under "Signals for your home": where the bands come from and what they are not.
+  function thresholdSentence(l){
+    var t=TH();if(!t)return'';
+    var parts=[];
+    if(t.hasSigned('records')||t.hasSigned('complaints')||t.hasSigned('attractants')){
+      parts.push(l==='bm'
+        ?'Jalur ditentukan daripada jadual signal_threshold (had bawah: rekod '+boundsText('records')+'; aduan '+boundsText('complaints')+'; tarikan '+boundsText('attractants')+').'
+        :'Bands come from the signal_threshold table (lower bounds: records '+boundsText('records')+'; complaints '+boundsText('complaints')+'; attractants '+boundsText('attractants')+').');
+    }
+    if(t.hasSigned('combined'))parts.push(l==='bm'
+      ?'Tahap ialah jumlah tiga markah ('+sumRangeText(l)+') dan hanya dipaparkan apabila setiap isyarat mempunyai kiraan.'
+      :'The level is the sum of the three scores ('+sumRangeText(l)+') and is shown only when every signal has a count.');
+    parts.push(l==='bm'?'Keputusan pasukan (D34, D46), tidak ditentukur berdasarkan hasil.':'A team decision (D34, D46), not calibrated against outcomes.');
+    return parts.join(' ');
+  }
+  function howLink(l){return' <a class="underline underline-offset-2" href="plan-how-computed.html">'+esc(l==='bm'?'Cara ini dikira':'How this is computed')+'</a>';}
+
   function render(st,codes,complaints,attractants){
     var list=document.getElementById('plan-result__speciesList');if(!list)return;
     var l=lang(),stateLabel=STATE_LABELS[st]||st,cs=complaints&&complaints.summary||null,complaintRows=complaints&&Array.isArray(complaints.rows)?complaints.rows:[];
@@ -119,27 +152,50 @@
       var meta=SPECIES[code],occ=occurrenceFor(st,code),att=matchAttractants(attractants,code),name=l==='bm'?meta.bm:meta.en;
       var complaint=complaintRowFor(complaintRows,meta.id,cs&&cs.year);
       var card=document.createElement('div');card.className='rounded-xl border border-slate-100 p-4 mb-3';
-      var html='<div class="font-semibold text-forest-950">'+esc(name)+'</div><div class="mt-3 space-y-2 text-sm text-slate-700">';
-      html+='<div><strong>'+(l==='bm'?'Rekod kejadian':'Recorded occurrences')+':</strong> '+occ.total.toLocaleString()+' · '+sourceLink('#about-the-data','GBIF occurrence extract')+'</div>';
+      var counts={records:occ.total,complaints:(meta.absentComplaint||!complaint)?null:Number(complaint.cases||0),attractants:att.length};
+      var combo=TH()?TH().combine(counts):null;
+      var topChip='';
+      if(combo&&combo.row)topChip='<span class="level-pill level-'+combo.row.band+' shrink-0">'+esc(levelWord(combo.row))+'</span>';
+      else if(TH()&&(TH().hasSigned('records')||TH().hasSigned('complaints')||TH().hasSigned('attractants')))topChip='<span class="info-pill shrink-0">'+esc(l==='bm'?'Tiada tahap':'No level')+'</span>';
+      var html='<div class="flex items-start justify-between gap-3"><div class="font-semibold text-forest-950">'+esc(name)+'</div>'+topChip+'</div><div class="mt-3 space-y-2 text-sm text-slate-700">';
+      html+='<div><strong>'+(l==='bm'?'Rekod kejadian':'Recorded occurrences')+':</strong> '+occ.total.toLocaleString()+bandChip('records',occ.total)+' · '+sourceLink('#about-the-data','GBIF occurrence extract')+'</div>';
       if(meta.absentComplaint||!complaint){
         html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+esc(l==='bm'?'Tiada baris aduan khusus spesies yang diterbitkan untuk spesies ini di negeri ini; jumlah semua spesies tidak digunakan sebagai ganti.':'No published species-specific complaint row is available for this species in this state; the all-species total is not substituted.')+'</div>';
       }else{
         var cSource=clean(complaint.source_url||(cs&&cs.source_url)),cDate=plainDate(complaint.date_verified||(cs&&cs.date_verified)),cYear=Number(complaint.year)||(cs&&cs.year)||2020;
-        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+Number(complaint.cases||0).toLocaleString()+' · '+esc(cYear+' '+(l==='bm'?'aduan khusus spesies':'species-specific complaints'))+' · '+sourceLink(cSource||'#about-the-data','PERHILITAN Table 29')+(cDate?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(cDate):'')+'</div>';
+        html+='<div><strong>'+(l==='bm'?'Aduan konflik':'Conflict complaints')+':</strong> '+Number(complaint.cases||0).toLocaleString()+bandChip('complaints',Number(complaint.cases||0))+' · '+esc(cYear+' '+(l==='bm'?'aduan khusus spesies':'species-specific complaints'))+' · '+sourceLink(cSource||'#about-the-data','PERHILITAN Table 29')+(cDate?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(cDate):'')+'</div>';
       }
-      html+='<div><strong>'+(l==='bm'?'Tarikan rumah yang didokumenkan':'Documented attractants matched')+':</strong> '+att.length+'</div>';
+      html+='<div><strong>'+(l==='bm'?'Tarikan rumah yang didokumenkan':'Documented attractants matched')+':</strong> '+att.length+bandChip('attractants',att.length)+'</div>';
       if(att.length){html+='<ul class="ml-4 list-disc text-xs text-slate-500">'+att.map(function(x){var r=x.row;var src=sourceName(r);var d=plainDate(r.date_verified);return'<li>'+esc(x.answer)+' · '+sourceLink(r.source_url,src)+(d?' · '+esc(l==='bm'?'disahkan ':'verified ')+esc(d):'')+'</li>';}).join('')+'</ul>';}
       else html+='<div class="text-xs text-slate-500">'+esc(l==='bm'?'Tiada jawapan di rumah ini sepadan dengan sebab yang didokumenkan untuk spesies ini.':'Nothing at this home matched the documented causes for this species.')+'</div>';
-      html+='</div><div class="mt-3 text-xs text-slate-500">'+esc(l==='bm'?'Tahap gabungan tidak dipaparkan sehingga baris ambang D34 tersedia daripada satu sumber data. Isyarat di atas ialah rekod negeri dan panduan terdokumen, bukan kebarangkalian bagi alamat anda.':'Combined level is not displayed until the D34 threshold row is available from one data source. The signals above are state records and documented guidance, not a probability for your address.')+'</div>';
+      html+='</div>';
+      if(TH()){
+        if(combo&&combo.row){
+          html+='<div class="mt-3 pt-3 border-t border-slate-100 text-sm text-slate-700"><strong>'+esc(l==='bm'?'Tahap gabungan':'Combined level')+':</strong> <span class="level-pill level-'+combo.row.band+'">'+esc(levelWord(combo.row))+'</span>'+
+            '<div class="mt-1 text-xs text-slate-500">'+esc((l==='bm'?'Rekod ':'Records ')+combo.scores.records+' + '+(l==='bm'?'aduan ':'complaints ')+combo.scores.complaints+' + '+(l==='bm'?'tarikan ':'attractants ')+combo.scores.attractants+' = '+combo.sum)+'</div></div>';
+        }else{
+          var why=counts.complaints==null
+            ?(l==='bm'?'Tiada tahap: tiada baris aduan untuk spesies dan negeri ini, jadi hanya kiraan dipaparkan.':'No level: there is no complaint row for this species and state, so the counts stand alone.')
+            :(l==='bm'?'Tiada tahap: jadual ambang tidak mempunyai nilai yang ditandatangani untuk setiap isyarat.':'No level: the threshold table does not hold a signed value for every signal.');
+          html+='<div class="mt-3 text-xs text-slate-500">'+esc(why)+'</div>';
+        }
+        html+='<div class="mt-2 text-xs text-slate-500">'+esc(l==='bm'?'Jalur dan tahap ialah keputusan pasukan (D34, D46), tidak ditentukur berdasarkan hasil, dan bukan kebarangkalian bagi alamat anda.':'Bands and the level are a team decision (D34, D46), not calibrated against outcomes, and not a probability for your address.')+howLink(l)+'</div>';
+      }else{
+        html+='<div class="mt-3 text-xs text-slate-500">'+esc(l==='bm'?'Tahap gabungan tidak dipaparkan kerana jadual ambang tidak dapat dimuat. Isyarat di atas ialah rekod negeri dan panduan terdokumen, bukan kebarangkalian bagi alamat anda.':'No band or combined level is shown because the threshold table did not load. The signals above are state records and documented guidance, not a probability for your address.')+'</div>';
+      }
       card.innerHTML=html;list.appendChild(card);
     });
     var desc=document.getElementById('plan-result__signalsDescription');if(desc)desc.textContent=l==='bm'?'Tiga isyarat berasingan dengan kiraan dan sumbernya. Aduan menggunakan baris negeri dan spesies yang dipilih daripada jadual PERHILITAN yang telah diselaraskan; jumlah semua spesies tidak digunakan sebagai ganti.':'Three separate signals with their counts and sources. Complaints use the selected state/species row from the reconciled PERHILITAN table; the all-species total is not substituted.';
+    var sentence=thresholdSentence(l);
+    if(desc&&sentence)desc.textContent=desc.textContent+' '+sentence;
+    var badge=document.getElementById('plan-result__methodBadge');
+    if(badge&&TH())badge.textContent='D34 · D46';
     var heading=document.getElementById('plan-result__stateHeading');if(heading)heading.textContent=stateLabel;
   }
 
   function renderMonthly(st,codes){
     var chart=document.getElementById('plan-result__seasonChart'),wrap=document.getElementById('plan-result__seasonChartWrap'),desc=document.getElementById('plan-result__seasonDescription');if(!chart||!wrap||!desc)return;
-    var l=lang(),threshold=30;
+    var l=lang(),threshold=(window.SignalThresholds&&SignalThresholds.rows&&SignalThresholds.signedRows('min_records')[0]||{lower_bound:30}).lower_bound;
     chart.innerHTML='';wrap.classList.add('hidden');
     if(!codes.length){desc.textContent=l==='bm'?'Pilih sekurang-kurangnya satu spesies untuk melihat profil bulanan rekod bertarikh.':'Select at least one species to view monthly profiles of dated records.';return;}
     desc.textContent=l==='bm'?'Setiap spesies yang dipilih ditunjukkan secara berasingan. Rekod menunjukkan tempat spesies dilaporkan, bukan bilangan haiwan.':'Each selected species is shown separately. Records show where the species was reported, not the number of animals.';
@@ -180,7 +236,7 @@
 
   function load(){
     if(currentPage()!=='plan-result')return;var st=state(),codes=speciesCodes();if(!st)return;var token=++runToken;
-    Promise.all([apiJson('/api/i2/complaints?state='+encodeURIComponent(st)).catch(function(){return{rows:[],summary:null};}),apiJson('/api/i2/attractants').then(function(b){return Array.isArray(b.rows)?b.rows:[];}).catch(function(){return[];})]).then(function(xs){if(token!==runToken)return;render(st,codes,xs[0],xs[1]);renderMonthly(st,codes);window.dispatchEvent(new Event('roomforboth:signals-ready'));});
+    Promise.all([window.SignalThresholds?SignalThresholds.load():Promise.resolve(),apiJson('/api/i2/complaints?state='+encodeURIComponent(st)).catch(function(){return{rows:[],summary:null};}),apiJson('/api/i2/attractants').then(function(b){return Array.isArray(b.rows)?b.rows:[];}).catch(function(){return[];})]).then(function(xs){if(token!==runToken)return;render(st,codes,xs[1],xs[2]);renderMonthly(st,codes);window.dispatchEvent(new Event('roomforboth:signals-ready'));});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else setTimeout(load,0);

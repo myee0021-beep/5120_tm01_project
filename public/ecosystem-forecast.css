@@ -1,0 +1,60 @@
+/* Wildlife forecast (Epic 11). The photo-backed hero comes from the shared .app-page > main rule. */
+.fc-wrap { max-width: 46rem; margin: 0 auto; padding: 0 1.5rem; }
+.fc-back { display: inline-flex; align-items: center; gap: .375rem; font-size: .875rem; font-weight: 600; color: #d1fae5; text-decoration: none; }
+.fc-back:hover { color: #fff; }
+.fc-eyebrow { margin-top: 1rem; font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #a7f3d0; }
+.fc-title { margin-top: .25rem; font-family: 'Plus Jakarta Sans','Inter',sans-serif; font-size: 2rem; line-height: 1.15; font-weight: 800; letter-spacing: -.01em; color: #fff; text-shadow: 0 2px 18px rgba(0,0,0,.22); }
+@media (min-width: 768px) { .fc-title { font-size: 2.35rem; } }
+.fc-lead { margin-top: .6rem; max-width: 40rem; font-size: .9375rem; line-height: 1.55; color: #dbe4df; }
+.fc-selects { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: 1.4rem; }
+@media (max-width: 520px) { .fc-selects { grid-template-columns: 1fr; } }
+.fc-select { -webkit-appearance: none; appearance: none; width: 100%; background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' fill='none' stroke='%2364748b' stroke-width='1.6' stroke-linecap='round'/></svg>") no-repeat right 1rem center; border: 1px solid #e2e8f0; border-radius: .85rem; padding: .8rem 2.2rem .8rem 1rem; font-size: .875rem; font-weight: 600; color: #0b130e; cursor: pointer; }
+.fc-select:focus { outline: none; box-shadow: 0 0 0 3px rgba(33,82,64,.22); border-color: #215240; }
+.fc-card { background: #fff; border: 1px solid #f1f5f9; border-radius: 1.1rem; box-shadow: 0 24px 60px -32px rgba(5,20,14,.36); padding: 1.25rem 1.4rem; margin-top: 1rem; }
+.fc-label { font-size: .6875rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #64748b; }
+.fc-text { margin: .6rem 0 0; font-size: .9375rem; line-height: 1.55; color: #1e293b; }
+.fc-big { margin: .6rem 0 0; font-size: 1.0625rem; font-weight: 700; line-height: 1.4; color: #0b130e; }
+.fc-note { margin: .7rem 0 0; font-size: .8125rem; line-height: 1.5; color: #64748b; }
+.fc-rank { list-style: none; margin: .5rem 0 0; padding: 0; }
+.fc-row { display: flex; align-items: center; gap: .8rem; padding: .7rem 0; border-top: 1px solid #f1f5f9; }
+.fc-row:first-child { border-top: 0; }
+.fc-row--sub { padding-left: 1.6rem; }
+.fc-row--thin .fc-who { color: #475569; }
+.fc-n { width: 1rem; font-size: .8125rem; font-weight: 700; color: #64748b; text-align: center; flex: 0 0 auto; }
+.fc-who { flex: 1; font-size: 1rem; color: #0b130e; min-width: 0; }
+.fc-name { color: #0b130e; text-decoration: none; }
+a.fc-name:hover { text-decoration: underline; }
+.fc-name--btn { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; text-align: left; }
+.fc-name--btn::after { content: '▾'; margin-left: .4rem; font-size: .7rem; color: #64748b; }
+.fc-name--btn[aria-expanded="true"]::after { content: '▴'; }
+.fc-chip { display: inline-flex; border-radius: 999px; font-size: .6875rem; font-weight: 700; padding: .25rem .75rem; white-space: nowrap; }
+.fc-chip--very { background: #1b4332; color: #fff; }
+.fc-chip--likely { background: #d1fae5; color: #065f46; }
+.fc-chip--unlikely { background: #f1f5f9; color: #475569; }
+.fc-chip--none { background: #fff; color: #475569; border: 1px solid #cbd5e1; }
+.fc-thin { display: inline-flex; align-items: center; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+.fc-count { font-size: .75rem; color: #64748b; }
+.fc-list-links { display: grid; gap: .6rem; margin-top: .7rem; }
+.fc-link { background: none; border: 0; padding: 0; text-align: left; font: inherit; font-size: .9375rem; font-weight: 600; color: #1b4332; text-decoration: none; cursor: pointer; }
+.fc-link:hover { text-decoration: underline; }
+.fc-btn { display: flex; align-items: center; justify-content: center; width: 100%; margin-top: .7rem; border-radius: 999px; padding: .85rem 1.2rem; font-size: .875rem; font-weight: 700; color: #fff; background: #1b4332; border: 1px solid #1b4332; text-decoration: none; cursor: pointer; }
+.fc-btn:focus-visible, .fc-link:focus-visible, .fc-name:focus-visible { outline: 3px solid rgba(33,82,64,.45); outline-offset: 2px; }
+
+/* How this forecast was made and tested (AC 11.2.2) */
+.fm-kv { display: grid; gap: .6rem; margin-top: .8rem; }
+.fm-kv > div { display: grid; grid-template-columns: 11rem 1fr; gap: .75rem; align-items: baseline; padding: .4rem 0; border-top: 1px solid #f1f5f9; }
+.fm-kv > div:first-child { border-top: 0; }
+.fm-kv dt { font-size: .75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+.fm-kv dd { margin: 0; font-size: .9375rem; color: #0b130e; }
+@media (max-width: 520px) { .fm-kv > div { grid-template-columns: 1fr; gap: .15rem; } }
+.fm-list { margin: .7rem 0 0; padding-left: 1.1rem; font-size: .9375rem; line-height: 1.55; color: #1e293b; }
+.fm-list li + li { margin-top: .5rem; }
+.fm-warn { color: #92400e; }
+.fm-scroll { overflow-x: auto; margin-top: .8rem; }
+.fm-table { width: 100%; border-collapse: collapse; font-size: .8125rem; color: #1e293b; }
+.fm-table th { text-align: left; font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #64748b; padding: .45rem .6rem .45rem 0; border-bottom: 1px solid #e2e8f0; vertical-align: bottom; }
+.fm-table td { padding: .65rem .6rem .65rem 0; border-top: 1px solid #f1f5f9; vertical-align: top; line-height: 1.45; }
+.fm-table code { font-size: .75rem; background: #f1f5f9; border-radius: .3rem; padding: .05rem .3rem; }
+.fm-results td, .fm-results th { white-space: nowrap; }
+.fm-none { color: #92400e; font-weight: 600; }
+.fm-final td { background: #f8fafc; }

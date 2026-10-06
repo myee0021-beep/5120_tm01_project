@@ -1,0 +1,18 @@
+/* Encounter log (AC 2.3.x). Shares the cm-* classes in community.css; this file adds only what the log needs. */
+.el-bullets { margin: .8rem 0 0; padding-left: 1.1rem; font-size: .9375rem; line-height: 1.6; color: #334155; }
+.el-bullets li + li { margin-top: .4rem; }
+.el-two { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .6rem; }
+.el-two .cm-btn + .cm-btn { margin-top: 0; }
+.el-group { margin-top: 1rem; font-size: .75rem; font-weight: 700; color: #475569; }
+.el-tiles { margin-top: .4rem; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); }
+.el-green { margin-top: 1rem; background: #dcfce7; border-radius: .8rem; padding: .75rem 1rem; font-size: .8125rem; line-height: 1.5; color: #14532d; }
+.el-green b { display: block; margin-bottom: .1rem; }
+.el-chart { display: grid; align-items: end; height: 4.5rem; margin-top: 1rem; }
+.el-bar { justify-self: center; align-self: end; width: 60%; max-width: 1rem; height: 3px; border-radius: 2px; background: #cbd5e1; }
+.el-bar.on { width: 70%; max-width: 1.1rem; border-radius: 4px; background: #1b4332; }
+.el-entries { list-style: none; margin: .4rem 0 0; padding: 0; }
+.el-entry { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: .8rem 0; border-top: 1px solid #f1f5f9; }
+.el-entry:first-child { border-top: 0; }
+.el-entry__title { font-size: 1rem; font-weight: 600; color: #0b130e; }
+.el-entry__meta { margin-top: .15rem; font-size: .75rem; color: #64748b; line-height: 1.5; }
+.el-entry__note { margin-top: .25rem; font-size: .8125rem; color: #334155; }

@@ -1,0 +1,110 @@
+{
+  "table": "signal_threshold",
+  "note": "Mirrors the signal_threshold database table (D46, signed 26 September 2026). The page reads /api/i3/signal-thresholds first and uses this file only until that route exists. One row per signal and band; lower_bound is the smallest value that reaches the band. A row with no signed_date is not shown as a band. No value changes without a new decision number. The min_records row is the fewest records a monthly profile (AC 1.2.4) or a wildlife forecast (AC 11.1.2) may be built from; one value for both pages.",
+  "rows": [
+    {
+      "signal": "records",
+      "band": "low",
+      "lower_bound": 1,
+      "score": 1,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "records",
+      "band": "medium",
+      "lower_bound": 50,
+      "score": 2,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "records",
+      "band": "high",
+      "lower_bound": 500,
+      "score": 3,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "complaints",
+      "band": "low",
+      "lower_bound": 1,
+      "score": 1,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "complaints",
+      "band": "medium",
+      "lower_bound": 50,
+      "score": 2,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "complaints",
+      "band": "high",
+      "lower_bound": 500,
+      "score": 3,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "attractants",
+      "band": "low",
+      "lower_bound": 1,
+      "score": 1,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "attractants",
+      "band": "medium",
+      "lower_bound": 2,
+      "score": 2,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "attractants",
+      "band": "high",
+      "lower_bound": 4,
+      "score": 3,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "combined",
+      "band": "low",
+      "lower_bound": 0,
+      "score": 1,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "combined",
+      "band": "medium",
+      "lower_bound": 3,
+      "score": 2,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "combined",
+      "band": "high",
+      "lower_bound": 6,
+      "score": 3,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    },
+    {
+      "signal": "min_records",
+      "band": "minimum",
+      "lower_bound": 30,
+      "score": 0,
+      "decision": "D46",
+      "signed_date": "2026-09-26"
+    }
+  ]
+}

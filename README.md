@@ -14,6 +14,20 @@ The application is designed for resident-facing use rather than expert wildlife 
 
 ---
 
+
+## Iteration 3 additions
+
+This README describes the Iteration 2 system, which is still the base of the code. Iteration 3 adds the following on top of it. On this branch these pages are served by the `roomforboth-final` Worker together with the Iteration 3 Community backend.
+
+- **Wildlife forecast (Epic 11).** The Ecosystem section has a forecast page (`public/ecosystem-forecast.js`, `public/ecosystem-forecast.css`) and a page that explains how the forecast was made and tested (`public/ecosystem-forecast-method.js`). Both are mounted in `public/index0914.html`, which the Worker serves for `/`. They read two static files, `public/forecast_predictions.json` and `public/forecast_evaluation.json`. No model runs online and nothing the resident chooses is stored. The method page shows no test result until `forecast_evaluation.json` names who ran the test.
+- **The trained model** is in `ml/`: the data, the scripts that build, test and export it, and `ml/README.md` with its data, tests, results and limits. It predicts how likely each of the seven species is to be recorded in a state in a month. It is not a probability for a home and not a count of animals.
+- **Signal thresholds.** `public/signal_threshold.json` and `public/signal-thresholds.js` hold one table of bands and minimum record counts, read by the plan explanation page, the Plan result and the forecast page. Until the `signal_threshold` table and its API exist in the database, the JSON file is the source.
+- **Other Iteration 3 front-end pages** (encounter log, community posts and review) are in `public/` and use local or in-memory test data. The progress and open decisions are kept in `Iteration3_Status.md`, one folder above this project.
+
+The Iteration 2 sections below are unchanged.
+
+---
+
 ## 1. Iteration 2 architecture
 
 ```text
