@@ -75,12 +75,33 @@ WHERE action_id = 32;
 UPDATE immediate_action SET source_url = 'https://www.malaysia.gov.my/en/topics/mers-999-emergency-line'
 WHERE action_id IN (33) AND source_url = 'https://www.malaysia.gov.my/portal/content/30943';
 
--- Not changed: no page was found that carries the cited advice from the cited person/institution.
---   5      The Star 2024/01/17 (404), Ahmad Khaldun Ismail: no Star article found with 'do not wait for symptoms / no folk remedies'.
---   27     NParks e-guide PDF (404): 'stay calm and move away slowly' as general advice (only species pages say this).
---   34     ResearchGate (blocked to automated checks; a conference abstract, unlikely to carry first-aid advice).
--- Option for 5 and 34 (changes the attribution, so it is left for the team to decide):
---   The Malaysian Medical Gazette article already used by actions 35-37 says 'Reduce movement of the limb affected
---   by the snake bite' and to seek medical care rather than home remedies. To use it, also change source_person and
---   source_institution on those rows to Dr Abdul Rahman Abdul Kadir / The Malaysian Medical Gazette.
+-- action 5: the original Star article (2024/01/17) is gone and no other article by Ahmad Khaldun Ismail
+-- carries "do not wait for symptoms / no folk remedies". The step now follows the Malaysian Medical Gazette
+-- article already cited by actions 35-37, so the wording and the attribution change to match it:
+-- "Get help immediately. You can make an emergency call to 999 ... go to the nearest hospital at once."
+-- "Don't emulate Hindi or Tamil films by cutting or sucking the snake bite."
+UPDATE immediate_action SET
+  action_text_en = 'Get help immediately: call 999 or go to the nearest hospital at once. Do not cut or suck the bite.',
+  action_text_ms = 'Dapatkan bantuan dengan segera: hubungi 999 atau pergi ke hospital terdekat dengan serta-merta. Jangan potong atau sedut kesan gigitan.',
+  source_person = 'Dr Abdul Rahman Abdul Kadir',
+  source_institution = 'The Malaysian Medical Gazette',
+  source_url = 'https://www.mmgazette.com/what-you-need-to-know-about-snake-bites-dr-abdul-rahman-abdul-kadir/',
+  date_verified = '2026-10-06'
+WHERE action_id = 5;
+
+-- action 34: wording unchanged; source moves from the ResearchGate abstract to the same MMGazette article:
+-- "Reduce movement of the limb affected by the snake bite." "Minimise movement of the victim as much as possible."
+UPDATE immediate_action SET
+  source_person = 'Dr Abdul Rahman Abdul Kadir',
+  source_institution = 'The Malaysian Medical Gazette',
+  source_url = 'https://www.mmgazette.com/what-you-need-to-know-about-snake-bites-dr-abdul-rahman-abdul-kadir/',
+  date_verified = '2026-10-06'
+WHERE action_id = 34;
+
+-- action 27: wording unchanged; source moves from the dead e-guide PDF to NParks' "Living with Nature" guidebook,
+-- which gives the same advice for each animal it covers, e.g. wild boar: "Stay calm and observe from a safe
+-- distance. Move away slowly to give it space to retreat."; snakes: "Stay calm and back away slowly, giving it space to retreat."
+UPDATE immediate_action SET source_url = 'https://www.nparks.gov.sg/docs/default-source/resources/2022/nparks-wildlife--booklet.pdf?sfvrsn=a3762d80_1'
+WHERE action_id = 27 AND source_url = 'https://www.nparks.gov.sg/-/media/avs/avs-eguide_feb-2024-new-v2.pdf';
+
 -- Still fine as they are: 14, 15, 18, 19 (DVS Melaka), 35-37 (MMGazette), 38-40 (iProperty, opens in a browser).
