@@ -60,7 +60,8 @@
     var s=document.createElement('style');s.id='plan-print-sheet-style';
     s.textContent=[
       '#plan-print__sheetActions .pps-row{display:flex;align-items:baseline;gap:8px;font-size:13px;line-height:1.45;color:#0b2018}',
-      '#plan-print__sheetActions .pps-box{flex:0 0 auto;display:inline-block;width:13px;height:13px;border:1.5px solid #64748b;border-radius:3px;position:relative;top:2px}',
+      '#plan-print__sheetActions .pps-box{flex:0 0 auto;display:inline-block;width:15px;height:15px;padding:0;border:1.5px solid #64748b;border-radius:3px;background:#fff;position:relative;top:2px;cursor:pointer}',
+      '#plan-print__sheetActions .pps-box:focus-visible{outline:2px solid #166534;outline-offset:2px}',
       '#plan-print__sheetActions .pps-box.is-done::after{content:"\\2713";position:absolute;left:1px;top:-4px;font-size:12px;font-weight:700;color:#166534}',
       '#plan-print__sheetActions .pps-ref,#plan-print__sheetSpecies .pps-ref{font-size:10px;color:#64748b;vertical-align:super;margin-left:2px}',
       '#plan-print__sheetSpecies .pps-species{font-size:12px;line-height:1.45;color:#334155}',
@@ -181,7 +182,10 @@
       actions.forEach(function(a,i){
         var text=clean(a.action_text);if(!text)return;
         var row=el('div','pps-row');row.setAttribute('data-print-prevention-id',clean(a.prevention_id));
-        var box=el('span','pps-box'+(done[clean(a.prevention_id)||text]?' is-done':''));box.setAttribute('aria-hidden','true');box.title=t.tick;
+        // Same tick state as the plan screen (roomForBoth.planDone); never pre-ticked.
+        var doneKey=clean(a.prevention_id)||text,isDone=!!done[doneKey];
+        var box=el('button','pps-box'+(isDone?' is-done':''));box.type='button';box.setAttribute('data-done-key',doneKey);
+        box.setAttribute('aria-pressed',isDone?'true':'false');box.setAttribute('aria-label',t.tick+': '+text);box.title=t.tick;
         var main=el('span',null,(i+1)+'. '+text);
         main.appendChild(ref(cite(sourceLabel(a),a.source_url,a.date_verified)));
         row.appendChild(box);row.appendChild(main);actionsWrap.appendChild(row);
@@ -206,6 +210,15 @@
   }
 
   function schedule(){clearTimeout(timer);timer=setTimeout(render,60);}
+  document.addEventListener('click',function(e){
+    var box=e.target&&e.target.closest?e.target.closest('#plan-print__sheetActions .pps-box'):null;if(!box)return;
+    e.preventDefault();
+    var key=box.getAttribute('data-done-key'),d=read(DONE_KEY,{});
+    d[key]=!d[key];
+    try{sessionStorage.setItem(DONE_KEY,JSON.stringify(d));}catch(err){}
+    window.dispatchEvent(new Event('roomforboth:plan-done-changed'));
+    render();
+  });
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
   window.addEventListener('hashchange',schedule);
   document.addEventListener('roomforboth:pageshow',function(){schedule();setTimeout(render,300);});

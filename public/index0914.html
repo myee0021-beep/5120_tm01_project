@@ -3697,7 +3697,9 @@ function renderPlanResult() {
     var done = plan.preventionPlan.actions.filter(function (a) { return a.checked; }).length;
     progressLabel.textContent = done + ' of ' + plan.preventionPlan.actions.length + ' done';
   }
-  renderActions();
+  // The prevention list is drawn only by plan-db-client.js from the database.
+  // Drawing the mock library here replaced the real plan with sample rows
+  // whenever the resident came back to this page (e.g. from the print sheet).
 
   // ---- encounters ----
   document.getElementById('plan-result__encountersDescription').textContent = pickLang(plan.encounters.description, currentLang());

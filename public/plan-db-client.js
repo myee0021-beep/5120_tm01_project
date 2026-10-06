@@ -45,6 +45,7 @@
     current={host:host,progress:progress,actions:actions,fallbackUsed:fallbackUsed};
     function draw(){
       lang=currentLanguage();
+      var dm=readDone();checked=actions.map(function(a){return !!dm[clean(a.prevention_id)||clean(a.action_text||a.action_text_en||a.action_text_ms)];});
       host.innerHTML='';
       actions.forEach(function(action,i){
         var textValue=clean(action.action_text||action.action_text_en||action.action_text_ms||'');
@@ -89,7 +90,11 @@
     if(currentPage()!=='plan-result')return;
     var host=document.getElementById('plan-result__preventionActions'),progress=document.getElementById('plan-result__preventionProgress');if(!host)return;
     var payload=buildPayload(),fp=JSON.stringify(payload);
-    if(fp===lastFingerprint&&host.getAttribute('data-plan-source')==='prevention_action')return;
+    if(fp===lastFingerprint&&host.getAttribute('data-plan-source')==='prevention_action'){
+      // Same request as last time: redraw the rows if something cleared them.
+      if(!host.querySelector('[data-plan-row="database"]')&&current&&current.draw)current.draw();
+      return;
+    }
     if(fp===inFlight)return;
     if(controller){controller.abort();controller=null;}
     inFlight=fp;controller=new AbortController();var lang=payload.language;
@@ -113,6 +118,8 @@
   }
 
   function schedule(){setTimeout(loadPlan,0);}
+  // Ticks made on the print sheet show on the plan screen too.
+  window.addEventListener('roomforboth:plan-done-changed',function(){if(current&&current.draw&&document.body.contains(current.host))current.draw();});
   var lastLang=currentLanguage();
   new MutationObserver(function(){var l=currentLanguage();if(l===lastLang)return;lastLang=l;if(current&&current.draw&&currentPage()==='plan-result'&&document.body.contains(current.host))current.draw();schedule();}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
