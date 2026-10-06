@@ -2,7 +2,7 @@
   'use strict';
 
   var IMAGE_URL = '/assets/general-guidance-wildlife.jpg?v=20260914-3';
-  var TARGET_IDS = ['wtd_iconBox','auth_iconBox','sp_iconBox','kif_iconBox'];
+  var TARGET_IDS = ['wtd_iconBox','auth_iconBox','sp_iconBox','kif_iconBox','sicb_iconBox'];
 
   function isGeneral(doc, win) {
     try {
@@ -29,7 +29,7 @@
       var existing = box.querySelector('img[data-general-guidance-image="true"]');
       if (!existing) box.innerHTML = imageHtml();
     });
-    ['wtd_photoCredit','auth_photoCredit','sp_photoCredit','kif_photoCredit'].forEach(function (id) {
+    ['wtd_photoCredit','auth_photoCredit','sp_photoCredit','kif_photoCredit','sicb_photoCredit'].forEach(function (id) {
       var el = doc.getElementById(id);
       if (el) el.style.display = 'none';
     });

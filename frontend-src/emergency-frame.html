@@ -1595,7 +1595,15 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
     </div>
 
     <div class="mt-8 flex items-start gap-6 flex-wrap sm:flex-nowrap">
-      <div id="sicb_iconBox" class="shrink-0 w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur text-emerald-300"></div>
+      <div class="shrink-0 flex flex-col items-center gap-1.5 w-20 sm:w-24">
+        <div id="sicb_iconBox" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur text-emerald-300 overflow-hidden"></div>
+        <div id="sicb_photoCredit" class="hidden text-center leading-tight">
+          <p class="text-[9px] text-slate-400"><span data-en>iNaturalist photo</span><span data-bm>Foto iNaturalist</span></p>
+          <a id="sicb_photoSourceLink" href="#" onclick="goTo('about');return false;" class="text-[9px] font-semibold text-emerald-300 hover:text-emerald-200 transition-colors">
+            <span data-en>View source</span><span data-bm>Lihat sumber</span> ↗
+          </a>
+        </div>
+      </div>
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-3 flex-wrap">
           <h1 id="sicb_nameEn" class="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-white tracking-tight">—</h1>
@@ -4038,7 +4046,8 @@ function render_stopback() {
     var pct = items.length ? Math.round((checked / items.length) * 100) : 0;
     fill.style.width = pct + '%';
     label.textContent = checked + ' / ' + items.length;
-    doneMsg.classList.toggle('hidden', checked !== items.length);
+    // An empty checklist (general guidance, species not identified) is not "done".
+    doneMsg.classList.toggle('hidden', !items.length || checked !== items.length);
   }
 
   // .onclick (not addEventListener) — this render function re-runs on every
@@ -4098,6 +4107,16 @@ function render_stopback() {
       document.getElementById('sicb_checklist').innerHTML = list.map(renderPreventionItem).join('');
     } else {
       document.getElementById('sicb_checklist').innerHTML = s.checklist.map(renderLegacyItem).join('');
+    }
+    if (!document.querySelector('#sicb_checklist .check-item')) {
+      // General guidance has no species, so there is nothing specific to stop coming back yet.
+      document.getElementById('sicb_checklist').innerHTML =
+        '<li class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">' +
+          '<p><span data-en>The steps that stop an animal coming back depend on which animal it is. Identify it first to see its checklist.</span>' +
+          '<span data-bm>Langkah untuk menghalang haiwan kembali bergantung pada haiwan itu. Kenal pasti haiwan itu dahulu untuk melihat senarai semaknya.</span></p>' +
+          '<a href="#" onclick="goTo(\'identify\');return false;" class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-forest-950 hover:bg-black text-white text-xs font-bold px-4 py-2">' +
+            '<span data-en>Identify the animal</span><span data-bm>Kenal pasti haiwan</span> \u2192</a>' +
+        '</li>';
     }
     setLang(document.documentElement.lang || 'en');
     attachCheckHandlers();
