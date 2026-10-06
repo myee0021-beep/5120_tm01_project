@@ -25,10 +25,10 @@
   var T={
     en:{printed:'Printed: ',reports:'records in your state',complaints:'complaints to PERHILITAN, ',noComplaints:'no figure in PERHILITAN\'s 2020 complaint table',draws:'things at your home that attract it',draws1:'thing at your home that attracts it',
         recordNote:'One record is one report by a person, not one animal.',complaintNote:function(y){return 'Complaints made in '+y+', not animals.';},sources:'Sources',verified:'verified ',noPlan:'Return to the plan and generate it before printing.',
-        noSpecies:'No animal was picked in the questions, so there are no counts to show.',tick:'Tick when done',level:'combined level',bands:{low:'Low',medium:'Medium',high:'High'}},
+        noSpecies:'No animal was picked in the questions, so there are no counts to show.',tick:'Include in print',printHint:'Tick the actions you want on the printed sheet. Only ticked actions are printed; if none are ticked, all of them are printed.',level:'combined level',bands:{low:'Low',medium:'Medium',high:'High'}},
     bm:{printed:'Dicetak: ',reports:'rekod di negeri anda',complaints:'aduan kepada PERHILITAN, ',noComplaints:'tiada angka dalam jadual aduan PERHILITAN 2020',draws:'perkara di rumah anda yang menariknya',draws1:'perkara di rumah anda yang menariknya',
         recordNote:'Satu rekod ialah satu laporan oleh seseorang, bukan seekor haiwan.',complaintNote:function(y){return 'Aduan yang dibuat pada '+y+', bukan haiwan.';},sources:'Sumber',verified:'disahkan ',noPlan:'Kembali ke pelan dan jana pelan sebelum mencetak.',
-        noSpecies:'Tiada haiwan dipilih dalam soalan, jadi tiada kiraan untuk ditunjukkan.',tick:'Tandakan apabila selesai',level:'tahap gabungan',bands:{low:'Rendah',medium:'Sederhana',high:'Tinggi'}}
+        noSpecies:'Tiada haiwan dipilih dalam soalan, jadi tiada kiraan untuk ditunjukkan.',tick:'Sertakan dalam cetakan',printHint:'Tandakan tindakan yang anda mahu dalam helaian cetakan. Hanya tindakan yang ditanda dicetak; jika tiada yang ditanda, semuanya dicetak.',level:'tahap gabungan',bands:{low:'Rendah',medium:'Sederhana',high:'Tinggi'}}
   };
   var fetched={};   // lang -> actions fetched in that language
   var fetching={};
@@ -70,7 +70,8 @@
       '#plan-print-sheet__sources{margin-top:14px;padding-top:10px;border-top:1px solid #e2e8f0;font-size:10px;line-height:1.4;color:#64748b}',
       '#plan-print-sheet__sources ol{margin:4px 0 0;padding-left:16px}',
       '#plan-print-sheet__sources a{color:inherit;text-decoration:underline;text-underline-offset:2px}',
-      '@media print{#plan-print__sheetActions .pps-row{font-size:9.5pt!important;line-height:1.3!important;break-inside:avoid}#plan-print-sheet__sources{font-size:7pt!important}#plan-print-sheet__sources a{text-decoration:none!important}#plan-print__sheetSpecies .pps-species{font-size:8.5pt!important}}'
+      '#plan-print__sheetActions .pps-row.pps-not-printed{opacity:.55}',
+      '@media print{.pps-not-printed{display:none!important}#plan-print__sheetActions .pps-box{display:none!important}#plan-print__sheetActions .pps-row{font-size:9.5pt!important;line-height:1.3!important;break-inside:avoid}#plan-print-sheet__sources{font-size:7pt!important}#plan-print-sheet__sources a{text-decoration:none!important}#plan-print__sheetSpecies .pps-species{font-size:8.5pt!important}}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -138,10 +139,11 @@
 
     // Sources, numbered once each, cited from the lines above.
     var sources=[],sourceIndex={};
-    function cite(label,url,date){
+    function cite(label,url,date,printed){
       label=clean(label);if(!label)return 0;
       var k=label+'|'+clean(url);
-      if(!sourceIndex[k]){sources.push({label:label,url:clean(url),date:plainDate(date)});sourceIndex[k]=sources.length;}
+      if(!sourceIndex[k]){sources.push({label:label,url:clean(url),date:plainDate(date),printed:printed!==false});sourceIndex[k]=sources.length;}
+      else if(printed!==false)sources[sourceIndex[k]-1].printed=true;
       return sourceIndex[k];
     }
     function ref(n){return n?el('span','pps-ref','['+n+']'):document.createTextNode('');}
@@ -179,15 +181,26 @@
     if(!actions.length){
       actionsWrap.appendChild(el('div','pps-species',t.noPlan));
     }else{
+      // Only ticked actions are printed (none ticked: all are). Ticks are the same
+      // record the plan screen uses (roomForBoth.planDone); nothing is pre-ticked.
+      var keyOf=function(a){return clean(a.prevention_id)||clean(a.action_text);};
+      var anyTicked=actions.some(function(a){return !!done[keyOf(a)];});
+      var inPrint=function(a){return !anyTicked||!!done[keyOf(a)];};
+      var refs={};
+      actions.filter(inPrint).concat(actions.filter(function(a){return !inPrint(a);})).forEach(function(a){
+        refs[keyOf(a)]=cite(sourceLabel(a),a.source_url,a.date_verified,inPrint(a));
+      });
+      var hint=document.getElementById('plan-print-sheet__hint');
+      if(!hint){hint=el('p','no-print');hint.id='plan-print-sheet__hint';hint.style.cssText='font-size:12px;color:#64748b;margin:0 0 6px';actionsWrap.parentNode.insertBefore(hint,actionsWrap);}
+      hint.textContent=t.printHint;
       actions.forEach(function(a,i){
         var text=clean(a.action_text);if(!text)return;
-        var row=el('div','pps-row');row.setAttribute('data-print-prevention-id',clean(a.prevention_id));
-        // Same tick state as the plan screen (roomForBoth.planDone); never pre-ticked.
-        var doneKey=clean(a.prevention_id)||text,isDone=!!done[doneKey];
+        var row=el('div','pps-row'+(inPrint(a)?'':' pps-not-printed'));row.setAttribute('data-print-prevention-id',clean(a.prevention_id));
+        var doneKey=keyOf(a),isDone=!!done[doneKey];
         var box=el('button','pps-box'+(isDone?' is-done':''));box.type='button';box.setAttribute('data-done-key',doneKey);
         box.setAttribute('aria-pressed',isDone?'true':'false');box.setAttribute('aria-label',t.tick+': '+text);box.title=t.tick;
         var main=el('span',null,(i+1)+'. '+text);
-        main.appendChild(ref(cite(sourceLabel(a),a.source_url,a.date_verified)));
+        main.appendChild(ref(refs[doneKey]));
         row.appendChild(box);row.appendChild(main);actionsWrap.appendChild(row);
       });
     }
@@ -200,7 +213,7 @@
       foot.appendChild(el('div','font-semibold',t.sources));
       var ol=el('ol');
       sources.forEach(function(s){
-        var li=el('li');
+        var li=el('li',s.printed?null:'pps-not-printed');
         if(s.url){var a=el('a',null,s.label);a.href=s.url;a.target='_blank';a.rel='noopener';li.appendChild(a);}else li.appendChild(document.createTextNode(s.label));
         if(s.date)li.appendChild(document.createTextNode(' · '+t.verified+longDate(s.date,l)));
         ol.appendChild(li);
