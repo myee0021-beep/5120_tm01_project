@@ -1,6 +1,15 @@
 import { neon } from '@neondatabase/serverless';
 
 function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store',...headers}})}
+// Broken links still stored in immediate_action, mapped to the checked
+// replacements in database_code/fix_immediate_action_sources.sql. Once that
+// script has been run these keys no longer match and this map does nothing.
+const SOURCE_URL_FIXES={
+  'https://www.thestar.com.my/news/nation/2024/02/20/monkeys-are-wild-animals-dont-feed-or-provoke-them':'https://www.thestar.com.my/metro/metro-news/2024/10/18/perhilitan-stop-feeding-releasing-trapped-monkeys',
+  'https://www.um.edu.my/news/monkey-encounter-guide':'https://sustainability.um.edu.my/news/balancing-coexistence-and-conservation-addressing-the-human-macaque-conflict-at-universiti-malaya',
+  'https://www.langurprojectpenang.com/encounter-guide':'https://langurprojectpenang.com/ada-monyet-monkey-encounter-guide/',
+  'https://www.langurprojectpenang.com/faq':'https://langurprojectpenang.com/2020/08/22/faq/'
+};
 function isoDay(v){if(!v)return null;const d=v instanceof Date?v:new Date(v);return isNaN(d)?String(v):d.toISOString().slice(0,10)}
 function positiveIntParam(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isInteger(n)&&n>0?n:null}
 function getSql(env){if(!env.DATABASE_URL)throw new Error('DATABASE_URL is not configured');return neon(env.DATABASE_URL)}
@@ -282,7 +291,7 @@ async function api(request,env){
     const rows=immediate
       ?await sql`SELECT * FROM immediate_action WHERE (${speciesId}::int IS NULL OR species_id=${speciesId}) AND (${categoryId}::int IS NULL OR category_id=${categoryId}) ORDER BY step_order NULLS LAST, action_id`
       :await sql`SELECT * FROM prevention_action WHERE (${speciesId}::int IS NULL OR species_id=${speciesId}) AND (${categoryId}::int IS NULL OR category_id=${categoryId}) ORDER BY harm_rank NULLS LAST, prevention_id`;
-    const actions=rows.map(r=>({...r,date_verified:isoDay(r.date_verified)}));
+    const actions=rows.map(r=>({...r,source_url:SOURCE_URL_FIXES[r.source_url]||r.source_url,date_verified:isoDay(r.date_verified)}));
     return json({ok:true,count:actions.length,actions});
   }
   if(request.method==='GET'&&url.pathname==='/api/states'){
