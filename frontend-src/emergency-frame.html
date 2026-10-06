@@ -2882,7 +2882,28 @@ function getTopSpeciesForState(stateName) {
       nameEn.innerHTML = '<span data-en>' + s.en + '</span><span data-bm>' + s.bm + '</span>';
       nameBm.innerHTML = '<span data-en>' + s.bm + '</span><span data-bm>' + s.en + '</span>';
     }
+    renderInvasiveLink(prefix, s, nameEn);
     renderPhotoIcon(prefix, s);
+  }
+
+  // U2-14 — every page that names an animal links to the "Is it invasive?"
+  // check for that animal. Never for the snake path (no species name) or the
+  // unconfirmed general route.
+  var INVASIVE_CODES = { 'house-crow': 'crow', 'macaque': 'macaque', 'water-monitor': 'monitor', 'wild-boar': 'boar', 'common-myna': 'myna' };
+  function renderInvasiveLink(prefix, s, nameEl) {
+    var id = prefix + '_invasiveLink';
+    var link = document.getElementById(id);
+    var code = INVASIVE_CODES[s.id];
+    if (!code) { if (link) link.remove(); return; }
+    if (!link) {
+      link = document.createElement('a');
+      link.id = id;
+      link.className = 'no-print mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300 hover:text-emerald-200 underline underline-offset-2';
+      var row = nameEl.parentElement;
+      row.parentElement.insertBefore(link, row.nextSibling);
+    }
+    link.href = 'invasive.html?species=' + code;
+    link.innerHTML = '<span data-en>Is it invasive? Check</span><span data-bm>Adakah ia invasif? Semak</span> \u2192';
   }
 
   // AC 1.2.1 — when a species has a real sourced photo, show it filling the
@@ -3411,7 +3432,7 @@ function init_identify() {
     }
     return '<div class="id-card flex items-center justify-between gap-4 rounded-xl border border-slate-200 hover:border-emerald-400 bg-white px-4 py-3.5 transition-colors" data-species-id="' + a.id + '">' +
       '<div class="min-w-0">' +
-        '<div><span class="font-display font-bold text-sm text-forest-950">' + a.en + '</span> <span class="text-xs italic text-slate-400">/ ' + a.bm + '</span></div>' +
+        '<div><span class="font-display font-bold text-sm text-forest-950"><span data-en>' + a.en + '</span><span data-bm>' + a.bm + '</span></span> <span class="text-xs italic text-slate-400">/ <span data-en>' + a.bm + '</span><span data-bm>' + a.en + '</span></span></div>' +
         sciLine +
         '<div class="text-xs text-slate-500 mt-0.5">' + caption + '</div>' +
         matchBlock +
@@ -4583,7 +4604,7 @@ goTo('identify');
   document.addEventListener('click', function(e){
     var a=e.target.closest('a[href]'); if(!a) return;
     var href=a.getAttribute('href')||'';
-    var parentPages=['index.html','plan.html','ecosystem.html','community-how-review-works.html','about-the-data.html'];
+    var parentPages=['index.html','plan.html','ecosystem.html','community-how-review-works.html','about-the-data.html','invasive.html'];
     if(parentPages.some(function(p){return href===p || href.indexOf(p+'?')===0 || href.indexOf(p+'#')===0;})){
       e.preventDefault(); parent.postMessage({type:'r4b-nav',href:href},'*');
     }

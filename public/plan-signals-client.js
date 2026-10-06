@@ -147,7 +147,8 @@
       var complaint=complaintRowFor(complaintRows,meta.id,cs&&cs.year);
       var item={code:code,occurrences:occ.total,complaint:null,attractants:[]};
       var card=document.createElement('div');card.className='rounded-xl border border-slate-100 p-4 mb-3';
-      var html='<div class="font-semibold text-forest-950">'+esc(name)+'</div><div class="mt-3 space-y-2 text-sm text-slate-700">';
+      var html='<div class="flex items-baseline justify-between gap-3 flex-wrap"><div class="font-semibold text-forest-950">'+esc(name)+'</div>'+
+        '<a href="invasive.html?species='+code+'" class="text-xs font-semibold text-emerald-700 underline underline-offset-2">'+esc(l==='bm'?'Adakah ia invasif? Semak':'Is it invasive? Check')+' →</a></div><div class="mt-3 space-y-2 text-sm text-slate-700">';
       html+='<div><strong>'+(l==='bm'?'Laporan di negeri anda':'Reports in your state')+':</strong> '+occ.total.toLocaleString()+recordNote(l)+' · '+sourceLink('#about-the-data',l==='bm'?'rekod GBIF':'GBIF records')+'</div>';
       if(meta.absentComplaint||!complaint){
         html+='<div><strong>'+(l==='bm'?'Aduan kepada PERHILITAN':'Complaints to PERHILITAN')+':</strong> '+esc(l==='bm'?'Tiada angka aduan diterbitkan untuk haiwan ini di negeri ini; jumlah semua haiwan tidak digunakan sebagai ganti.':'No complaint figure is published for this animal in this state; the all-animal total is not used instead.')+'</div>';
