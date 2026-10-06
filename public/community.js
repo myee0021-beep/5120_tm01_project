@@ -79,6 +79,7 @@
     { id: 'snake', en: 'A snake', bm: 'Seekor ular', tag: ['Snake', 'Ular'] },
     { id: 'not-sure', en: 'Not sure', bm: 'Tidak pasti', tag: ['Not sure', 'Tidak pasti'] }
   ];
+  var INVASIVE_CHECK_CODE = { macaque: 'macaque', 'wild-boar': 'boar', 'water-monitor': 'monitor', 'house-crow': 'crow', 'common-myna': 'myna', snake: 'snake' };
   var INVASIVE_SPECIES = ['house-crow', 'common-myna']; // the two listed as introduced in GRIIS Malaysia
   var KINDS = [
     { id: 'turned-up', en: 'What turned up', bm: 'Apa yang muncul' },
@@ -643,7 +644,10 @@
         eyebrow: T('Community · Report', 'Komuniti · Laporan'),
         title: title
       });
-      h += '<div class="cm-report__tags" style="margin-top:.9rem">' + speciesTag(r.species) + kindTag(r.kind) + '<span class="cm-tag cm-tag--ok">' + T('Reviewed ' + esc(fmtDayEn(r.decidedAt || r.week) + ' ' + new Date((r.decidedAt || r.week) + 'T00:00:00').getFullYear()), 'Disemak ' + esc(fmtDayBm(r.decidedAt || r.week) + ' ' + new Date((r.decidedAt || r.week) + 'T00:00:00').getFullYear())) + '</span></div>';
+      var invCode = INVASIVE_CHECK_CODE[r.species];
+      // U2-14: a report names an animal, so it links to the "Is it invasive?" check.
+      var invLink = invCode ? '<a class="cm-tag" style="text-decoration:underline;text-underline-offset:2px" href="invasive.html?species=' + invCode + '">' + T('Is it invasive? Check', 'Adakah ia invasif? Semak') + ' →</a>' : '';
+      h += '<div class="cm-report__tags" style="margin-top:.9rem">' + speciesTag(r.species) + kindTag(r.kind) + invLink + '<span class="cm-tag cm-tag--ok">' + T('Reviewed ' + esc(fmtDayEn(r.decidedAt || r.week) + ' ' + new Date((r.decidedAt || r.week) + 'T00:00:00').getFullYear()), 'Disemak ' + esc(fmtDayBm(r.decidedAt || r.week) + ' ' + new Date((r.decidedAt || r.week) + 'T00:00:00').getFullYear())) + '</span></div>';
       h += '<div class="cm-card" style="margin-top:1rem"><dl style="margin:0">' +
         kv(T('Where', 'Di mana'), esc(place) + ' · ' + T('District only; the form never asks for more.', 'Daerah sahaja; borang tidak pernah meminta lebih.')) +
         kv(T('When', 'Bila'), weekOf(r.week) + (r.time ? ', ' + label(TIME, r.time).toLowerCase() : '')) +

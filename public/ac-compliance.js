@@ -387,9 +387,7 @@
     applyDataCorrections();
     cleanResidentFacingCopy();
     fixStatePlaceholders();
-    removeIteration3Leakage();
     enforceAttractantOptions();
-    renderPrintFromSnapshot();
     ensureNeighbourPrintButton();
   }
 

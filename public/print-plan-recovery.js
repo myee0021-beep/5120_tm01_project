@@ -29,7 +29,7 @@ function domSnapshot(){
  var summary=document.getElementById('plan-result__summaryLine');
  var signals=document.getElementById('plan-result__speciesList');
  var season=document.getElementById('plan-result__seasonDescription');
- return{version:7,captured_from:'plan-result-dom',stateLabel:clean(state&&state.textContent),summaryLine:clean(summary&&summary.textContent),signalsText:clean(signals&&signals.innerText),seasonText:clean(season&&season.innerText),actions:actions};
+ return{version:7,captured_from:'plan-result-dom',language:currentLanguage(),stateLabel:clean(state&&state.textContent),summaryLine:clean(summary&&summary.textContent),signalsText:clean(signals&&signals.innerText),seasonText:clean(season&&season.innerText),actions:actions};
 }
 function save(snap){if(!snap||!Array.isArray(snap.actions)||!snap.actions.length)return false;try{sessionStorage.setItem(KEY,JSON.stringify(snap));return true;}catch(e){return false;}}
 function capture(){var snap=domSnapshot();return snap?save(snap):false;}

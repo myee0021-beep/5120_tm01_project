@@ -27,7 +27,21 @@ function sentenceBoundToRow(sentence,rows){
   });
 }
 
-const KNOWN_ANIMAL_TERMS=['macaque','monkey','kera','wild boar','boar','babi hutan','myna','crow','python','cobra','snake','ular','monitor lizard','water monitor','biawak'];
+// Any animal word in the summary must also appear in the rows shown on the
+// page (U2-19). English plurals are matched too, so "monkeys" counts as "monkey".
+const KNOWN_ANIMAL_TERMS=[
+  'macaque','monkey','primate','kera','monyet','beruk','wild boar','boar','pig','babi hutan','babi',
+  'myna','mynah','tiong','gembala kerbau','crow','gagak','bird','burung',
+  'python','cobra','viper','snake','reptile','ular','sawa','tedung','senduk',
+  'monitor lizard','water monitor','lizard','biawak',
+  'rat','mouse','rodent','tikus','dog','anjing','cat','kucing','squirrel','tupai',
+  'civet','musang','bat','kelawar','otter','memerang','elephant','gajah','tiger','harimau',
+  'bear','beruang','crocodile','buaya','pangolin','tenggiling','deer','rusa'
+];
+function mentionsAnimal(text,term){
+  var t=term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'\\s+');
+  return new RegExp('(^|[^a-z])'+t+'(e?s)?([^a-z]|$)','i').test(String(text||''));
+}
 
 function validate(summary,rows){
   var text=clean(summary);
@@ -54,7 +68,7 @@ function validate(summary,rows){
 
   var lower=text.toLowerCase();
   for(const term of KNOWN_ANIMAL_TERMS){
-    if(containsTerm(lower,term)&&!containsTerm(source,term)){
+    if(mentionsAnimal(lower,term)&&!mentionsAnimal(source,term)){
       return{ok:false,reason:'new_species',detail:{term:term}};
     }
   }
@@ -85,7 +99,7 @@ function hashText(text){var h=2166136261;for(var i=0;i<text.length;i++){h^=text.
 function summaryCacheKey(rows,language){
   var stable=stableRows(rows).sort(function(a,b){var ai=Number(a.prevention_id),bi=Number(b.prevention_id);if(Number.isFinite(ai)&&Number.isFinite(bi)&&ai!==bi)return ai-bi;return(a.prevention_id+a.action).localeCompare(b.prevention_id+b.action)});
   var ids=stable.map(function(r){return r.prevention_id||'x'}).join('-');
-  return new Request('https://plan-summary-cache.internal/v4/'+encodeURIComponent(language)+'/'+encodeURIComponent(ids)+'/'+hashText(JSON.stringify(stable)),{method:'GET'});
+  return new Request('https://plan-summary-cache.internal/v5/'+encodeURIComponent(language)+'/'+encodeURIComponent(ids)+'/'+hashText(JSON.stringify(stable)),{method:'GET'});
 }
 async function readCachedSummary(rows,language){
   try{

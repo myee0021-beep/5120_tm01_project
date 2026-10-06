@@ -2,9 +2,10 @@
 'use strict';
 var STATES=[['johor','Johor'],['kedah','Kedah'],['kelantan','Kelantan'],['melaka','Melaka'],['negeri-sembilan','Negeri Sembilan'],['pahang','Pahang'],['perak','Perak'],['perlis','Perlis'],['penang','Pulau Pinang'],['sabah','Sabah'],['sarawak','Sarawak'],['selangor','Selangor'],['terengganu','Terengganu'],['kl','W.P. Kuala Lumpur'],['labuan','W.P. Labuan'],['putrajaya','W.P. Putrajaya']];
 function t(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
-function longDate(s){var m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return s;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));return d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});}
+function longDate(s,bm){var m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return s;var d=new Date(Date.UTC(+m[1],+m[2]-1,+m[3]));return d.toLocaleDateString(bm?'ms-MY':'en-GB',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});}
 function patchText(doc){
  var root=doc.body||doc.documentElement;if(!root)return;
+ var bm=String(doc.documentElement.lang||'').toLowerCase()==='bm';
  var w=doc.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];
  while(w.nextNode())nodes.push(w.currentNode);
  nodes.forEach(function(n){
@@ -14,61 +15,13 @@ function patchText(doc){
      .replace(/1960\s+to\s+2026/g,'1860 to 2026')
      .replace(/1960\s+hingga\s+2026/g,'1860 hingga 2026')
      .replace(/PERHILITAN\s*\(mock reviewer\)/gi,'PERHILITAN')
-     .replace(/\b(20\d{2}-\d{2}-\d{2})\b/g,function(m){return longDate(m);});
+     .replace(/\b(20\d{2}-\d{2}-\d{2})\b/g,function(m){return longDate(m,bm);});
    if(x!==v)n.nodeValue=x;
  });
 }
-function progress(doc){
- var bodyText=t((doc.body&&doc.body.innerText)||'');
- var isBM=/\bUtama\b|\bKecemasan\b|\bTentang Data\b|\bHubungi\b|\bApa perlu dikata\b/i.test(bodyText);
- doc.querySelectorAll('a,button,[role="tab"],li,span').forEach(function(e){
-   var s=t(e.textContent);
-   if((s==='Prevention'||s==='Pencegahan')&&e.children.length<=2){
-     var p=t((e.parentElement&&e.parentElement.textContent)||'');
-     if(/Start|Identify|Action|Contact|Mula|Tindakan|Hubungi/i.test(p))e.style.display='none';
-   }
-   if(/^Next:\s*(Prevention|Plan)(?:\s*[→›>])?$/i.test(s)||/^Seterusnya:\s*(Pencegahan|Pelan)(?:\s*[→›>])?$/i.test(s)){
-     e.textContent=(isBM?'Seterusnya: Pelan':'Next: Plan')+' →';
-     if(!e.dataset.planFixed){
-       e.dataset.planFixed='1';
-       e.addEventListener('click',function(ev){
-         ev.preventDefault();
-         try{window.top.location.hash='#plan';}catch(_){}
-       });
-     }
-   }
- });
-}
-function notSure(doc){
- doc.querySelectorAll('a,button,[role="button"]').forEach(function(e){
-   var s=t(e.textContent);if(!/^Not sure\??$/i.test(s)&&!/^Tidak pasti\??$/i.test(s))return;
-   if(e.dataset.snakeFixed)return;e.dataset.snakeFixed='1';
-   e.addEventListener('click',function(ev){
-     var scope=e.closest('section,main,article,div')||doc;
-     var candidates=Array.from(scope.querySelectorAll('a,button,[role="tab"],[role="button"]'));
-     var target=candidates.find(function(a){var x=t(a.textContent);return /^Yes,?\s*(it'?s\s*)?a\s*snake$/i.test(x)||/^Ya,?\s*.*ular$/i.test(x);});
-     if(!target){
-       target=Array.from(doc.querySelectorAll('a,button,[role="tab"],[role="button"]')).find(function(a){var x=t(a.textContent);return /^Yes,?\s*(it'?s\s*)?a\s*snake$/i.test(x)||/^Ya,?\s*.*ular$/i.test(x)||/Start\s*\/\s*snake check|snake check|semak ular/i.test(x);});
-     }
-     if(!target)return;
-     ev.preventDefault();ev.stopImmediatePropagation();target.click();
-   },true);
- });
-}
-
-function syncPlanCtaLanguage(doc){
-  try{
-    var bm=String((doc.documentElement&&doc.documentElement.lang)||'').toLowerCase()==='bm';
-    doc.querySelectorAll('span[data-en][data-plan-fixed],span[data-bm][data-plan-fixed]').forEach(function(s){
-      if(bm && s.hasAttribute('data-bm')) s.textContent='Seterusnya: Pelan';
-      if(!bm && s.hasAttribute('data-en')) s.textContent='Next: Plan';
-    });
-  }catch(_){}
-}
-
 function patch(doc){
  if(!doc||!doc.documentElement)return;
- patchText(doc);progress(doc);syncPlanCtaLanguage(doc);notSure(doc);
+ patchText(doc);
  doc.querySelectorAll('iframe').forEach(function(f){
    try{patch(f.contentDocument);}catch(_){}
    if(!f.dataset.acBound){

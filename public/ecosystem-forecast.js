@@ -40,7 +40,7 @@
   };
   // Latin name in the file -> site species code and names
   var SPECIES = {
-    'Acridotheres tristis': { code: 'myna', en: 'Common myna', bm: 'Gembala kerbau' },
+    'Acridotheres tristis': { code: 'myna', en: 'Common myna', bm: 'Tiong biasa' },
     'Corvus splendens': { code: 'crow', en: 'House crow', bm: 'Gagak rumah' },
     'Macaca fascicularis': { code: 'macaque', en: 'Long-tailed macaque', bm: 'Kera ekor panjang' },
     'Malayopython reticulatus': { code: 'python', en: 'Reticulated python', bm: 'Ular sawa batik', snake: true },
@@ -176,10 +176,14 @@
   }
   function chip(band) { return '<span class="fc-chip fc-chip--' + band + '">' + T(BAND[band].en, BAND[band].bm) + '</span>'; }
   function notEnough(rec) { return '<span class="fc-chip fc-chip--none">' + T('Not enough records', 'Rekod tidak mencukupi') + '</span><span class="fc-count">' + fmt(rec) + ' ' + T(rec === 1 ? 'record' : 'records', 'rekod') + '</span>'; }
+  // U2-14: every named animal also links to the "Is it invasive?" check.
+  function invasiveLink(code) {
+    return ' <a class="fc-inv" style="font-size:11px;font-weight:600;color:#047857;text-decoration:underline;text-underline-offset:2px;margin-left:6px;white-space:nowrap" href="invasive.html?species=' + (code === 'snakes' ? 'snake' : code) + '">' + T('Invasive?', 'Invasif?') + '</a>';
+  }
   function nameLink(it) {
     var n = T(esc(it.en), esc(it.bm));
-    if (it.code === 'snakes') return n;
-    return '<a class="fc-name" href="species.html?species=' + it.code + (S.state ? '&state=' + encodeURIComponent(S.state) : '') + '">' + n + '</a>';
+    if (it.code === 'snakes') return n + invasiveLink(it.code);
+    return '<a class="fc-name" href="species.html?species=' + it.code + (S.state ? '&state=' + encodeURIComponent(S.state) : '') + '">' + n + '</a>' + invasiveLink(it.code);
   }
 
   function render() {

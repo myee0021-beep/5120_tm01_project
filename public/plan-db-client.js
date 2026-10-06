@@ -4,6 +4,10 @@
   var inFlight='';
   var controller=null;
   var SNAPSHOT_KEY='roomForBoth.currentPlanSnapshot';
+  var DONE_KEY='roomForBoth.planDone';
+  var current=null;
+  function readDone(){try{return JSON.parse(sessionStorage.getItem(DONE_KEY)||'{}')||{};}catch(e){return {};}}
+  function writeDone(d){try{sessionStorage.setItem(DONE_KEY,JSON.stringify(d));}catch(e){}}
 
   function clean(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
   function plainDate(v){var s=clean(v),m=s.match(/^(\d{4}-\d{2}-\d{2})/);return m?m[1]:s;}
@@ -36,21 +40,25 @@
 
   function renderActions(host,progress,actions,lang,fallbackUsed){
     actions=actions.slice(0,8);
-    var checked=actions.map(function(){return false;});
+    var doneMap=readDone();
+    var checked=actions.map(function(a){return !!doneMap[clean(a.prevention_id)||clean(a.action_text)];});
+    current={host:host,progress:progress,actions:actions,fallbackUsed:fallbackUsed};
     function draw(){
+      lang=currentLanguage();
       host.innerHTML='';
       actions.forEach(function(action,i){
         var textValue=clean(action.action_text||action.action_text_en||action.action_text_ms||'');
         var source=sourceLabel(action),sourceUrl=clean(action.source_url),verified=plainDate(action.date_verified);
         var row=document.createElement('div');row.className='flex items-start gap-3';row.setAttribute('data-plan-row','database');row.setAttribute('data-prevention-id',clean(action.prevention_id||''));row.setAttribute('data-action-text',textValue);row.setAttribute('data-source-person',clean(action.source_person));row.setAttribute('data-source-institution',clean(action.source_institution));row.setAttribute('data-source-url',sourceUrl);row.setAttribute('data-date-verified',verified);
-        var box=document.createElement('button');box.type='button';box.className='checkbox-btn'+(checked[i]?' checked':'');box.setAttribute('aria-pressed',checked[i]?'true':'false');box.setAttribute('aria-label',(lang==='bm'?'Tandakan tindakan: ':'Mark action done: ')+textValue);box.innerHTML=checked[i]?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>':'';box.addEventListener('click',function(){checked[i]=!checked[i];draw();});
+        var box=document.createElement('button');box.type='button';box.className='checkbox-btn'+(checked[i]?' checked':'');box.setAttribute('aria-pressed',checked[i]?'true':'false');box.setAttribute('aria-label',(lang==='bm'?'Tandakan tindakan: ':'Mark action done: ')+textValue);box.innerHTML=checked[i]?'<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>':'';box.addEventListener('click',function(){checked[i]=!checked[i];var d=readDone();d[clean(action.prevention_id)||textValue]=checked[i];writeDone(d);draw();window.dispatchEvent(new Event('roomforboth:plan-done-changed'));});
         var text=document.createElement('div');text.className='text-sm min-w-0';var sourceHtml=sourceUrl?'<a class="underline underline-offset-2 hover:text-emerald-700" href="'+esc(sourceUrl)+'" target="_blank" rel="noopener">'+esc(source||sourceUrl)+'</a>':esc(source);
-        text.innerHTML='<div class="text-forest-950">'+esc((i+1)+'. '+textValue)+'</div><div class="mt-1 text-xs text-slate-400" data-plan-source-line>Source: '+sourceHtml+' · Verified '+esc(verified)+'</div>';
+        text.innerHTML='<div class="text-forest-950">'+esc((i+1)+'. '+textValue)+'</div><div class="mt-1 text-xs text-slate-400" data-plan-source-line>'+(lang==='bm'?'Sumber: ':'Source: ')+sourceHtml+' · '+(lang==='bm'?'Disahkan ':'Verified ')+esc(verified)+'</div>';
         row.appendChild(box);row.appendChild(text);host.appendChild(row);
       });
-      if(progress)progress.textContent=checked.filter(Boolean).length+' of '+actions.length+' done';
+      if(progress)progress.textContent=lang==='bm'?checked.filter(Boolean).length+' daripada '+actions.length+' selesai':checked.filter(Boolean).length+' of '+actions.length+' done';
       if(fallbackUsed){var note=document.createElement('div');note.className='text-xs text-slate-400 pt-1';note.textContent=lang==='bm'?'Tiada padanan tepat bagi semua jawapan. Hanya tindakan umum bagi spesies/kategori yang masih mempunyai sumber Malaysia dan tarikh pengesahan dipaparkan.':'No exact match was available for every answer. Only general actions for the species/category that still carry a Malaysian source and verified date are shown.';host.appendChild(note);}
     }
+    current.draw=draw;
     host.setAttribute('data-plan-source','prevention_action');draw();writeSnapshot(actions,lang);
     window.dispatchEvent(new CustomEvent('roomforboth:db-plan-ready',{detail:{count:actions.length,state:readState(readHomeAnswers()),actions:actions}}));
   }
@@ -69,7 +77,7 @@
     if(restoreSnapshot(host,progress,lang))return;
     host.setAttribute('data-plan-source','prevention_action-error');
     host.innerHTML='<div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-slate-700">'+esc(message||(lang==='bm'?'Permintaan pangkalan data/API gagal. Cuba muat semula halaman.':'Database/API request failed. Please reload the page.'))+'</div>';
-    if(progress)progress.textContent='0 of 0 done';
+    if(progress)progress.textContent=lang==='bm'?'0 daripada 0 selesai':'0 of 0 done';
     dispatchEmpty();
   }
 
@@ -105,6 +113,8 @@
   }
 
   function schedule(){setTimeout(loadPlan,0);}
+  var lastLang=currentLanguage();
+  new MutationObserver(function(){var l=currentLanguage();if(l===lastLang)return;lastLang=l;if(current&&current.draw&&currentPage()==='plan-result'&&document.body.contains(current.host))current.draw();schedule();}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
   window.addEventListener('hashchange',schedule);window.addEventListener('popstate',schedule);document.addEventListener('roomforboth:pageshow',schedule);
 })();
