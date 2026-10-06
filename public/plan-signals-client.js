@@ -172,7 +172,7 @@
     var chart=document.getElementById('plan-result__seasonChart'),wrap=document.getElementById('plan-result__seasonChartWrap'),desc=document.getElementById('plan-result__seasonDescription');if(!chart||!wrap||!desc)return;
     var l=lang(),threshold=30;
     chart.innerHTML='';wrap.classList.add('hidden');
-    if(!codes.length){desc.textContent=l==='bm'?'Pilih sekurang-kurangnya satu spesies untuk melihat profil bulanan rekod bertarikh.':'Select at least one species to view monthly profiles of dated records.';return;}
+    if(!codes.length){desc.textContent=l==='bm'?'Pilih seekor haiwan untuk melihat bulan ia paling kerap dilaporkan.':'Pick an animal to see which months it is reported most.';return;}
     desc.textContent=l==='bm'?'Setiap spesies yang dipilih ditunjukkan secara berasingan. Rekod menunjukkan tempat spesies dilaporkan, bukan bilangan haiwan.':'Each selected species is shown separately. Records show where the species was reported, not the number of animals.';
     var monthsShort=l==='bm'?['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis']:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     codes.forEach(function(code){

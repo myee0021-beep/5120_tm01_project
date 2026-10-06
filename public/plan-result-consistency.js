@@ -62,7 +62,8 @@
       parts.push(l==='bm'?joined+' dilihat':joined+' seen');
     }
     factorLabels().forEach(function(x){parts.push(x);});
-    return parts.length?parts.join(' · ')+'.':'';
+    if(!codes.length)parts.unshift(l==='bm'?'Belum ada haiwan dipilih':'No animal picked yet');
+    return parts.join(' · ')+'.';
   }
 
   window.RoomForBothSummaryLine=buildSummaryLine;
