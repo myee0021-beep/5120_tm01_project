@@ -502,8 +502,8 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
       </button>
     </div>
     <p class="mt-5 text-xs text-slate-400 leading-relaxed">
-      <span data-en>If yes, we skip straight to what to do for a snake — no species names or photos are shown. If you are not sure, we show the same keep-away steps first, then you can describe what you saw. Only choose "definitely not a snake" to describe it straight away.</span>
-      <span data-bm>Jika ya, kami terus ke apa perlu dibuat untuk ular — tiada nama spesies atau foto ditunjukkan. Jika tidak pasti, kami tunjukkan langkah menjauhi yang sama dahulu, kemudian anda boleh terangkan apa yang dilihat. Pilih "pasti bukan ular" sahaja untuk terangkan serta-merta.</span>
+      <span data-en>If yes, we skip straight to what to do for a snake — no species names or photos are shown. If you are not sure, we help you identify it first; keep your distance while you do. If it turns out to be a snake, you are taken to the snake steps.</span>
+      <span data-bm>Jika ya, kami terus ke apa perlu dibuat untuk ular — tiada nama spesies atau foto ditunjukkan. Jika tidak pasti, kami bantu anda mengenal pasti dahulu; jaga jarak semasa berbuat demikian. Jika ia ular, anda akan dibawa ke langkah untuk ular.</span>
     </p>
     </div>
   </div>
@@ -3387,10 +3387,9 @@ function init_identify() {
       // while a possible snake was still in the room.
       // IT-3 (D44), option (c): "Not sure" gets the same keep-away steps and the same Do not list, on a page
       // headed "Not sure what it is" that never uses the word snake, with Describe it and Who to call as equal next steps.
-      if (answer === 'notsure') {
-        goTo('snakewhattodo', { notSure: true });
-        return;
-      }
+      // "Not sure" goes to the identification screen, like "no", so the
+      // resident can work out what it is; a snake-like description there is
+      // still routed to the snake steps by the Describe it / keyword checks.
       if (answer === 'yes') {
         goTo('snakewhattodo');
         return;
