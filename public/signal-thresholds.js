@@ -6,8 +6,8 @@
  *   signal  records | complaints | attractants | combined
  *   band    low | medium | high   (score 1, 2, 3)
  *   A row with no signed_date is ignored: no band is shown from it.
- * Read from /api/i3/signal-thresholds; until that Worker route exists, from signal_threshold.json
- * (same shape). Nothing about the bands is written anywhere else in the front end.
+ * Read from /api/i3/signal-thresholds; when that route fails or returns no signed rows in this shape,
+ * from signal_threshold.json (same shape). Nothing about the bands is written anywhere else in the front end.
  */
 (function () {
   'use strict';
@@ -23,7 +23,14 @@
   }
   ST.load = function () {
     if (ST._p) return ST._p;
-    ST._p = json(ROUTE).then(function (b) { ST.rows = b.rows || b.thresholds || []; ST.source = 'api'; })
+    // The route is used only when it returns signed rows in this shape; an empty table, or rows in
+    // another shape, fall through to the shipped copy, so the bands never disappear from the page.
+    ST._p = json(ROUTE).then(function (b) {
+      var rows = (b && (b.rows || b.thresholds)) || [];
+      var usable = rows.filter(function (r) { return r && r.signal && r.band && r.signed_date && r.lower_bound != null; });
+      if (!usable.length) throw new Error('no signed rows from the route');
+      ST.rows = rows; ST.source = 'api';
+    })
       .catch(function () {
         return fetch(FILE, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
           .then(function (b) { ST.rows = b.rows || []; ST.source = 'file'; });
