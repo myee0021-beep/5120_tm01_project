@@ -630,6 +630,8 @@
 }
 #ecosystem__speciesPills > * { min-width:0 !important; width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center; padding-left:.65rem !important; padding-right:.65rem !important; font-size:.75rem !important; }
 #ecosystem__mapWrap { overflow:hidden; border-radius:.9rem; }
+/* a clicked state or district otherwise gets the browser's rectangular focus box; the selected outline below follows the real border instead */
+#ecosystem__map .leaflet-interactive:focus { outline:none; }
 #ecosystem__map { height:520px !important; min-height:520px !important; width:100% !important; border-radius:.9rem; background:#dce7ea; }
 @media (max-width:640px) {
   .app-page:not(#page-index):not(#page-emergency):not(#page-about-the-data) > main { background-size:100% 450px, auto 450px; }
@@ -1544,6 +1546,8 @@
 <!-- Iteration 3: year and month filters (independent; either can stay on "All"). -->
 <div class="mt-3 flex flex-wrap items-end gap-3" id="ecosystem__timeFilters"></div>
 <p class="hidden mt-2 text-xs text-amber-700" id="ecosystem__timeFilterNote"></p>
+<!-- Iteration 3 (mentor review): switch between state circles and district outlines. -->
+<div class="mt-3 flex flex-wrap items-center gap-2" id="ecosystem__viewToggle"></div>
 <div class="relative mt-4" id="ecosystem__mapWrap">
 <div id="ecosystem__map"></div>
 <button class="hidden absolute top-2 right-2 z-[1000] inline-flex items-center gap-1.5 rounded-full bg-forest-950 hover:bg-black text-white text-xs font-semibold px-3.5 py-2 shadow-lg" id="ecosystem__mapNationalBtn" type="button"><span aria-hidden="true">←</span><span data-en="">Back to the national map</span><span data-bm="">Kembali ke peta kebangsaan</span></button>
@@ -1557,6 +1561,7 @@
 <span data-bm="">Saiz gelembung = rekod. Negeri berdekatan bergabung menjadi satu bulatan sehingga anda zum masuk — ketik bulatan gabungan untuk pecahannya, ketik satu negeri untuk membukanya.</span>
 </span>
 </div>
+<div class="hidden mt-3 text-xs text-slate-500" id="ecosystem__districtLegend"></div>
 <!-- Year/month filtering is Iteration 3 (D39: "Species and state filters.
      Year, month and Ask the map to Iteration 3") — this page filters by
      species and state only. The by-month/by-year chart further down is
@@ -1602,6 +1607,12 @@
 <div class="flex justify-between mt-1.5 text-[10px] text-slate-400" id="ecosystem__barChartLabels"></div>
 <p class="hidden mt-1 text-[10px] text-slate-400 italic" id="ecosystem__chartAxisNote"></p>
 <p class="mt-3 text-xs text-slate-400 leading-relaxed" id="ecosystem__chartCaption"></p>
+</div>
+<!-- ============ District view: busiest districts ============ -->
+<div class="hidden card mt-6 px-6 py-6 md:px-7" id="ecosystem__districtCard">
+<div class="text-xs font-semibold tracking-wide uppercase text-slate-400" id="ecosystem__districtLabel"></div>
+<div class="mt-3" id="ecosystem__districtList"></div>
+<p class="mt-3 text-xs text-slate-400 leading-relaxed" id="ecosystem__districtFootnote"></p>
 </div>
 <!-- ============ By state / by species list ============ -->
 <div class="card mt-6 px-6 py-6 md:px-7" id="ecosystem__listCard">
@@ -3888,6 +3899,11 @@ var selectedState = null; // stateKey or null (national view)
 var showAllStates = false;
 var lastByState = {};           // stateKey -> count, from the most recent filter pass
 var lastClickedClusterKey = null; // sorted state-keys joined with ',' — "tap again to zoom in" state
+// District view (Iteration 3 mentor review): the same V2 records placed in districts,
+// from public/ecosystem-districts-data.js (built by scripts/build-ecosystem-districts.mjs).
+var DIST = window.ECOSYSTEM_DISTRICTS || null;
+var viewMode = 'state';   // 'state' (circles per state) or 'district' (outlines)
+var districtGroup = null, districtLayers = null;
 
 function currentLang() {
   return document.documentElement.getAttribute('lang') === 'bm' ? 'bm' : 'en';
@@ -3961,9 +3977,12 @@ try {
   if (qYear >= META.yearRange[0] && qYear <= META.yearRange[1]) yearFilter = qYear;
   if (qMonth >= 1 && qMonth <= 12) monthFilter = qMonth;
 
+  if (params.get('view') === 'district' && DIST) viewMode = 'district';
+
   initMap(ECOSYSTEM_STATES_GEOJSON);
   buildPills();
   buildTimeFilters();
+  buildViewToggle();
   renderAll();
 } catch (err) {
   console.error('Ecosystem map: failed to load data', err);
@@ -4016,7 +4035,7 @@ function initMap(statesGeoJson) {
   // every zoomend — panning alone doesn't change pixel distances, so no
   // moveend listener is needed. "Tap again to zoom in" only makes sense
   // against the cluster grouping it was armed on, so any zoom/drag clears it.
-  map.on('zoomend', function () { drawBubbles(lastByState); syncNationalBtn(); });
+  map.on('zoomend', function () { if (viewMode === 'state') drawBubbles(lastByState); syncNationalBtn(); });
   map.on('zoomstart dragstart', function () { lastClickedClusterKey = null; });
 }
 
@@ -4266,6 +4285,7 @@ function renderAll() {
   syncNationalBtn();
   renderRecordCount(filtered);
   renderOpenSpeciesPageBtn();
+  renderDistrictView();
 }
 
 // AC4.1.2 — "Open the species page" only makes sense for one of the seven
@@ -4349,10 +4369,11 @@ function renderMapLayer(filtered) {
   // polygon highlight
   statesLayer.eachLayer(function (layer) {
     var isSelected = layer.feature.properties.stateKey === selectedState;
-    layer.setStyle({ fillOpacity: isSelected ? 0.22 : 0.06, weight: isSelected ? 2 : 1 });
+    layer.setStyle({ fillOpacity: isSelected ? 0.22 : 0.06, weight: isSelected ? 3 : 1, color: isSelected ? '#0b130e' : '#215240' });
   });
 
   if (selectedState) {
+    map.invalidateSize(); // the container can still be mid-layout, or resized since the last fit
     statesLayer.eachLayer(function (layer) {
       if (layer.feature.properties.stateKey === selectedState) map.fitBounds(layer.getBounds(), { padding: [12, 12] });
     });
@@ -4667,6 +4688,210 @@ function renderRecordCount(filtered) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// District view (Iteration 3, mentor review)
+// Same records as the state view (iteration2_map_aggregated_V2.json), so the species, state, year
+// and month filters all apply and the totals agree with the state view. The V2 file has no
+// district column, so scripts/build-ecosystem-districts.mjs places a record in a district only
+// when its locality text carries coordinates inside the district, names the district, or names a
+// listed place. The rest stay known to their state only and are counted, not drawn.
+// Outlines: geoBoundaries ADM2 (CC BY 3.0). Snakes are shown as one group in a popup (AC 3.2.2).
+// ---------------------------------------------------------------------------
+function districtAvailable() { return !!(DIST && DIST.districts && DIST.rows); }
+
+function buildViewToggle() {
+  var wrap = document.getElementById('ecosystem__viewToggle');
+  if (!wrap) return;
+  if (!districtAvailable()) { wrap.classList.add('hidden'); return; }
+  wrap.classList.remove('hidden');
+  var T = currentLang() === 'bm'
+    ? { label: 'Paparan peta', state: 'Mengikut negeri', district: 'Mengikut daerah' }
+    : { label: 'Map view', state: 'By state', district: 'By district' };
+  wrap.innerHTML = '<span class="text-xs font-semibold text-slate-500 mr-1">' + T.label + '</span>' +
+    ['state', 'district'].map(function (k) {
+      return '<button type="button" class="pill' + (viewMode === k ? ' active' : '') + '" data-view="' + k + '">' + T[k] + '</button>';
+    }).join('');
+  wrap.querySelectorAll('button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      viewMode = b.getAttribute('data-view');
+      buildViewToggle();
+      renderAll();
+      if (!selectedState) map.fitBounds(statesLayer.getBounds(), { padding: [8, 8] });
+    });
+  });
+}
+
+// per-district totals for the current filters; records not placed in a district are counted apart
+function districtTotals() {
+  var byD = {}, unplaced = 0, total = 0;
+  DIST.rows.forEach(function (r) {
+    var di = r[0], n = r[4];
+    if (selectedState && r[5] !== selectedState) return;
+    if (!speciesMatchesFilter(r[1], speciesFilter)) return;
+    if (yearFilter && r[2] !== yearFilter) return;
+    if (monthFilter && r[3] !== monthFilter) return;
+    total += n;
+    if (di < 0) { unplaced += n; return; }
+    var e = byD[di] || (byD[di] = { total: 0, sp: {} });
+    e.total += n;
+    e.sp[r[1]] = (e.sp[r[1]] || 0) + n;
+  });
+  return { byD: byD, unplaced: unplaced, total: total };
+}
+
+// pale to dark green on a log scale, so one very busy district does not wash out the others
+function districtColour(n, max) {
+  var a = [214, 238, 207], b = [20, 83, 58];
+  var t = max > 0 ? Math.log(1 + n) / Math.log(1 + max) : 0;
+  return 'rgb(' + [0, 1, 2].map(function (i) { return Math.round(a[i] + (b[i] - a[i]) * t); }).join(',') + ')';
+}
+
+function ensureDistrictLayers() {
+  if (districtLayers) return;
+  districtGroup = L.layerGroup();
+  districtLayers = DIST.districts.map(function (d, i) {
+    // d = [id, name, stateKey, polygons]; the file stores [lon, lat], Leaflet wants [lat, lon]
+    var latlngs = d[3].map(function (poly) { return poly.map(function (ring) { return ring.map(function (p) { return [p[1], p[0]]; }); }); });
+    var layer = L.polygon(latlngs, { color: '#14532d', weight: 0.8, fillColor: '#eef3ef', fillOpacity: 0.5 });
+    layer.on('click', function () { showDistrictPopup(i); });
+    return layer;
+  });
+}
+
+function districtSpeciesLines(sp) {
+  var out = {}, snakes = 0;
+  Object.keys(sp).forEach(function (code) {
+    if (SNAKE_CODES.indexOf(code) !== -1) snakes += sp[code]; else out[code] = sp[code];
+  });
+  var lines = Object.keys(out).map(function (code) { return [SPECIES_META[code].name, out[code]]; });
+  if (snakes) lines.push([currentLang() === 'bm' ? 'Ular' : 'Snakes', snakes]);
+  return lines.sort(function (a, b) { return b[1] - a[1]; });
+}
+
+var lastDistrictTotals = null;
+function showDistrictPopup(i) {
+  var lang = currentLang();
+  var d = DIST.districts[i];
+  var e = (lastDistrictTotals && lastDistrictTotals.byD[i]) || { total: 0, sp: {} };
+  var box = document.createElement('div');
+  box.style.cssText = 'min-width:210px;max-width:270px;';
+  var rows = districtSpeciesLines(e.sp).map(function (l) {
+    return '<div style="display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#334155;"><span>' + l[0] + '</span><b>' + fmt(l[1]) + '</b></div>';
+  }).join('');
+  box.innerHTML =
+    '<div style="font-weight:700;font-size:15px;">' + d[1] + '</div>' +
+    '<div style="font-size:12px;color:#475569;margin-bottom:8px;">' + STATE_LABELS[d[2]] + ' · ' + fmt(e.total) + (lang === 'bm' ? ' rekod ditempatkan' : ' records placed here') + '</div>' +
+    (rows || '<div style="font-size:12px;color:#64748b;">' + (lang === 'bm' ? 'Tiada rekod ditempatkan di sini dengan tapisan ini. Ini tidak bermakna tiada haiwan.' : 'No records placed here with these filters. That does not mean no animals.') + '</div>') +
+    '<div style="font-size:11px;color:#94A3B8;border-top:1px solid #F1F5F9;margin-top:8px;padding-top:6px;">' +
+      (lang === 'bm' ? 'Hanya rekod yang koordinat atau nama tempatnya menunjuk ke daerah ini dikira. Satu rekod ialah laporan oleh orang ramai, bukan kiraan haiwan.' : 'Only records whose coordinates or place name point to this district are counted. A record is one report by a person, not one animal.') + '</div>';
+  var open = document.createElement('button');
+  open.type = 'button';
+  open.style.cssText = 'margin-top:8px;font-size:12px;font-weight:600;color:#215240;text-decoration:underline;';
+  open.textContent = (lang === 'bm' ? 'Buka ' : 'Open ') + STATE_LABELS[d[2]];
+  open.addEventListener('click', function () { map.closePopup(); selectState(d[2]); });
+  box.appendChild(open);
+  L.popup({ maxWidth: 290 }).setLatLng(districtLayers[i].getBounds().getCenter()).setContent(box).openOn(map);
+}
+
+function renderDistrictView() {
+  var legend = document.getElementById('ecosystem__districtLegend');
+  var card = document.getElementById('ecosystem__districtCard');
+  var onDistrict = viewMode === 'district' && districtAvailable();
+  if (!onDistrict) {
+    if (districtGroup && map.hasLayer(districtGroup)) map.removeLayer(districtGroup);
+    if (legend) legend.classList.add('hidden');
+    if (card) card.classList.add('hidden');
+    return;
+  }
+
+  var lang = currentLang();
+  ensureDistrictLayers();
+  var t = districtTotals();
+  lastDistrictTotals = t;
+  var max = 0, placedTotal = 0, placedDistricts = 0;
+  Object.keys(t.byD).forEach(function (i) { max = Math.max(max, t.byD[i].total); placedTotal += t.byD[i].total; placedDistricts++; });
+
+  // map: district outlines instead of state circles
+  bubbleLayer.clearLayers();
+  var clusterNote = document.getElementById('ecosystem__clusterNote');
+  if (clusterNote) clusterNote.classList.add('hidden');
+  districtGroup.clearLayers();
+  districtLayers.forEach(function (layer, i) {
+    var d = DIST.districts[i];
+    if (selectedState && d[2] !== selectedState) return;
+    var e = t.byD[i];
+    layer.setStyle(e
+      ? { fillColor: districtColour(e.total, max), fillOpacity: 0.85 }
+      : { fillColor: '#eef3ef', fillOpacity: 0.5 });
+    layer.unbindTooltip();
+    layer.bindTooltip(d[1] + ' · ' + STATE_LABELS[d[2]] + ' · ' + fmt(e ? e.total : 0) + (lang === 'bm' ? ' rekod' : ' records'), { sticky: true });
+    districtGroup.addLayer(layer);
+  });
+  // the chosen state's real border, drawn on top of the districts (not a rectangle)
+  if (selectedState) {
+    statesLayer.eachLayer(function (layer) {
+      if (layer.feature.properties.stateKey !== selectedState) return;
+      districtGroup.addLayer(L.geoJSON(layer.feature, { interactive: false, style: { fill: false, color: '#0b130e', weight: 3 } }));
+    });
+  }
+  if (!map.hasLayer(districtGroup)) districtGroup.addTo(map);
+
+  var mapLegend = document.getElementById('ecosystem__mapLegend');
+  if (mapLegend) mapLegend.classList.add('hidden');
+
+  // text: the totals are the same records as the state view, with how many could be placed
+  var scope = selectedState ? STATE_LABELS[selectedState] : (lang === 'bm' ? 'seluruh Malaysia' : 'all of Malaysia');
+  document.getElementById('ecosystem__pageSubtitle').textContent = lang === 'bm'
+    ? 'Setiap kawasan ialah satu daerah. Warna menunjukkan berapa banyak rekod GBIF yang dapat ditempatkan di dalamnya. Rekod ditempatkan melalui koordinat atau nama tempat dalam teks lokasi, jadi tidak semua rekod dapat ditempatkan.'
+    : 'Each area is a district. Its colour shows how many GBIF records could be placed in it. Records are placed by the coordinates or place names in their locality text, so not every record can be placed.';
+  if (t.total > 0) {
+    var pct = Math.round(placedTotal / t.total * 100);
+    document.getElementById('ecosystem__recordCountLine').classList.remove('hidden');
+    document.getElementById('ecosystem__recordCountMain').textContent = lang === 'bm'
+      ? fmt(t.total) + ' rekod, ' + scope + ': ' + fmt(placedTotal) + ' (' + pct + '%) ditempatkan dalam ' + placedDistricts + ' daerah'
+      : fmt(t.total) + ' records, ' + scope + ': ' + fmt(placedTotal) + ' (' + pct + '%) placed in ' + placedDistricts + (placedDistricts === 1 ? ' district' : ' districts');
+    document.getElementById('ecosystem__recordCountSecondary').textContent = timeActive() ? timeLabel() : META.yearRange[0] + (lang === 'bm' ? ' hingga ' : ' to ') + META.yearRange[1];
+    document.getElementById('ecosystem__recordCountCaption').textContent = lang === 'bm'
+      ? fmt(t.unplaced) + ' rekod hanya diketahui peringkat negeri dan tidak dilukis di sini; jumlahnya masih dikira dalam paparan negeri. Rekod ialah pemerhatian oleh orang ramai, bukan kiraan haiwan, dan daerah tanpa rekod ditempatkan tidak bermakna tiada haiwan.'
+      : fmt(t.unplaced) + ' records are known to the state only and are not drawn here; they are still in the state view totals. Records are observations by people, not counts of animals, and a district with no placed record does not mean there are no animals.';
+  }
+
+  if (legend) {
+    legend.classList.remove('hidden');
+    legend.innerHTML =
+      '<div class="flex items-center gap-2"><span>' + (lang === 'bm' ? 'Lebih sedikit' : 'Fewer') + '</span>' +
+      '<span style="display:inline-block;width:120px;height:10px;border-radius:5px;background:linear-gradient(90deg,' + districtColour(0, 1) + ',' + districtColour(1, 1) + ');"></span>' +
+      '<span>' + (lang === 'bm' ? 'Lebih banyak (paling banyak ' : 'More (most ') + fmt(max) + (lang === 'bm' ? ' rekod dalam satu daerah)' : ' records in one district)') + '</span>' +
+      '<span style="display:inline-block;width:14px;height:10px;border-radius:2px;border:1px solid #14532d;background:#eef3ef;margin-left:10px;"></span><span>' + (lang === 'bm' ? 'tiada rekod ditempatkan' : 'no placed record') + '</span></div>' +
+      '<div class="mt-1">' + (lang === 'bm' ? 'Skala warna logaritma. Ketik satu daerah untuk pecahannya mengikut haiwan.' : 'The colour scale is logarithmic. Tap a district for its breakdown by animal.') + '</div>';
+  }
+
+  // busiest districts
+  card.classList.toggle('hidden', t.total === 0);
+  document.getElementById('ecosystem__districtLabel').textContent = lang === 'bm' ? 'Daerah paling banyak rekod' : 'Busiest districts';
+  var list = document.getElementById('ecosystem__districtList');
+  list.innerHTML = '';
+  Object.keys(t.byD).sort(function (a, b) { return t.byD[b].total - t.byD[a].total; }).slice(0, 8).forEach(function (i) {
+    var d = DIST.districts[i];
+    var row = buildRow(d[1] + ' · ' + STATE_LABELS[d[2]], t.byD[i].total, max, null);
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', function () {
+      map.fitBounds(districtLayers[i].getBounds(), { padding: [40, 40], maxZoom: 10 });
+      showDistrictPopup(i);
+    });
+    list.appendChild(row);
+  });
+  var unplacedRow = document.createElement('div');
+  unplacedRow.className = 'mt-3 text-xs text-slate-500';
+  unplacedRow.textContent = lang === 'bm'
+    ? 'Tidak ditempatkan dalam daerah (peringkat negeri sahaja): ' + fmt(t.unplaced) + ' rekod'
+    : 'Not placed in a district (state only): ' + fmt(t.unplaced) + ' records';
+  list.appendChild(unplacedRow);
+  document.getElementById('ecosystem__districtFootnote').textContent = lang === 'bm'
+    ? 'Sumber: rekod GBIF (iteration2_map_aggregated_V2.json) dan sempadan daerah geoBoundaries (CC BY 3.0). Kaedah penempatan: koordinat dalam teks lokasi, nama daerah, atau nama tempat yang disenaraikan dalam skrip binaan.'
+    : 'Source: GBIF records (iteration2_map_aggregated_V2.json) and geoBoundaries district outlines (CC BY 3.0). Placement: coordinates in the locality text, the district name, or a place name listed in the build script.';
+}
+
 // Language toggle (EN / BM) — persisted to localStorage so it carries over
 // from wherever the visitor came from (this page's <head> applies the
 // saved value before first paint). Every render function above picks its
@@ -4701,6 +4926,7 @@ document.querySelectorAll('.lang-toggle button').forEach(function (btn) {
     // renderMapLayer) and any open cluster popup.
     buildPills();
     buildTimeFilters();
+    buildViewToggle();
     renderAll();
   });
 });
@@ -5680,6 +5906,7 @@ document.addEventListener('click', function(e){
      this file is opened directly as file://index0914.html — a leading "/" resolves
      against the filesystem root under file:// and 404s. -->
 <script src="ecosystem-occurrences-current.js?v=20260916-1"></script>
+<script src="ecosystem-districts-data.js?v=20261007-2"></script>
 <script src="plan-signals-client.js?v=20261007-1"></script>
 
 <!-- Iteration 3: Community (AC 5.2.1, 5.3.1, 5.5.1, 5.6.1). Relative paths so file:// still works. -->

@@ -1,0 +1,233 @@
+{
+  "run_by": null,
+  "run_note": "to be filled in by the member who runs the test; the date is the training date",
+  "date": "2026-10-07",
+  "dataset_sha256": "be20fae5bb56f06ee115a4d617f1d32d0450f759f0a6c0a72832beea2c38b03a",
+  "hyperparameters": {
+    "loss": "log_loss",
+    "learning_rate": 0.05,
+    "max_iter": 200,
+    "max_depth": 4,
+    "min_samples_leaf": 20,
+    "l2_regularization": 1.0,
+    "early_stopping": false,
+    "random_state": 42
+  },
+  "library_versions": {
+    "python": "3.12.7",
+    "numpy": "1.26.4",
+    "pandas": "2.2.2",
+    "scikit-learn": "1.5.1",
+    "joblib": "1.4.2"
+  },
+  "final_test_2024": {
+    "label": "final test 2024",
+    "train_periods": [
+      "train_2015_2023"
+    ],
+    "test_period": "test_2024",
+    "rows": 6755,
+    "share_recorded_train": 0.279,
+    "share_recorded_test": 0.249,
+    "squares_in_test_never_seen_in_training": 26,
+    "model": {
+      "auc": 0.8868,
+      "brier": 0.1155
+    },
+    "baselines": {
+      "B1 species only": {
+        "auc": 0.8177,
+        "brier": 0.1424
+      },
+      "B2 species x state average": {
+        "auc": 0.8756,
+        "brier": 0.1217
+      },
+      "B3 species x square average": {
+        "auc": 0.8894,
+        "brier": 0.1218
+      }
+    },
+    "top_species_recorded_share": 0.685,
+    "calibration": [
+      {
+        "band": "0.0-0.1",
+        "rows": 2472,
+        "mean_prediction": 0.041,
+        "observed_share": 0.023
+      },
+      {
+        "band": "0.1-0.2",
+        "rows": 715,
+        "mean_prediction": 0.155,
+        "observed_share": 0.052
+      },
+      {
+        "band": "0.2-0.3",
+        "rows": 878,
+        "mean_prediction": 0.244,
+        "observed_share": 0.165
+      },
+      {
+        "band": "0.3-0.4",
+        "rows": 633,
+        "mean_prediction": 0.342,
+        "observed_share": 0.243
+      },
+      {
+        "band": "0.4-0.5",
+        "rows": 371,
+        "mean_prediction": 0.447,
+        "observed_share": 0.315
+      },
+      {
+        "band": "0.5-0.6",
+        "rows": 438,
+        "mean_prediction": 0.556,
+        "observed_share": 0.55
+      },
+      {
+        "band": "0.6-0.7",
+        "rows": 206,
+        "mean_prediction": 0.655,
+        "observed_share": 0.646
+      },
+      {
+        "band": "0.7-0.8",
+        "rows": 354,
+        "mean_prediction": 0.763,
+        "observed_share": 0.751
+      },
+      {
+        "band": "0.8-0.9",
+        "rows": 516,
+        "mean_prediction": 0.851,
+        "observed_share": 0.756
+      },
+      {
+        "band": "0.9-1.0",
+        "rows": 172,
+        "mean_prediction": 0.926,
+        "observed_share": 0.826
+      }
+    ],
+    "per_species": [
+      {
+        "species": "Acridotheres tristis",
+        "rows": 965,
+        "model": {
+          "auc": 0.7224,
+          "brier": 0.2073
+        },
+        "baseline_B3": {
+          "auc": 0.7559,
+          "brier": 0.2177
+        }
+      },
+      {
+        "species": "Corvus splendens",
+        "rows": 965,
+        "model": {
+          "auc": 0.8682,
+          "brier": 0.1535
+        },
+        "baseline_B3": {
+          "auc": 0.8746,
+          "brier": 0.1501
+        }
+      },
+      {
+        "species": "Macaca fascicularis",
+        "rows": 965,
+        "model": {
+          "auc": 0.7385,
+          "brier": 0.1932
+        },
+        "baseline_B3": {
+          "auc": 0.8036,
+          "brier": 0.2014
+        }
+      },
+      {
+        "species": "Malayopython reticulatus",
+        "rows": 965,
+        "model": {
+          "auc": 0.5615,
+          "brier": 0.0401
+        },
+        "baseline_B3": {
+          "auc": 0.6255,
+          "brier": 0.0472
+        }
+      },
+      {
+        "species": "Naja sumatrana",
+        "rows": 965,
+        "model": {
+          "auc": 0.5716,
+          "brier": 0.0242
+        },
+        "baseline_B3": {
+          "auc": 0.5298,
+          "brier": 0.0323
+        }
+      },
+      {
+        "species": "Sus scrofa",
+        "rows": 965,
+        "model": {
+          "auc": 0.6872,
+          "brier": 0.0207
+        },
+        "baseline_B3": {
+          "auc": 0.7708,
+          "brier": 0.0271
+        }
+      },
+      {
+        "species": "Varanus salvator",
+        "rows": 965,
+        "model": {
+          "auc": 0.7453,
+          "brier": 0.1698
+        },
+        "baseline_B3": {
+          "auc": 0.7949,
+          "brier": 0.177
+        }
+      }
+    ]
+  },
+  "incomplete_2025_2026": {
+    "label": "2025-2026 (incomplete)",
+    "train_periods": [
+      "train_2015_2023",
+      "test_2024"
+    ],
+    "test_period": "incomplete_2025_2026",
+    "rows": 6545,
+    "share_recorded_train": 0.268,
+    "share_recorded_test": 0.228,
+    "squares_in_test_never_seen_in_training": 16,
+    "model": {
+      "auc": 0.7745,
+      "brier": 0.1589
+    },
+    "baselines": {
+      "B1 species only": {
+        "auc": 0.6448,
+        "brier": 0.1879
+      },
+      "B2 species x state average": {
+        "auc": 0.7681,
+        "brier": 0.1701
+      },
+      "B3 species x square average": {
+        "auc": 0.8144,
+        "brier": 0.1596
+      }
+    },
+    "top_species_recorded_share": 0.413,
+    "note": "incomplete period (release lag), reported separately"
+  }
+}

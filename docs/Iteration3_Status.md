@@ -1,135 +1,136 @@
-# Iteration 3 进度盘点
+# Iteration 3 项目状态
 
-写于 2026-10-03。对照 **ver.5 Epics 报告**（含 Epic 11）逐项核对。**可用性测试卡（U2-x）不在本文范围内。**
+**2026-10-07，线上核对版。** 首次写于 10 月 3 日，当时只读了本地代码。这一版加入了对线上站点的实际检查，写清楚了哪些是"看到线上确实如此"，哪些只是"本地代码里有"，哪些我没有验证。
 
-同日更新（Epic 11 修订和模型一侧）：Epics 文档里 Epic 11 的文字已按"模型不用历史特征"改过（新增决议 D51，状态是**提议，团队尚未同意**）；模型已在 10 月 1 日训练完成，预测页和说明页都已读新模型的文件。下文第 1、2、3、6、7 节中和模型相关的内容已据此改写。后来又按"保留发布门槛"的决定改了一轮（Epics 的 AC 11.3.1 和 D51、Safeguards v3 的 6.4 等）。每一轮改动前的备份都在原文件旁边，文件名带 "before Epic 11 sync" 或 "before gate sync"（Epics 在本目录，Safeguards 在 `ML/`）。
+线上地址：**https://roomforboth-final.myee0021.workers.dev**
 
-## 先读这一段
+## 一句话
 
-- "前端做完"的意思是：界面和交互按 AC 和原型做了，并在**本机**测过。**不等于通过验收**：验收要由写代码以外的人，在真实环境、干净浏览器上走一遍（完成定义），我没有做，也代替不了。
-- 我所有的测试都在本机页面副本或 `wrangler dev` 上做，**没有在部署的 Cloudflare 环境里跑过**。凡是依赖数据库的部分，只用测试假数据验证过。
-- 目前整个 Community 用的是内存里的假数据；阈值读 `signal_threshold.json`；预测页和说明页读 `public/forecast_predictions.json`，它与 `ml/output/predictions.json`（10 月 1 日训练的模型）逐字节一致。
-- 接口和数据对接清单见同目录的 `Iteration3_Data_and_API_Integration.md`。
+团队报告 Iteration 3 的前端、数据清洗、特征工程、模型训练、后端、数据库连接、上线和 bug 修复都已完成。线上核对支持这一点：站点在运行，已发布的数据来自数据库，页面和脚本与本地一致。**但线上有一个会影响 AC 1.3.1 和 Draft AC 1.3.2 的问题（`signal_threshold` 表是空的），区级地图和区域模型还没有部署，AC 11.3.1 的正式测试记录仍然是空的。** 详见第 3 节。
 
----
+## 怎么核对的
 
-## 1. 前端已完成
-
-| 卡 | 做了什么 | 接后端后还要做什么 |
-|---|---|---|
-| **AC 1.3.1** 说明页 `#plan-how-computed` | 三个信号各一张分档表、合并规则、用真实数据的算例（改表后重算）、"团队决定 D34、D46、一张表、未按结果校准、改了不用改代码"的说明 | 建 `signal_threshold` 表和 `GET /api/i3/signal-thresholds`，现在读 JSON 文件 |
-| **Draft AC 1.3.2** Plan 里的档位和合并等级 | 每个计数旁有档位，物种右上角有合并等级，下面写出三项分数相加；缺投诉行或表里没有签字值时只显示计数；链接到说明页 | 同上。本地没有数据库，投诉和 attractants 拿不到，合并等级只在测试假数据里看过 |
-| **AC 2.3.1 到 2.3.4** 访问日记 `#plan-log`、`#plan-log-new` | 六个问题（除"何时"外都可多选）加 140 字备注；只存在本机；导出 CSV、一键清空（确认一次）；三条后显示按动物、时段、位置的计数和按天的柱状图；Plan 里把最相关措施移到顶部并写明原因，可看原顺序 | 不需要后端。Plan 重排依赖 `/api/i2/plan` 返回 `prevention_id`、`cause_group` |
-| **AC 5.2.1** 地区帖子列表 | 州和地区选择、筛选、统计卡、帖子卡、详情页、空地区说明 | 真实读取接口；地区列表接数据库 |
-| **AC 5.3.1** 三步分享 | 三步内容、最后一步前不提交、蛇的分支（无照片、无 Invasive）、照片在浏览器里去掉位置和相机信息 | 真实提交接口；照片打码和移除含人、车牌、门牌的照片是后端的活 |
-| **AC 5.4.1** 一句话填表（前端部分） | 第 1 步顶部一个输入框，可填：看到什么、报告类型、何时、时段、做了什么、什么有效；每个被填的字段有"Filled from your sentence"标记；全部填全后可直接跳到最后一步；蛇由规则处理；失败、超时、没匹配都有提示；点选表单始终可用 | **模型路由没做**，现在是关键词替身 |
-| **AC 5.5.1** 备注个人信息检查 | 进入最后一步前检查电话、门牌、街道、姓名（含不带称谓的姓名、亲属加名字、邮箱、网址、邮编），命中就挡住并提示修改 | 服务端要做同样的检查，且只能增加保留 |
-| **AC 5.6.1** 审核队列 `#community-review` | reviewer key 登录（只在内存）、四个状态标签、发布、保留、删除、必须从固定的 9 条理由里选、日志只含引用号、决定、理由、时间、角色、保留 15 天后删除的显示（D49） | key 校验、写库、15 天自动删除 |
-| **AC 5.1.1** How review works（Iteration 2 的卡，按 D49 改了） | 保留期 15 天，补上"没有投票和回复"，去掉"Community opens in Iteration 3"，返回链接改到 Community | 保留期要写进数据管理计划 |
-| **AC 11.1.1、11.1.2、11.2.1** 预测页 `#ecosystem-forecast` | 州和月份选择（默认当月）、按可能性排序、档位 Very likely / Likely / Unlikely（无百分比）、蛇合并成一组、记录不足的物种不进排名并显示条数、整州不够时显示原型 13 的页面和三个出路、"What this means"三句话、最后一个月（2024-12）、链接到物种页和 Plan | 已读新模型的文件。档位切分点已定为 0.80 / 0.40（`BAND_CUTS`），Epic 里也已写入，但属于 D51 的提议，团队同意后才算定。切分点还没写进导出文件的 `metadata`；蛇合并成一组，组的档位取两种蛇概率的较大值，记录不足按两种蛇记录数相加判断，和 AC 11.1.1(3)、Safeguards 6.6 一致 |
-| **模型本身**（`ml/`，Epic 11 模型一侧已完成的部分） | 10 月 1 日训练完成：梯度提升树（逻辑损失，200 轮，深度 4），6 个特征，不用任何由过往记录算出的特征。`build_dataset.py` 做 7 项检查（行数是 7 的倍数、每组 7 个物种、有记录的行数和记录总数与源文件一致、无空值、16 个州、占比之和为 1）；`train_and_export.py` 检查禁用特征（记录数、占比、是否记录）不在特征里、测试年晚于所有训练年、导出恰为 1,344 行且值在 0 到 1、重复运行结果一致、保存的模型能复现导出文件。测试：滚动 2021–2023，最终 2024，2025–2026 单独标"不完整"；基线 B1（只用物种）、B2（物种×州均值）、B3（最近两年均值）。导出文件带模型、特征、训练年、最后一个月记录（2024-12）、训练日期、数据集哈希 | 测试成绩由训练者本人跑出，`run_by` 为空，不能当作记录（见第 3 节）。2024 年最终测试：模型 AUC 0.941 / Brier 0.094；B2 为 0.947 / 0.125；B3 为 0.942 / 0.093，也就是**和简单平均相当** |
-| **Epic 10** 数据来源页（部分） | About the data 加了"地区列表"和"Community posts"两行 | 其余见第 2 节 |
-| **Safeguards 文档 v3**（展示部分） | 放在 `ML/` 文件夹，按 AC 和 Epic 改了 6.2 到 6.8、第 7 和 8 章；5.1 第 7 条改成填写可选。6.4 先是改成只记录不设门槛，后来按决定改回有门槛（对照只用物种的基线，D51 提议），6.5、6.2、6.6 同步改过，"前 12 个月"作为模型输入的描述已去掉（回退里的"前 12 个月占比"保留）；现在以有门槛的版本为准 | 第 2 到 5 章的护栏和路由名按你的要求没动 |
-
----
-
-## 2. 做了一半
-
-| 项 | 已完成 | 没完成 |
-|---|---|---|
-| **AC 5.4.1** | 前端全部 | 模型路由、路由名（`/api/community/fill`、`/api/share-fill`、`/api/community/parse` 三选一）、引用核查 |
-| **AC 11.2.2** "How this was made and tested" | 说明页已做：`public/ecosystem-forecast-method.js`，挂在 `public/index0914.html`。读 `forecast_predictions.json` 的 metadata 和 `forecast_evaluation.json`；显示三个数据文件、模型输入的白话说明、训练年和测试年、训练日期、显示的是模型还是回退。**只有评估记录里有 `run_by` 时才显示测试结果**，否则每格写"尚未测试" | 评估记录还是空的（`public/forecast_evaluation.json` 的 `run_by` 为 null），由训练者以外的人跑完才能填；人口数据的许可和三个文件的取得日期都显示"Not recorded yet"；Figma 里没有这张图；AC 已改成"不使用过往记录"，页面里仍保留一段"前 12 个月"的文字，只在文件里出现这类特征时才显示，现在不会出现 |
-| **Epic 10** | 地区列表、Community 两行 | 森林保护区、DOSM 人口、训练数据集这几份预测用数据的行；AC 10.3.1 要求每个 AI 功能写明"它做了什么、不能做什么" |
-| **Plan 里的访问日记入口** | Plan 结果页下有 "Your encounter log" 卡片 | 打印页不跟着重排 |
-
----
-
-## 3. 完全没做
-
-**模型一侧（Epic 11）**
-已完成的部分（训练、检查、导出、最后一个月、固定种子、元数据）见第 1 节"模型本身"一行，不再列在这里。还没做的：
-
-- **AC 11.3.1 的正式测试记录**：成绩要由训练者以外的成员重跑并记录日期和姓名。现在 `evaluation_report.json` 的 `run_by` 为 null，`public/forecast_evaluation.json` 是空占位文件，所以说明页所有结果格都显示"尚未测试"。两个文件的结构要对得上（`rolling`、`final_test_2024`），重跑后直接用新的评估报告替换占位文件即可
-- **AC 11.3.1(2) 的回退（过去十二个月的记录占比）**：没做。预测页没有"计数"路径，也没有生成回退数据的脚本；说明页能显示"回退"状态，但页面本身切换不了
-- **发布门槛**：已定为保留（D51 提议，待团队同意）：2021、2022、2023、2024 每年模型的 AUC 高于、Brier 低于只用物种的基线。Epics 的 AC 11.3.1、Safeguards 6.4、`ml/README.md` 已统一。按训练者 10 月 1 日的成绩四年全部通过，但这不算记录，要由非训练者重跑。`train_and_export.py` 还没有自动检查门槛，现在要人工读 `evaluation_report.json`。门槛是看到成绩之后写的，决议里已如实注明
-- **切分点写进导出文件的 `metadata`**：AC 11.1.1(2) 说要写，`train_and_export.py` 还没有这一步
-- **Safeguards 6.8 的结果表**：要等上面的正式测试跑完才能填
-- **AC 11.3.2 的对应关系**：旧版"历史特征只用此月之前的数据"一条已被改成"记录数、占比、是否记录不得作为特征"，脚本已有检查，不需要再做；不要再按"模型要重做成用前十二个月"安排工作，这一条已作废（见第 6 节第 4 项）
-
-**AI 部分**
-- AI 3 的 Worker 路由
-- 共享的安全函数：输入限制、蛇拦截词表放进 species 表（`is_snake`）、形状检查、允许值、证据检查、关开关、不记录原文，以及对应的单元测试
-- AI 1、AI 2 的加固（补全蛇词表、legless 规则、Matched on 证据检查；AI 2 逐句绑定行、数字、物种、机会词、语言、长度检查，V7 到 V14）
-- 四套测试集：AI1-T1（64 行）、AI2-T1（40 次运行）、AI3-T1（50 句）、AI3-T2（30 条备注），文档要求 10 月 6 日前写好、10 月 10 日前跑完
-- 提交接口和每个模型接口的限流
-
-**后端和数据**
-- Community 的表、读写接口、reviewer key、15 天自动删除（定时任务）、照片处理和存储
-- `signal_threshold` 表和接口，`min_records` 行要 Lead 按 D38 签字
-- 数据管理计划里写入：15 天保留期、人口和森林保护区文件的来源、许可、取得日期
-
-**收尾**
-- 马来语文案审核和"未审核"标记（你说暂时不管）
-- 干净浏览器上的 walkthrough（必须由他人执行）
-- Iteration 3 的新部署地址（`wrangler.jsonc` 的 name 仍是 `iteration2`）
-
----
-
-## 4. 明确不做（D47）
-
-| 卡 | 说明 |
+| 方法 | 做了什么 |
 |---|---|
-| AC 3.4.1 问地图（AI 4） | 不在 Iteration 3 做，卡片留在 Backlog，由 Epic 11 顶替 |
-| AC 4.3.1 树木覆盖，然后与现在对比 | 不做，留在 Backlog；原型 Ecosystem 10、11 已标 SUPERSEDED |
-| AC 4.3.2 树木覆盖数据没加载时什么都不显示 | 不做，留在 Backlog |
+| 读本地代码 | 路由、页面、脚本、迁移文件、ML 脚本和输出 |
+| 线上 GET 请求 | 打开线上首页，请求十几个静态文件和只读接口，把线上文件和本地文件逐个对比哈希 |
+| 在浏览器里打开线上页面 | Community、预测页、说明页、访问日记、About the data、How this is computed；看页面文字和控制台报错 |
+| **没有做的** | 在线上提交帖子、做审核决定、调用 AI 路由（这些会写数据或产生费用，也需要密钥）；触发定时删除；查看 Cloudflare 的部署记录（部署 id 和时间）、secrets 和数据库表结构 |
 
 ---
 
-## 5. 已做但没有对应 AC
+## 1. 完成情况和分工
 
-| 项 | 说明 | 要决定的 |
+| 工作 | 谁 | 时间 | 状态 | 依据 |
+|---|---|---|---|---|
+| 数据清洗 | Mingtong | 10/3 | 完成（团队报告） | `ml/build_dataset.py` 有 7 项检查；`ml/data/ml_dataset_v3.csv` 12,131 行 |
+| 特征工程 | Jingyu 和 Mingtong | 10/3 | 完成（团队报告） | 从约 40 个候选特征缩到 6 个：species、state、month、year、州人口 2020、森林保护区面积；`train_and_export.py` 禁止记录数、占比等作为特征 |
+| 模型训练（州模型） | Jingyu | 设计 10/2–3 | 完成 | `ml/output/` 里有模型、预测文件和评估报告；文件里记录的训练日期是 2026-10-01，以文件为准。2024 年 AUC 0.941 / Brier 0.094，与简单平均相当 |
+| 区域模型（网格位置） | Jingyu | 10/7 | 完成，**未部署** | `ml/train_grid_model.py`；2024 年 AUC 0.887 / Brier 0.116；`grid_predictions.json` 在本地，线上没有 |
+| 前端开发 | Jingyu | 10/3–4 | 完成 | 线上页面可见：说明页、Plan、访问日记、Community、预测页、方法页、About the data |
+| 区级地图 | Jingyu | 10/7 | 完成，**未部署** | 本地可用；线上 `ecosystem-districts-data.js` 返回 404 |
+| 后端开发 | Maggie | 10/4–6 | 完成 | 线上接口能响应：`/api/community`、`/api/community/review/*`、`/api/i3/signal-thresholds`、`/api/i2/*` |
+| 数据库连接 | Maggie | 10/4–6 | 完成 | 线上 `/api/community` 返回 2 条已发布的帖子；`/api/i2/complaints` 返回 60 行，`/api/i2/attractants` 返回 15 行 |
+| 项目上线 | Maggie | 10/4–7（线上文件版本号最晚到 20261007） | 完成 | 线上站点 HTTP 200；Cloudflare 边缘节点在吉隆坡（`colo=KUL`）；Worker 名 `roomforboth-final` |
+| Bug 修复 | Maggie | 10/4–6 | 完成 | U2 可用性卡 13 张的修复在代码里；独立脚本里的部分（打印、AI 总结、Plan 数字标题）已与线上逐个对比一致，首页内嵌和急救页的部分按首页 HTML 基本一致推断（详见 `Iteration3_Usability_Cards_Status.md`） |
+
+---
+
+## 2. 线上核对结果
+
+| 检查 | 结果 |
+|---|---|
+| 首页 | 能打开，HTTP 200，约 6.75 MB |
+| 页面和控制台 | Community、预测页、方法页、访问日记、About the data、How this is computed 都能打开，**没有控制台报错** |
+| 静态文件与本地是否一致 | 抽查 16 个文件（`community.js`、`community-api.js`、`encounter-log.js`、`ecosystem-forecast.js`、`ecosystem-forecast-method.js`、`plan-print-sheet.js`、`plan-signals-client.js`、`plan-ai-summary.js`、`plan-how-computed.js`、`signal-thresholds.js`、`emergency-flow-ac.js`、`ac-compliance.js`、`print-ac-fixes.js`、`forecast_predictions.json`、`forecast_evaluation.json`、`signal_threshold.json`），**全部与本地一致** |
+| 首页 HTML | 与本地逐行对比，我检查的差异都是今天的区级地图改动；线上多一行 `community-api.js`，它是 Worker 在运行时注入的。差异共 308 行，我只看了前 60 行 |
+| Community 读取 | `/api/community` 返回 2 条已发布的帖子：`R-2026-0001`（Ulu Langat，10/4）和 `R-2026-0002`（Klang，10/5）。说明提交、审核、发布流程至少跑通过一次；两条看起来是测试帖 |
+| 审核接口 | `/api/community/review/queue` 和 `/log` 没有 key 时返回 401 |
+| 阈值接口 | `/api/i3/signal-thresholds` 返回 `{"ok":true,"rows":[]}`，**没有任何行** |
+| 预测评估记录 | 线上 `forecast_evaluation.json` 的 `run_by` 仍是 null |
+| 区级地图 | `/ecosystem-districts-data.js` 返回 404，没有部署 |
+| 页面里加载的脚本 | 共 24 个：2 个 CDN（Tailwind、Leaflet）、8 个写在首页里、**14 个由 Worker 运行时注入**（`about-ai-routes`、`ac-compliance`、`community-api`、`complaint-db-client`、`emergency-flow-ac`、`general-guidance-image-fix`、`home-live-data`、`plan-ai-summary`、`plan-db-client`、`plan-print-sheet`、`plan-result-cleanup`、`plan-result-consistency`、`print-ac-fixes`、`print-plan-recovery`） |
+
+---
+
+## 3. 线上发现的问题
+
+| # | 问题 | 影响 | 怎么处理 |
+|---|---|---|---|
+| 1 | **`signal_threshold` 表在线上是空的。** 打开线上 How this is computed，三个信号和合并等级都显示 "No signed value is held for this signal, so no band is shown"，算例的档位列显示 "Not recorded"/"None" | AC 1.3.1 的分档表在线上不显示；按代码，Draft AC 1.3.2 的档位和合并等级也不显示，Plan 结果页只剩计数（Plan 结果页我没有在线上打开） | 原因：接口请求成功但返回空数组，`public/signal-thresholds.js` 只在请求失败时才回退到 `signal_threshold.json`。两种修法：(a) 在 Neon 里执行 `database_code/iteration3_create_tables.sql` 里的 D46 签字行 `INSERT`（含 `min_records = 30`）；(b) 前端在返回空数组时也回退到 JSON。(a) 才是长期做法，且 `min_records` 要 Lead 按 D38 签字 |
+| 2 | **区级地图和区域模型还在本地，没有部署** | mentor review 要求的位置功能线上看不到 | 部署 `public/index0914.html`、`public/ecosystem-districts-data.js` 和 `ml/output/grid_*`（若要上页面还需要前端读取，目前页面还没有区域模型方格层） |
+| 3 | **AC 11.3.1 的正式测试记录仍为空**（`run_by` null）；方法页的所有结果格显示"尚未测试" | AC 11.2.2 和 11.3.1 不满足 | 由训练者以外的成员重跑 `ml/build_dataset.py`、`ml/train_and_export.py`，把评估报告填上 `run_by` 和日期，替换 `public/forecast_evaluation.json` |
+| 4 | 预测页没有"计数回退"路径；切分点（0.80/0.40）没有写进导出文件的 `metadata`；`train_and_export.py` 没有自动检查发布门槛 | AC 11.3.1(2)、AC 11.1.1(2) 的要求没有完全满足 | 见第 6 节第 6 项 |
+| 5 | 迁移脚本和安装说明里的表名过时：`database_code/iteration3_create_tables.sql` 和 `BACKEND_SETUP.md` 写 `community_report`、`community_review_log`，代码和线上用 `community_post`、`review_log` | 按文档从零搭环境会建出不对的表 | 把脚本和文档改成与代码一致 |
+| 6 | 线上有 14 个运行时注入的补丁脚本；Build 文档的预期是"只有基础版本" | Build 文档第 4 节的预期与事实不符 | 逐个说明，或合并进基础版；清单已在第 2 节 |
+| 7 | 线上有 2 条测试帖（`R-2026-0001`、`R-2026-0002`） | 演示或评审时会被当成真实数据 | 决定保留还是删除 |
+| 8 | 部署 id、部署时间、回滚记录、secrets 是否齐全，在项目文件里找不到 | Build 文档第 2、5 节没法填 | 需要从 Cloudflare 看板取 |
+
+---
+
+## 4. Iteration 3 各条 AC 的状态
+
+"线上可见"指我在线上页面或接口里看到了对应内容；"线上交互未验证"指页面在，但我没有操作（提交、审核、AI 调用等）。
+
+| AC | 状态 | 说明 |
 |---|---|---|
-| **地图的年份和月份筛选**（Ecosystem 页，`year`、`month` 两个下拉框） | ver.4、ver.5 明确写"年月筛选不在 Iteration 3 范围，没有对应标准，留在 Backlog"；我按你的要求做了 | 保留的话要补一张卡（可能是 AC 3.4.2）和新的决定；不保留就移除。它和预测页的月份选择并存，容易混淆 |
-| **备注检查的额外规则** | AC 5.5.1 只列了电话、姓名、门牌、街道；我还加了邮箱、网址、社交账号、邮编，以及不带称谓的姓名识别 | 要不要写进 AC，或在 How review works 里说明"已知局限" |
-| **"Filled from your sentence" 标记** | Safeguards 5.1 第 7 条有，AC 5.4.1 没写；v3 里我保留了标记，去掉了"必须看过再到最后一步" | 要不要把这句写进 AC 5.4.1 |
-| **共享的阈值模块 `signal-thresholds.js`** | 让说明页、Plan、预测页读同一份表；AC 只要求"一张表" | 无需决定，属于实现方式 |
-| **预测页的"附近的州"和 Plan 入口链接** | 原型 13 有"附近的州"，AC 没写；邻近关系是我定义的（如 Labuan → Sabah） | 邻近表是否合适 |
-| **访问日记的位置到措施组对应表** | AC 2.3.4 只写"cause group 对应最常见位置"，没写具体对应 | 见第 6 节 |
-| **审核页里的"Report a problem with this report"** | 现在只弹一句提示，没有去处 | 要不要保留 |
-| **Plan 页的访问日记入口卡片** | 作为进入日志的入口 | 无需决定 |
-| **说明页和数据文件**：`Iteration3_Data_and_API_Integration.md`、Safeguards v3 | 文档类产出 | 无需决定 |
+| **1.3.1** 说明页 | **线上有问题** | 页面在，但分档表为空（问题 1） |
+| **Draft 1.3.2** 档位和合并等级 | **线上有问题** | 同上 |
+| **2.3.1–2.3.4** 访问日记 | 线上可见，交互未验证 | 只在浏览器里运行；日记重排不同步到打印页，见问题清单（U2-3） |
+| **5.1.1** How review works | 线上可见 | 页面写 15 天保留期 |
+| **5.2.1** 地区帖子列表 | 线上可见，**数据来自数据库** | `/api/community` 返回已发布帖 |
+| **5.3.1** 三步分享 | 线上间接验证 | 数据库里有两条提交并发布的帖子，说明提交可用；照片默认不存（代码里 `PHOTO_REVIEW_ENABLED` 默认关闭，线上设置未核实） |
+| **5.4.1** AI 填表 | 代码里有，线上未验证 | 没有调用 `/api/community/fill`；需要 `MINIMAX_API_KEY` |
+| **5.5.1** 个人信息检查 | 代码里有，线上交互未验证 | 页面和服务端都检查；服务端对不带称谓的姓名不检查 |
+| **5.6.1** 审核队列 | 线上部分验证 | 接口要求 key（401）；决定流程和 15 天删除没有验证 |
+| **11.1.1、11.1.2、11.2.1** 预测页 | 线上可见 | 页面读静态文件，与本地一致 |
+| **11.2.2** 方法页 | 线上可见，**测试结果为空** | `run_by` 为 null |
+| **11.3.1** 发布门槛和回退 | **未满足** | 无正式测试记录；无计数回退 |
+| **11.3.2** 只用过往数据、读静态文件 | 脚本里有检查；页面确实读静态文件 | 线上请求不触发模型 |
+| **Epic 10** About the data | 线上可见 | 有地区列表、Community、Wildlife forecast 行；没有单独列森林、人口、训练集和网格数据 |
+| **AC 3.4.1、4.3.1、4.3.2** | **不做（D47）** | 留在 Backlog |
+
+---
+
+## 5. 没有对应 AC，但已做的
+
+| 项 | 说明 |
+|---|---|
+| 区级地图（V2 + 区边界） | 来自 10 月 6 日 mentor review；57.4% 的记录能归到区，其余只到州；未部署 |
+| ML 区域模型（网格位置） | 同上；不在 Epic 11 的六条 AC 里；未部署 |
+| 地图的年份和月份筛选 | ver.4、ver.5 写"不在 Iteration 3 范围"；已做，区视图也用 |
+| 备注检查的额外规则 | 邮箱、网址、邮编、不带称谓的姓名（页面检查） |
+| "Filled from your sentence" 标记 | Safeguards 有，AC 5.4.1 没写 |
 
 ---
 
 ## 6. 需要团队拍板
 
-> 第 3 项和第 5 项容易混：**切分点**（0.80 / 0.40）只决定页面上每个物种显示哪一档词，用的是预测概率；**发布门槛**决定模型整体能不能上线，用的是测试成绩（AUC、Brier）。切分点定了，门槛仍未定。
-
-| # | 事项 | 现状和我的建议 |
+| # | 事项 | 现状 |
 |---|---|---|
-| 1 | **档位词** | AC 和原型：Very likely / Likely / Unlikely；Safeguards 原文：recorded often / sometimes / rarely。已按 AC，v3 文档已改成一致 |
-| 2 | **"记录不足"的单位** | AC 11.1.2 写记录数；Safeguards 原文写组数。已按记录数，阈值 30（读 `signal_threshold` 的 `min_records`）。组数不能反映证据量（例如 Terengganu 有 61 组但七个物种合起来只有 145 条记录） |
-| 3 | **档位的切分点** | **已定，待团队同意**：概率 ≥0.80 Very likely，0.40 到 0.80 Likely，低于 0.40 Unlikely。依据是 1,344 个预测值的分布（0.80 约为五个月里有四个月有记录），没有用测试成绩调。已写进 `BAND_CUTS` 和 Epics 文档的 AC 11.1.1(2)，在 D51 里。稀有物种基本进不了"很可能"：野猪 192 个州月全是 Unlikely，眼镜蛇 183 个，网纹蟒 176 个 |
-| 4 | **模型要不要按 AC 重做** | **已定，待团队同意：不重做，改 AC。** 历史特征对 AUC 和 Brier 没有提升。Epics 文档的 AC 11.2.2(2)、11.3.2 已改，D51 记录原因。"this month"同时改成"in a month"，因为预测固定按 2024 年算 |
-| 5 | **发布门槛**（模型能不能上线，与第 3 项的切分点无关） | **已定为保留，待团队同意（D51）。** 标准：2021–2024 每年模型的 AUC 高于、Brier 低于只用物种的基线；2025–2026 只记录不计入；不要求超过 B2、B3（现有模型与它们相当）。不达标则显示计数回退。已同步到 Epics 的 AC 11.3.1 和 D51、Safeguards 6.4、`ml/README.md`。门槛是在看到 10 月 1 日成绩之后写的，已在文件里如实注明。训练者的成绩四年全部通过，正式结论要等非训练者重跑 |
-| 6 | **回退怎么算** | AC 11.3.1(2) 的回退是"过去十二个月的记录占比"，静态文件不能随月更新。要么构建时生成，要么页面用内置记录文件现算。如果门槛定得很低，回退基本用不上，但机制仍要有 |
-| 7 | **AI 3 路由名** | 三个说法选一个 |
-| 8 | **AC 5.3.1 要求三步** | 我把一句话填表放在第 1 步顶部，没有合成一页。如果要合成一页，需要先改 AC 5.3.1 |
-| 9 | **AC 5.4.1 的原型位置** | 原型引用 Community 05（第 1 步）；之前我曾放在第 2 步，现在已放在第 1 步顶部 |
-| 10 | **位置到措施组对应表** | fruit-tree → fruit-trees；bins、kitchen → food-waste-and-bins；roof、garden、drain → clutter-and-shelter；balcony → open-doors-windows；other 不对应。在 `encounter-log.js` 的 `PLACE_CAUSE` |
-| 11 | **Plan 重排要不要同步到打印页** | 现在不同步，会和 U2-3"屏幕和打印一致"冲突 |
-| 12 | **地图年月筛选** | 见第 5 节 |
-| 13 | **照片存哪里、这一期做不做** | 未定，可选功能 |
-| 14 | **地区列表来源** | 前端是我手写的 133 个，要换成 DOSM 和 geoBoundaries，并记录来源、许可、取得日期 |
-| 15 | **时间排期** | 模型作者估算全部工作量约为两名开发者能完成量的两倍；他提议把测试集、Figma 画面、报告更新分给其他成员，需要 Lead 分配 |
-| 16 | **D51 要不要通过** | Epics 文档里 D51 的状态是"提议，尚未同意"。涉及第 3、4、5 项和 11.x 的措辞（"in a month"、测试方式、门槛） |
+| 1 | **D51 要不要通过**（档位切分点 0.80/0.40、模型不用历史特征、发布门槛、"in a month"） | Epics 里状态是"提议，尚未同意" |
+| 2 | **`min_records` 行由 Lead 按 D38 签字** | 问题 1 的修法 (a) 要用到 |
+| 3 | **区域模型和区级地图要不要写进 Epics，写成哪条 AC** | 没有对应 AC。老师说的"locality"指网格位置还是 V2 里的 `locality` 文字，建议直接问老师 |
+| 4 | **网格 CSV 和现有训练集是两份数据** | 网格文件多 191 条记录、没有单年、没有布城、一个方格只归一个州 |
+| 5 | **Plan 重排要不要同步到打印页** | 现在不同步，与 U2-3 冲突 |
+| 6 | **回退（过去十二个月的记录占比）怎么算** | 构建时生成，还是页面现算 |
+| 7 | **照片存哪里、这一期做不做** | 未定，可选功能 |
+| 8 | **地区名统一** | 区地图用 geoBoundaries 的写法（如 Ulu Langat），Community 用 DOSM 名，前端手写 133 个 |
+| 9 | **两条线上测试帖和地图年月筛选的去留** | 见问题 7 和第 5 节 |
 
 ---
 
-## 7. 建议的处理顺序
+## 7. 剩下要做的事
 
-1. **先开会，一次处理第 1 到 6 项和第 16 项**（档位词、记录不足单位、切分点、模型是否重做、门槛、回退、D51）。其中第 3、4 项已经有建议和文字，只需要点头；第 5 项已按建议写好，只差点头；第 6 项还要决定。这几项会直接改变预测页读的文件和显示的内容。
-2. 后端同学建 `signal_threshold`、Community 的表和接口，前端写 `window.CommunityAPI` 适配文件，Community 就能接上真实数据。
-3. AI 部分：统一路由名，写共享安全函数，再写 AI 3 的 Worker 路由；测试集由不是写提示词的人来写。
-4. 模型：**不重做**。由非训练者重跑 `ml/build_dataset.py` 和 `ml/train_and_export.py`，把评估报告填上 `run_by` 和日期，替换 `public/forecast_evaluation.json`；确定门槛后补回退（计数）路径；把切分点写进导出文件的 `metadata`；补三个数据文件的取得日期和人口数据的许可。AC 11.2.2 的说明页已做，不用再做。
-5. 收尾：数据管理计划、来源页补行、walkthrough（由他人执行）、新部署地址。
+| 谁 | 事项 | 对应 |
+|---|---|---|
+| Maggie | 往线上 `signal_threshold` 表里加 D46 签字行（等 Lead 签字） | 问题 1 |
+| Maggie | 把迁移脚本和 `BACKEND_SETUP.md` 的表名改成与代码一致 | 问题 5 |
+| Maggie | 从 Cloudflare 取部署 id、时间、回滚记录，补 Build 文档第 1、2、5 节；核对 secrets | 问题 8 |
+| Maggie | 作为检查人重跑州模型并记录 `run_by`，替换线上 `forecast_evaluation.json` | 问题 3 |
+| Maggie | 线上验证提交 → 审核 → 发布、15 天定时删除、AI 3 路由和限流（我没验证的部分） | 第 4 节 |
+| Jingyu | 部署区级地图和（如需要）区域模型；把区域模型放到地图上 | 问题 2 |
+| Jingyu | 计数回退、切分点写入 metadata、门槛自动检查 | 问题 4 |
+| Jingyu | 处理 U2 遗留：打印和日记重排、"最后一步"的名字、蛇页首屏、马来语"未审核"标记 | Usability 文档 |
+| Jingyu | Figma 修改（site map、保留期文案、Plan 14/15、Community 06、Ecosystem 12） | 另见对话 |
+| 其他成员 | U2-7 首页测试、U2-13 开放时间数据、AI 测试集、干净浏览器上的 walkthrough | Usability 文档 |

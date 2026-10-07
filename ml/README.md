@@ -25,6 +25,10 @@ The seven species: *Acridotheres tristis* (common myna), *Corvus splendens* (hou
 | `output/model.joblib` | The trained model, with its feature columns and metadata |
 | `output/predictions.json` | The static file the page reads (1,344 rows) |
 | `output/evaluation_report.json` | Every score, the calibration table and the per-species table |
+| `Iteration 3 Data for ML (grid cell, smoothed).csv` | Records by 0.25 degree square, month, period and species (used by the area model, see below) |
+| `train_grid_model.py` | Tests, trains and exports the area model |
+| `output/grid_model.joblib`, `output/grid_predictions.json`, `output/grid_evaluation_report.json` | The area model, its static file (345 squares) and its scores |
+| `check_grid_features.py` | A check that adds grid features to the state model; reads only, writes nothing |
 
 ## How to run
 
@@ -146,6 +150,36 @@ What this means:
 ## Updating the model
 
 When new records arrive: put the new extract in `data/raw/`, run both scripts, and compare the new `predictions.json` with the old one. Read any state, month and species whose value moved by more than 0.15 before deploying. Keep the old file deployed until the new one has been checked. To deploy: copy `output/predictions.json` to `public/forecast_predictions.json`, copy the evaluation report of the official test run (with `run_by` and the date filled in by the member who ran it) to `public/forecast_evaluation.json`, and raise the `?v=` number in `public/ecosystem-forecast.js` and `public/ecosystem-forecast-method.js` so browsers load the new files. The page that explains how the forecast was made and tested shows no test result until `run_by` is filled.
+
+## Area model (grid squares)
+
+The mentor review of 6 October asked for the location in the new data to be used, whatever the effect on the scores. `train_grid_model.py` does that: its input is the position of a 0.25 degree square (about 28 km), not a state.
+
+**What it predicts.** If at least one record is made in a square in a month, how likely it is that a species is among the species recorded. It is conditional on the square having a record, because the source file lists only square-months with a record. It is not a count of animals and not a probability for a home.
+
+**Features.** Species, state, latitude and longitude of the square centre, month, and the length of the period in years (9, 1 or 2), because a nine-year period has more species recorded than a one-year period. The exported values are for a one-year period. As in the state model, nothing built from the records is a feature (counts, square totals, smoothed shares, records in training years, the enough-records flag); the script stops if one is added. The settings are the same as the state model.
+
+**How it is tested.** By time only. The file has no single years, so there is one final test: trained on 2015-2023, tested on 2024. 2025-2026 is scored separately, trained on 2015-2024, and labelled incomplete. Baselines: B1 species only, B2 species x state average, B3 species x square average.
+
+AUC / Brier (run of 7 October 2026):
+
+| Test | Model | B1 species only | B2 species x state | B3 species x square |
+|---|---|---|---|---|
+| 2024 (final) | 0.887 / 0.116 | 0.818 / 0.142 | 0.876 / 0.122 | 0.889 / 0.122 |
+| 2025-2026 (incomplete) | 0.774 / 0.159 | 0.645 / 0.188 | 0.768 / 0.170 | 0.814 / 0.160 |
+
+What this means:
+
+- The model is better than species only and than the state average, and about level with the species x square average (AUC a little lower, Brier a little better on 2024, lower AUC on 2025-2026). It is a simple prediction. The top species of a square-month was recorded in 68.5% of square-months.
+- Rare species are weak. On 2024 the AUC is 0.56 for the python, 0.57 for the cobra and 0.69 for the wild boar.
+- The values are too high where the model is most sure: in the 0.8 to 0.9 band the mean prediction is 0.85 and the observed share is 0.76. The 2024 test period is one year and the training period nine, and the model has not seen a one-year period when it is tested on 2024. The final model is trained on 2015-2024, so it has seen both.
+- 37 of the 965 test square-months are in squares the training period never saw.
+
+**The file the page can read: `output/grid_predictions.json`.** One entry per square (345): `id`, centre `lat` and `lon`, `state`, `records` (records in 2015-2024) and `p`, 84 values: month 1 to 12 and, within each month, the species in the order of `metadata.species`. Every value is between 0 and 1. Squares with few records should be shown as "not enough records", as on the state page. The values are for squares and months that may never have had a record; those are extrapolated.
+
+**Limits.** The grid file is a different extract from `ml_dataset_v3.csv` (39,957 records against 39,766, no Putrajaya, one state per square so border squares are counted in one state only). It has no single years. It does not say whether a place will have any record at all.
+
+To run: `python ml/train_grid_model.py` from the project root.
 
 ## Known limits
 

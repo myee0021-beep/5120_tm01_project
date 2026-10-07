@@ -1,13 +1,22 @@
-# Iteration 3：可用性问题卡（U2-x）还没做的部分
+# Iteration 3：可用性问题卡（U2-x）完成情况
 
-写于 2026-10-03。来源：ver.5 Epics 报告第 7 节（"Usability findings carried as cards"）和 D45。每张卡对应 Iteration 2 可用性测试里的一个发现，**这些卡都不改任何 AC 的文字**，只是缺陷或改进。
+首次写于 2026-10-03，**2026-10-07 按代码重新核对**。来源：ver.5 Epics 报告第 7 节（"Usability findings carried as cards"）和 D45。每张卡对应 Iteration 2 可用性测试里的一个发现，**这些卡都不改任何 AC 的文字**，只是缺陷或改进。
 
 ## 先读这一段
 
-- **本次会话里我没有动过任何一张 U2 卡**（共 19 张改进或缺陷，加 1 张测试卡 U2-7）。下面的"现状"栏是我根据已有代码做的判断，没有逐一在页面上验证过，标了"我没有核实"的就是没看过。
-- 我**没有读过** "Usability Testing Report (Iteration 2)"，所以每个发现对应的录像和时间点我没有，卡片的"具体怎么改"以 ver.5 里的一句话描述为准。需要细节要回到那份报告。
+- 10 月 3 日的版本写着一张都没做。10 月 4–6 日修 bug 阶段之后，代码里已有大部分。
+- **核对方式：读代码，加 10 月 7 日对线上站点的抽查**（https://roomforboth-final.myee0021.workers.dev）。独立脚本（`plan-print-sheet.js`、`plan-ai-summary.js`、`plan-signals-client.js`、`emergency-flow-ac.js`、`community.js`、`ecosystem-forecast.js` 等）与本地逐个对比哈希一致，线上页面能打开且没有控制台报错。**没有在浏览器里逐张卡操作验证**。表里的"依据"是我看到的代码位置；标"部分"的是代码只做到一半，或我无法判断是否达到卡片原意。
+- 我没有读过 "Usability Testing Report (Iteration 2)"，所以每个发现对应的录像和时间点我没有，卡片的"具体怎么改"以 ver.5 里的一句话描述为准。
 - **D45 的顺序：缺陷最先做**，然后是 Must 的改进，再是 Should、Could。
-- 负责人是 ver.4 和 ver.5 里写的；"Hamza 给文案"指 Mirza Hamza Foad 提供要写的句子。
+- 验收仍要由写代码以外的人在干净浏览器上走一遍。
+
+## 汇总（共 19 张）
+
+| 状态 | 数量 | 卡 |
+|---|---|---|
+| 代码里已有 | 13 | U2-1、U2-2、U2-4、U2-5、U2-6、U2-9、U2-10、U2-11、U2-12、U2-14、U2-17、U2-18、U2-19 |
+| 部分完成 | 5 | U2-3、U2-8、U2-13、U2-15、U2-16 |
+| 没有记录 | 1 | U2-7（是测试，不是开发） |
 
 ---
 
@@ -15,77 +24,75 @@
 
 ### 缺陷（Defect）
 
-| 卡 | 影响的 AC | 要改成什么（原文大意） | 负责人 | 现状和提示 |
-|---|---|---|---|---|
-| **U2-1** | AC 6.2.1，Emergency 流程 | 从联系页（Who to call）点 "next" 要进入 Plan，**不能往回走到 Prevention** | Jingyu Zhen | 没做。Emergency 页是内嵌的 iframe 页面，导航在 `emergency-flow-ac.js` 和页面自己的脚本里，已有"Next: Plan"的修补（把 "Next: Prevention" 改成 "Next: Plan"），需要确认联系页那一步是否仍有问题 |
-| **U2-2** | AC 1.4.1 和语言 | 我选的语言要保持到**结果页和打印页** | Xingyu Ye | 没做。语言开关靠 `html[lang]` 和 localStorage `roomForBoth.lang`；要查 Plan 结果、打印页和 AI 总结在切换语言后是否沿用同一语言（AI 总结要和所选语言一致，Safeguards 4.1 第 6 条也要求） |
-| **U2-3** | AC 7.1.1（Iteration 1） | 屏幕上的计划和打印的计划**显示同样的内容**；**没有任何框是替我预先勾好的** | Xingyu Ye | 没做。打印读的是 `roomForBoth.currentPlanSnapshot` 快照（`plan-db-client.js` 写、`print-*.js` 读）。**注意：我做的访问日记重排只改了屏幕，没有同步到打印，两者会不一致，这张卡要一起处理** |
+| 卡 | 影响的 AC | 要改成什么 | 状态 | 依据 | 剩余 |
+|---|---|---|---|---|---|
+| **U2-1** | AC 6.2.1，Emergency 流程 | 从联系页（Who to call）点 "next" 要进入 Plan，不能往回走到 Prevention | 已有 | `frontend-src/emergency-frame.html` 联系页的 `auth_nextPlanLink` 指向 `plan.html`，文字 "Next: Plan" | 线上走一遍确认不会往回走 |
+| **U2-2** | AC 1.4.1 和语言 | 我选的语言要保持到结果页和打印页 | 已有 | `public/plan-print-sheet.js` 跟随站点语言并在 EN/BM 切换时重绘；`public/plan-ai-summary.js` 向 `/api/i2/plan-summary` 带 `language`，Worker 按语言缓存 | 结果页本身没有逐项核对 |
+| **U2-3** | AC 7.1.1（Iteration 1） | 屏幕上的计划和打印的计划显示同样的内容；没有任何框是替我预先勾好的 | **部分** | `plan-print-sheet.js` 按屏幕上的动作和顺序打印，勾选框默认空，只有屏幕上勾过的才打印为已勾 | **访问日记重排只改屏幕，打印读保存的计划，两者可能不同。** 要决定打印是否也按日记重排 |
 
 ### 改进（Improvement）
 
-| 卡 | 影响的 AC | 要改成什么 | 负责人 | 现状和提示 |
-|---|---|---|---|---|
-| **U2-9** | AC 1.4.1 | AI 总结和表格之间**可以双向切换** | Xingyu Ye | 没做。相关文件 `plan-ai-summary.js`、`src/worker-plan-summary.js`。Safeguards 4.1 第 8 条也要求"总结和表格相隔一次点击，双向" |
-| **U2-19** | AC 1.4.1 | AI 总结**只能提到页面上出现的动物**；规则要写进提示词，**也要写进拒绝检查** | Jingyu Zhen | 没做。Safeguards 4.1 第 3 条：用 species 表里七种动物的中英文名和别名建一个列表，输出里出现不在页面上的名字就拒绝 |
-| **U2-5** | AC 1.2.1 | 三个数字上方的标题改成**大白话** | Xingyu Ye（文案 Hamza） | 没做。标题在 `plan-signals-client.js`（"Recorded occurrences"、"Conflict complaints"、"Documented attractants matched"）；我做的档位标签不改变这些标题。**需要 Hamza 的文案** |
-| **U2-6** | AC 1.2.3，AC 5.0.4（Iteration 1） | 每个数字旁边写一行"**一条记录是一份报告，不是一只动物**"，**打印页也要有** | Xingyu Ye（文案 Hamza） | **部分**：Plan 的 "Signals for your home" 卡片底部已经有一句 "Records are observations, not animals…"，但**不是每个数字旁边，打印页也没有**。我没有逐页核实 |
-| **U2-8** | Epic 6 | Emergency 流程里**最后一个紧急步骤改名**，步骤条标成"步骤" | Xingyu Ye（文案 Hamza） | 没做。**需要 Hamza 的文案**；Emergency 页是内嵌 iframe |
-| **U2-10** | AC 1.2.1 | **没选动物时**，结果用**一句话**说明，并提供选项 | Xingyu Ye（文案 Hamza） | 没做。现在 `plan-signals-client.js` 在没选动物时写 "No species was selected in the questionnaire. No species signal is invented."，需要按 Hamza 的句子改成一句话并带选择按钮 |
+| 卡 | 影响的 AC | 要改成什么 | 状态 | 依据 | 剩余 |
+|---|---|---|---|---|---|
+| **U2-9** | AC 1.4.1 | AI 总结和表格之间可以双向切换 | 已有 | `plan-ai-summary.js`：按钮在"Read the sourced table instead"和"Back to the AI summary"之间切换，状态存在 sessionStorage | — |
+| **U2-19** | AC 1.4.1 | AI 总结只能提到页面上出现的动物；规则要写进提示词，也要写进拒绝检查 | 已有 | `src/worker-plan-summary.js`：`KNOWN_ANIMAL_TERMS` 列表加 `validate()`，输出里出现页面上没有的动物名就拒绝并要求重写；重试提示里也写了"除非页面里有这个词，否则不要点名任何动物" | — |
+| **U2-5** | AC 1.2.1 | 三个数字上方的标题改成大白话 | 已有 | `public/plan-signals-client.js`：现在是 "Records in your state"、"Complaints to PERHILITAN, 2020"、"Things at your home that attract it"（旧标题已去掉） | 文案是否经 Hamza 确认，没有记录 |
+| **U2-6** | AC 1.2.3，AC 5.0.4（Iteration 1） | 每个数字旁边写一行"一条记录是一份报告，不是一只动物"，打印页也要有 | 已有 | `plan-signals-client.js` 记录数和投诉数旁都有说明（含马来语）；`plan-print-sheet.js` 每个计数都带这句 | 第三个数字（吸引因素个数）旁没有说明，因为它不是记录数 |
+| **U2-8** | Epic 6 | Emergency 流程里最后一个紧急步骤改名，步骤条标成"步骤" | **部分** | `emergency-frame.html`：各页标成 "Step 1 · Snake check"、"Step 2 · Identify the animal"、"Step 3 · What to do now"、"Step 3 · While you wait"、"Step 4 · Stop it coming back"、"Step 5 · Who to call" | **我没有原来的名字，无法确认已改名。**另外有两个页面都叫 "Step 3"（"What to do now" 和 "While you wait"），可能是编号错误，需要在页面上看 |
+| **U2-10** | AC 1.2.1 | 没选动物时，结果用一句话说明，并提供选项 | 已有 | `plan-signals-client.js` 的 `renderEmpty`：一句话加三个选项（选动物、先识别、看州里记录的动物） | — |
 
 ### 测试卡
 
-| 卡 | 内容 | 负责人 | 说明 |
+| 卡 | 内容 | 状态 | 说明 |
 |---|---|---|---|
-| **U2-7**（Must，作为测试） | 给陌生人看首页，问"这个站是干什么的、你会点什么"。**在结果出来之前，首页不改** | Nisuri Edirisinghe | 这是测试，不是开发。**测试结果出来之前不要改 AC 6.1.1 对应的首页** |
+| **U2-7**（Must，作为测试） | 给陌生人看首页，问"这个站是干什么的、你会点什么"。结果出来之前，首页不改 | 没有记录 | 这是测试，不是开发，项目文件里没有任何结果。测试结果出来之前不要改 AC 6.1.1 对应的首页 |
 
 ---
 
 ## 二、Should
 
-| 卡 | 影响的 AC | 要改成什么 | 负责人 | 现状和提示 |
-|---|---|---|---|---|
-| **U2-4** | AC 3.2.1 | 全国地图要**一直可见**，或有一个**明确的"回到全国地图"**；气泡合并时给出说明 | Jingyu Zhen | 没做。地图页里已有 "Back to the national map" 按钮，但只在选中某州后出现；"气泡合并时的说明"点开气泡有弹窗。我没有核实用户测试时具体遇到什么 |
-| **U2-12** | AC 5.1.4（Iteration 1，物种页） | **每个物种的页面上也显示月度图** | Jingyu Zhen | 没做。月度图在 Plan 结果页有（`plan-signals-client.js` 的 `renderMonthly`）；物种页是否有，我没有核实 |
-| **U2-14** | AC 3.3.1 | **任何提到动物名字的页面**都能到"它是入侵种吗"的检查 | Jingyu Zhen | 没做。物种页有指向入侵检查的链接；其他提到动物的页面（如我做的预测页、Community 页）**没有**，要加入口 |
-| **U2-13** | AC 4.3.1（Iteration 1），authority 行 | 机构公布了**开放时间**就显示，没公布就写"未指明" | Xingyu Ye；表中的行由 Nisuri Edirisinghe 补 | 没做。数据在 authority 表（70 行），页面在 Emergency 的内嵌页；需要先有数据 |
-| **U2-15** | 内容表，马来语行 | **动物名、状态标签、来源行和 AI 区域用马来语**；审核人在看板上署名 | Mingtong Li 装载；审核人待定（开放项 3） | 没做。我写的 Community、预测页等的马来语**没有人审**，页面上也没有"未审核"标记；完成定义要求每一条马来语要么标"已审"，要么标"未审" |
-| **U2-11** | AC 7.1.1（Iteration 1） | A4 打印页**一行一个动作**，来源放在页脚 | Xingyu Ye | 没做。打印页 `plan-print` 和 `print-*.js` |
-| **U2-17** | AC 1.1.1 | 首页的五个问题**在屏幕上编号** | Xingyu Ye | 没做。首页的 questionnaire |
-| **U2-18** | AC 4.2.1（Iteration 1） | "打电话前要准备什么"的列表**做成清单样式** | Xingyu Ye | 没做。在 Emergency 的 who to call 页 |
+| 卡 | 影响的 AC | 要改成什么 | 状态 | 依据 | 剩余 |
+|---|---|---|---|---|---|
+| **U2-4** | AC 3.2.1 | 全国地图要一直可见，或有明确的"回到全国地图"；气泡合并时给出说明 | 已有 | `public/index0914.html`：地图上有 "Back to the national map" 按钮（选了州或放大后出现）；气泡合并时有说明条 | — |
+| **U2-12** | AC 5.1.4（Iteration 1，物种页） | 每个物种的页面上也显示月度图 | 已有 | 物种页有 "Records by month, all years" 柱状图和一句"一条记录是一份报告" | — |
+| **U2-14** | AC 3.3.1 | 任何提到动物名字的页面都能到"它是入侵种吗"的检查 | 已有 | 首页动物卡、Plan 结果（`plan-signals-client.js`）、预测页（`ecosystem-forecast.js`）、Community（`community.js`）、急救页（`emergency-frame.html`，蛇路径除外）都有入口 | — |
+| **U2-13** | AC 4.3.1（Iteration 1），authority 行 | 机构公布了开放时间就显示，没公布就写"未指明" | **部分** | `emergency-frame.html`：有 `hoursEn`/`hoursBm` 字段，没有就显示 "Opening hours: not stated" | **70 行机构数据里没有一行带开放时间**，所以所有机构都显示"未指明"。需要有人去找数据 |
+| **U2-15** | 内容表，马来语行 | 动物名、状态标签、来源行和 AI 区域用马来语；审核人在看板上署名 | **部分** | `index0914.html`：动物名（`SPECIES_NAME_BM`）、IUCN 和来源标签、表格说明有马来语；Plan 的数字标题、AI 总结按钮也有 | **Community、预测页、区地图的马来语没有人审，页面上也没有"未审核"标记**（完成定义要求每条马来语要么标"已审"，要么标"未审"）；看板署名没有记录 |
+| **U2-11** | AC 7.1.1（Iteration 1） | A4 打印页一行一个动作，来源放在页脚 | 已有 | `plan-print-sheet.js` 文件头说明：一行一个动作，来源编号并放到页脚（只读了代码，没有渲染打印页） | 打印预览看一眼 |
+| **U2-17** | AC 1.1.1 | 首页的五个问题在屏幕上编号 | 已有 | `index0914.html`：五个 `q-badge` 编号 | — |
+| **U2-18** | AC 4.2.1（Iteration 1） | "打电话前要准备什么"的列表做成清单样式 | 已有 | `emergency-frame.html`：`data-call-checklist`，每项是点一下打勾的按钮 | — |
 
 ---
 
 ## 三、Could
 
-| 卡 | 影响的 AC | 要改成什么 | 负责人 | 现状和提示 |
-|---|---|---|---|---|
-| **U2-16** | AC 6.2.1 | 蛇页上，**安全提示和 999 规则放在最前面（首屏以内）** | Jingyu Zhen | 没做。**要注意：我本次改了同一个页面**（`page-snakewhattodo`），为 IT-3（"Not sure" 走新的安全页）加了一个变体，页面结构和蛇页共用，改这张卡时要避开我加的 `ns-only` 和 `ns-hide` 两类元素 |
+| 卡 | 影响的 AC | 要改成什么 | 状态 | 依据 | 剩余 |
+|---|---|---|---|---|---|
+| **U2-16** | AC 6.2.1 | 蛇页上，安全提示和 999 规则放在最前面（首屏以内） | **部分** | `emergency-frame.html`：蛇问题门和蛇页顶部都有红色 "Danger to life, right now, Call 999" 条 | 我无法判断首屏内的顺序，需要在页面上看。**这一页和 "Not sure" 页共用 `page-snakewhattodo`，改的时候避开 `ns-only`、`ns-hide` 两类元素，且不要两个人同时改**（页面内嵌约 1.35MB 的 base64 代码） |
 
 ---
 
-## 四、与我已做的内容有关联的地方（动手前要先协调）
+## 四、与已做内容的关联（动手前要先协调）
 
-1. **U2-3（打印和屏幕一致）与访问日记重排**：重排只改屏幕，会让打印和屏幕不一致。要决定打印是否也按日记重排。
-2. **U2-16 与 IT-3 的 "Not sure" 页**：两个都改 `page-snakewhattodo`，且都在 Emergency 内嵌页（一个约 1.35MB 的 base64 内嵌代码）里，**不要两个人同时改**。
-3. **U2-5、U2-6 与 Draft AC 1.3.2**：我给每个计数旁加了档位标签，它们的标题和注释位置不变，但 U2-5 改标题时要保持档位标签仍在计数后面。
-4. **U2-10 与预测页、Plan**：没选动物时 Plan 的 "Signals for your home" 会显示 "No species was selected…"；这句话的改法要和合并等级的 "No level" 提示保持一致。
-5. **U2-15 与 Community、预测页、说明页**：我写的马来语都没有审，一起列入审核清单。
-6. **U2-19、U2-9 与 Safeguards 第 4 节（AI 2）**：这两张卡的实现细节在 Safeguards 里已有（逐句绑定行、数字和物种检查、V7 到 V14 单元测试），做之前先看那一节，避免重复设计。
+1. **U2-3 与访问日记重排：** 重排只改屏幕，会让打印和屏幕不一致。要决定打印是否也按日记重排。
+2. **U2-16 与 "Not sure" 页：** 两个都改 `page-snakewhattodo`，都在 Emergency 内嵌页里，不要两个人同时改。
+3. **U2-5、U2-6 与 Draft AC 1.3.2：** 档位标签在计数后面，改标题时要保持。
+4. **U2-10 与预测页、Plan：** 没选动物时 Plan 的提示要和合并等级的 "No level" 提示保持一致。
+5. **U2-15 与 Community、预测页、说明页、区地图：** 马来语都没有审，一起列入审核清单。
+6. **U2-19、U2-9 与 Safeguards 第 4 节（AI 2）：** 实现细节在 Safeguards 里已有，做之前先看那一节。
 
 ---
 
-## 五、建议顺序
+## 五、剩余工作和分工
 
-1. **U2-1、U2-2、U2-3**（三个缺陷，D45 要求先做）。
-2. **U2-19、U2-9**（AI 总结，一起做，对应 Safeguards 第 4 节）。
-3. **U2-5、U2-6、U2-8、U2-10**（文案类 Must，先向 Hamza 要句子）。
-4. **U2-7**（Nisuri 的测试，可以并行；测试期间首页不改）。
-5. Should：U2-4、U2-12、U2-14、U2-13、U2-11、U2-17、U2-18、U2-15。
-6. Could：U2-16。
+与 `Iteration3_Status.md` 第 7 节一致。
 
-## 六、需要补充的信息
-
-- "Usability Testing Report (Iteration 2)" 里每个发现的录像和时间点，以及用户当时具体的行为。
-- Hamza 的文案（U2-5、U2-6、U2-8、U2-10）。
-- U2-13 的开放时间数据，U2-15 的马来语审核人。
-- 以上每张卡的负责人是否仍按 ver.5 的分工。
+| 卡 | 要做什么 | 谁 | 时间 |
+|---|---|---|---|
+| U2-3 | 决定并实现打印是否跟随日记重排 | Jingyu（J4） | 10/9 |
+| U2-8 | 在页面上核对"最后一步"的名字和两个 "Step 3"；必要时改编号 | Jingyu（J4） | 10/9 |
+| U2-16 | 在页面上核对首屏顺序 | Jingyu（J4） | 10/9 |
+| U2-15 | 给 Community、预测页、区地图等的马来语加"未审核"标记；找审核人、看板署名 | Jingyu 加标记；Mingtong 负责装载；审核人待定 | 10/9 |
+| U2-13 | 找机构开放时间的数据，补进 70 行表 | Nisuri | 待定 |
+| U2-7 | 给陌生人看首页的测试 | Nisuri | 待定 |
+| 全部 | 在干净浏览器上走一遍验收 | 写代码以外的人 | 10/9–10/10 |
