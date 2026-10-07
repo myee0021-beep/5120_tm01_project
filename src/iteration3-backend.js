@@ -118,9 +118,11 @@ async function resolvePostId(sql,idOrRef){
 }
 
 async function signalThresholds(env){
+  // Same shape as public/signal_threshold.json: one row per signal and band (D46).
   const sql=sqlFor(env);
-  const rows=await sql`SELECT id,indicator,band_low,band_med,band_high,decision_ref,record_threshold FROM signal_threshold ORDER BY id`;
-  return json({ok:true,rows:rows.map(r=>({id:Number(r.id),indicator:r.indicator,band_low:r.band_low==null?null:Number(r.band_low),band_med:r.band_med==null?null:Number(r.band_med),band_high:r.band_high==null?null:Number(r.band_high),decision_ref:r.decision_ref||null,record_threshold:r.record_threshold==null?null:Number(r.record_threshold)}))});
+  const rows=await sql`SELECT signal,band,lower_bound,score,decision,signed_date FROM signal_threshold ORDER BY signal,score`;
+  const day=v=>v==null?null:(v instanceof Date?v.toISOString().slice(0,10):String(v).slice(0,10));
+  return json({ok:true,rows:rows.map(r=>({signal:r.signal,band:r.band,lower_bound:Number(r.lower_bound),score:Number(r.score),decision:r.decision,signed_date:day(r.signed_date)}))});
 }
 async function listPublished(request,env){
   const sql=sqlFor(env),u=new URL(request.url);
