@@ -15,12 +15,21 @@
  * state and month (AC 11.1.1(2)). They are read from the spread of the 1,344 exported probabilities (about 80% and 40% of
  * months with a record), not tuned on test scores. Change them in one place only, and in the Epic with them.
  * The page shows no number from them.
+ *
+ * Area view (mentor review, 6 October): the same page can also read forecast_grid_predictions.json (copy of
+ * ml/output/grid_predictions.json, the area model trained on "Iteration 3 Data for ML (grid cell, smoothed).csv").
+ * One entry per 0.25 degree square (about 28 km): { id, lat, lon, state, records, p[84] }, p = month 1..12 and,
+ * within each month, the species in metadata.species order. It answers: if anything is recorded in this square in
+ * this month, how likely each animal is to be among it. Same word bands and the same minimum of records (judged on
+ * the square's total, as the file has no count per species). The state view is unchanged.
  */
 (function () {
   'use strict';
 
   var PAGE = 'ecosystem-forecast';
   var FILE = 'forecast_predictions.json?v=20261003-1';
+  var GRID_FILE = 'forecast_grid_predictions.json?v=20261007-1';
+  var HALF = 0.125; // half the side of a square, in degrees
   var DEFAULT_MIN_RECORDS = 30; // only used if the threshold table cannot be read; AC 1.2.4 states thirty
   var BAND_CUTS = { veryLikely: 0.80, likely: 0.40 }; // AC 11.1.1(2), see header
 
@@ -54,7 +63,8 @@
     unlikely: { en: 'Unlikely', bm: 'Tidak mungkin' }
   };
 
-  var S = { data: null, failed: false, loading: false, state: '', month: new Date().getMonth() + 1, snakesOpen: false, built: false };
+  var S = { data: null, failed: false, loading: false, state: '', month: new Date().getMonth() + 1, snakesOpen: false, built: false,
+    view: 'state', cell: '', grid: null, gridFailed: false, gridLoading: false, gridMap: null, mapView: null };
 
   // ---------------------------------------------------------------- helpers
   function lang() { return document.documentElement.getAttribute('lang') === 'bm' ? 'bm' : 'en'; }
@@ -131,8 +141,9 @@
     var c = document.getElementById(PAGE + '__content');
     c.addEventListener('change', function (e) {
       var sel = e.target.getAttribute && e.target.getAttribute('data-sel');
-      if (sel === 'state') { S.state = e.target.value; S.snakesOpen = false; syncUrl(); render(); }
+      if (sel === 'state') { S.state = e.target.value; S.cell = ''; S.snakesOpen = false; syncUrl(); render(); }
       if (sel === 'month') { S.month = parseInt(e.target.value, 10) || S.month; syncUrl(); render(); }
+      if (sel === 'cell') { S.cell = e.target.value; syncUrl(); render(); }
     });
     c.addEventListener('click', function (e) {
       var el2 = e.target.closest('[data-act]');
@@ -141,6 +152,8 @@
       if (act === 'snakes') { S.snakesOpen = !S.snakesOpen; render(); }
       if (act === 'state') { S.state = el2.getAttribute('data-val'); S.snakesOpen = false; syncUrl(); render(); window.scrollTo(0, 0); }
       if (act === 'retry') { S.failed = false; load(); }
+      if (act === 'view') { setView(el2.getAttribute('data-val')); }
+      if (act === 'retry-grid') { S.gridFailed = false; loadGrid(); }
     });
     return el;
   }
@@ -148,6 +161,7 @@
     var q = new URLSearchParams();
     if (S.state) q.set('state', S.state);
     q.set('month', String(S.month));
+    if (S.view === 'area') { q.set('view', 'area'); if (S.cell) q.set('cell', S.cell); }
     history.replaceState(null, '', '#' + PAGE + '?' + q.toString());
   }
 
@@ -191,7 +205,9 @@
     if (!root) return;
     var st = S.state ? stateRow(S.state) : null;
     var title = st ? T(esc(st[1]) + ' in ' + MONTHS.en[S.month - 1], esc(st[2]) + ' pada ' + MONTHS.bm[S.month - 1]) : T('Wildlife forecast', 'Ramalan hidupan liar');
-    var h = hero(title) + selects();
+    var h = hero(title) + selects() + viewToggle();
+    if (S.view === 'area') { renderArea(root, h, st); return; }
+    dropGridMap();
     if (S.failed) {
       root.innerHTML = h + '<div class="fc-card"><p class="fc-text">' + T('The forecast file did not load, so nothing is shown. Nothing is guessed in its place.', 'Fail ramalan tidak dimuat, jadi tiada apa dipaparkan. Tiada apa diteka sebagai ganti.') + '</p><button type="button" class="fc-btn" data-act="retry">' + T('Try again', 'Cuba lagi') + '</button></div>' + actions();
       return;
@@ -247,6 +263,134 @@
       '<p class="fc-text">' + T('It is a prediction for the state. It is not a chance for your home.', 'Ia ramalan untuk negeri. Ia bukan kebarangkalian untuk rumah anda.') + '</p></div>';
     root.innerHTML = h + actions();
   }
+  // ---------------------------------------------------------------- area view (grid model)
+  function setView(v) {
+    S.view = v === 'area' ? 'area' : 'state';
+    S.cell = ''; S.snakesOpen = false;
+    syncUrl(); render();
+    if (S.view === 'area' && !S.grid && !S.gridFailed) loadGrid();
+  }
+  function viewToggle() {
+    function pill(k, en, bm) {
+      var on = S.view === k;
+      return '<button type="button" class="fc-pill' + (on ? ' fc-pill--on' : '') + '" data-act="view" data-val="' + k + '" aria-pressed="' + on + '">' + T(en, bm) + '</button>';
+    }
+    return '<div class="fc-views" role="group">' + pill('state', 'Whole state', 'Seluruh negeri') + pill('area', 'By area (28 km squares)', 'Mengikut kawasan (petak 28 km)') + '</div>';
+  }
+  function cellName(c) {
+    return Math.abs(c.lat).toFixed(2) + '°' + (c.lat >= 0 ? 'N' : 'S') + ' ' + c.lon.toFixed(2) + '°E';
+  }
+  function cellsFor(stateKey) {
+    var name = fileState(stateKey);
+    return S.grid.cells.filter(function (c) { return c.state === name; });
+  }
+  function areaItems(c, month) {
+    var sp = S.grid.metadata.species, n = sp.length, items = [], snakes = [];
+    sp.forEach(function (latin, i) {
+      var meta = SPECIES[latin];
+      if (!meta) return;
+      var it = { code: meta.code, en: meta.en, bm: meta.bm, p: c.p[(month - 1) * n + i], snake: !!meta.snake };
+      (meta.snake ? snakes : items).push(it);
+    });
+    if (snakes.length) items.push({ code: 'snakes', en: 'Snakes', bm: 'Ular', group: snakes, p: Math.max.apply(null, snakes.map(function (s) { return s.p; })) });
+    return items.sort(function (a, b) { return b.p - a.p; });
+  }
+  function renderArea(root, h, st) {
+    if (S.gridFailed) {
+      root.innerHTML = h + '<div class="fc-card"><p class="fc-text">' + T('The area forecast file did not load, so nothing is shown. Nothing is guessed in its place.', 'Fail ramalan kawasan tidak dimuat, jadi tiada apa dipaparkan. Tiada apa diteka sebagai ganti.') + '</p><button type="button" class="fc-btn" data-act="retry-grid">' + T('Try again', 'Cuba lagi') + '</button></div>' + actions();
+      dropGridMap(); return;
+    }
+    if (!S.grid) { root.innerHTML = h + '<div class="fc-card"><p class="fc-text">' + T('Loading the area forecast…', 'Memuatkan ramalan kawasan…') + '</p></div>'; dropGridMap(); return; }
+    if (!st) {
+      root.innerHTML = h + '<div class="fc-card"><p class="fc-text">' + T('Choose your state and a month, then tap a square on the map.', 'Pilih negeri dan bulan anda, kemudian ketik satu petak pada peta.') + '</p></div>' + actions();
+      dropGridMap(); return;
+    }
+    var cells = cellsFor(S.state);
+    if (!cells.length) {
+      root.innerHTML = h + '<div class="fc-card"><p class="fc-text">' + T('The area data has no squares for ' + esc(st[1]) + '. Its records are counted with a neighbouring state. Use the whole-state forecast instead.', 'Data kawasan tiada petak untuk ' + esc(st[2]) + '. Rekodnya dikira bersama negeri berjiran. Gunakan ramalan seluruh negeri.') + '</p><button type="button" class="fc-btn" data-act="view" data-val="state">' + T('See the whole-state forecast', 'Lihat ramalan seluruh negeri') + '</button></div>' + actions();
+      dropGridMap(); return;
+    }
+    var cell = null;
+    cells.forEach(function (c) { if (c.id === S.cell) cell = c; });
+    if (!cell) { cell = cells.slice().sort(function (a, b) { return b.records - a.records; })[0]; S.cell = cell.id; }
+    var min = minRecords();
+    var opts = cells.slice().sort(function (a, b) { return b.records - a.records; }).map(function (c) {
+      return '<option value="' + esc(c.id) + '"' + (c.id === cell.id ? ' selected' : '') + '>' + esc(cellName(c)) + ' · ' + fmt(c.records) + ' ' + (lang() === 'bm' ? 'rekod' : (c.records === 1 ? 'record' : 'records')) + '</option>';
+    }).join('');
+    h += '<div class="fc-card"><div class="fc-label">' + T('Choose a square in ' + esc(st[1]), 'Pilih satu petak di ' + esc(st[2])) + '</div>' +
+      '<div class="fc-map" id="' + PAGE + '__gridMap"></div>' +
+      '<div class="fc-legend"><span><i class="fc-sw fc-sw--ok"></i>' + T('Enough records (darker = more)', 'Rekod mencukupi (lebih gelap = lebih banyak)') + '</span><span><i class="fc-sw fc-sw--few"></i>' + T('Fewer than ' + min + ' records', 'Kurang daripada ' + min + ' rekod') + '</span></div>' +
+      '<select class="fc-select fc-cellsel" data-sel="cell" aria-label="' + esc(lang() === 'bm' ? 'Petak' : 'Square') + '">' + opts + '</select></div>';
+    var where = T('Square ' + esc(cellName(cell)) + ' · ' + MONTHS.en[S.month - 1], 'Petak ' + esc(cellName(cell)) + ' · ' + MONTHS.bm[S.month - 1]);
+    if (cell.records < min) {
+      h += '<div class="fc-card"><div class="fc-label">' + where + '</div>' +
+        '<p class="fc-big">' + T('This square has ' + fmt(cell.records) + ' ' + (cell.records === 1 ? 'record' : 'records') + ' of the seven animals from 2015 to 2024.', 'Petak ini mempunyai ' + fmt(cell.records) + ' rekod tujuh haiwan dari 2015 hingga 2024.') + '</p>' +
+        '<p class="fc-text">' + T('That is fewer than we need, so no forecast is shown (at least ' + min + ' records are needed, the same minimum as everywhere on the site). Few records does not mean few animals.', 'Itu kurang daripada yang diperlukan, jadi tiada ramalan dipaparkan (sekurang-kurangnya ' + min + ' rekod diperlukan, minimum yang sama di seluruh tapak). Rekod yang sedikit tidak bermakna haiwan yang sedikit.') + '</p>' +
+        '<div class="fc-list-links"><button type="button" class="fc-link" data-act="view" data-val="state">' + T('See the whole-state forecast for ' + esc(st[1]) + '.', 'Lihat ramalan seluruh negeri untuk ' + esc(st[2]) + '.') + '</button></div></div>';
+    } else {
+      var items = areaItems(cell, S.month);
+      var list = '<div class="fc-label">' + T('Most likely to be recorded · ', 'Paling mungkin direkodkan · ') + where + '</div><ol class="fc-rank">';
+      items.forEach(function (it, i) {
+        var isSnakes = it.code === 'snakes';
+        list += '<li class="fc-row"><span class="fc-n">' + (i + 1) + '</span><span class="fc-who">' +
+          (isSnakes ? '<button type="button" class="fc-name fc-name--btn" data-act="snakes" aria-expanded="' + S.snakesOpen + '">' + nameLink(it) + '</button>' : nameLink(it)) + '</span>' + chip(bandFor(it.p)) + '</li>';
+        if (isSnakes && S.snakesOpen) it.group.slice().sort(function (a, b) { return b.p - a.p; }).forEach(function (s) {
+          list += '<li class="fc-row fc-row--sub"><span class="fc-n"></span><span class="fc-who">' + nameLink(s) + '</span>' + chip(bandFor(s.p)) + '</li>';
+        });
+      });
+      list += '</ol><p class="fc-note">' + T('Snakes are shown as one group. Tap to open it.', 'Ular dipaparkan sebagai satu kumpulan. Ketik untuk membukanya.') + '</p>' +
+        '<p class="fc-note">' + T(fmt(cell.records) + ' records in this square from 2015 to 2024.', fmt(cell.records) + ' rekod di petak ini dari 2015 hingga 2024.') + '</p>';
+      h += '<div class="fc-card">' + list + '</div>';
+    }
+    h += '<div class="fc-card"><div class="fc-label">' + T('What this means', 'Maksudnya') + '</div>' +
+      '<p class="fc-text">' + T('If anything is recorded in this square in ' + MONTHS.en[S.month - 1] + ', this is how likely each animal is to be among what is recorded. It comes from the area model, trained on records from 2015 to 2024 placed in squares of about 28 km.', 'Jika ada apa-apa direkodkan di petak ini pada ' + MONTHS.bm[S.month - 1] + ', ini betapa mungkinnya setiap haiwan termasuk dalam rekod itu. Ia daripada model kawasan, dilatih dengan rekod 2015 hingga 2024 yang diletakkan dalam petak kira-kira 28 km.') + '</p>' +
+      '<p class="fc-text">' + T('A record is one report by a person, not one animal. A square is a wide area, so this is not a chance for your home.', 'Satu rekod ialah satu laporan oleh seseorang, bukan satu haiwan. Satu petak ialah kawasan yang luas, jadi ini bukan kebarangkalian untuk rumah anda.') + '</p>' +
+      '<p class="fc-text">' + T('Tested on 2024 records, it does better than using the animal alone or the state average, and about as well as each square\'s own past average.', 'Diuji dengan rekod 2024, ia lebih baik daripada menggunakan haiwan sahaja atau purata negeri, dan lebih kurang sama dengan purata lalu setiap petak.') + '</p></div>';
+    root.innerHTML = h + actions();
+    drawGridMap(cells, cell);
+  }
+  function dropGridMap() {
+    if (!S.gridMap) return;
+    S.gridMap.remove(); S.gridMap = null;
+  }
+  function drawGridMap(cells, sel) {
+    var el = document.getElementById(PAGE + '__gridMap');
+    if (S.gridMap) { S.mapView = { state: S.state, center: S.gridMap.getCenter(), zoom: S.gridMap.getZoom() }; dropGridMap(); }
+    if (!el || typeof L === 'undefined') { if (el) el.style.display = 'none'; return; }
+    var map = L.map(el, { scrollWheelZoom: false });
+    map.attributionControl.setPrefix(false);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri' }).addTo(map);
+    var min = minRecords(), max = 1, group = L.featureGroup();
+    cells.forEach(function (c) { if (c.records > max) max = c.records; });
+    cells.forEach(function (c) {
+      var ok = c.records >= min, t = Math.log(1 + c.records) / Math.log(1 + max), on = c.id === sel.id;
+      var fill = ok ? 'rgb(' + [Math.round(167 - 140 * t), Math.round(220 - 140 * t), Math.round(190 - 130 * t)].join(',') + ')' : '#cbd5e1';
+      var r = L.rectangle([[c.lat - HALF, c.lon - HALF], [c.lat + HALF, c.lon + HALF]], {
+        color: on ? '#0b130e' : (ok ? '#14532d' : '#94a3b8'), weight: on ? 3 : 1, dashArray: ok ? null : '3', fillColor: fill, fillOpacity: ok ? 0.55 : 0.3
+      });
+      r.bindTooltip(cellName(c) + ' · ' + fmt(c.records) + ' ' + (lang() === 'bm' ? 'rekod' : (c.records === 1 ? 'record' : 'records')));
+      r.on('click', function () { S.cell = c.id; S.snakesOpen = false; syncUrl(); render(); });
+      group.addLayer(r);
+    });
+    group.addTo(map);
+    if (S.mapView && S.mapView.state === S.state) map.setView(S.mapView.center, S.mapView.zoom);
+    else map.fitBounds(group.getBounds(), { padding: [12, 12], maxZoom: 10 });
+    S.gridMap = map;
+    setTimeout(function () { if (S.gridMap === map) map.invalidateSize(); }, 0);
+  }
+  function loadGrid() {
+    if (S.gridLoading) return;
+    S.gridLoading = true;
+    var thresholds = window.SignalThresholds ? SignalThresholds.load() : Promise.resolve();
+    fetch(GRID_FILE, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (d) {
+        if (!d || !Array.isArray(d.cells) || !d.cells.length || !d.metadata || !Array.isArray(d.metadata.species)) throw new Error('empty');
+        S.grid = d; S.gridFailed = false;
+      }).catch(function () { S.gridFailed = true; })
+      .then(function () { return thresholds; })
+      .then(function () { S.gridLoading = false; if (active) render(); });
+  }
+
   function snakeRows(group) {
     var out = '';
     group.group.slice().sort(function (a, b) { return b.records - a.records; }).forEach(function (s) {
@@ -275,14 +419,17 @@
   PageInit[PAGE] = function () { buildShell(); };
   document.addEventListener('roomforboth:pageshow', function (e) {
     active = !!(e.detail && e.detail.page === PAGE);
-    if (!active) return;
+    if (!active) { dropGridMap(); return; }
     buildShell();
     var q = query(), st = q.get('state'), mo = parseInt(q.get('month'), 10);
     if (!st) { try { st = sessionStorage.getItem('roomForBoth.selectedState') || ''; } catch (x) {} }
     S.state = stateRow(st) ? st : (S.state || '');
     if (mo >= 1 && mo <= 12) S.month = mo;
+    S.view = q.get('view') === 'area' ? 'area' : 'state';
+    if (q.get('cell')) S.cell = q.get('cell');
     render();
     if (!S.data && !S.failed) load();
+    if (S.view === 'area' && !S.grid && !S.gridFailed) loadGrid();
   });
   new MutationObserver(function () { if (active) render(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
 })();

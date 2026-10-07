@@ -26,7 +26,7 @@
 | 数据清洗 | Mingtong | 10/3 | 完成（团队报告） | `ml/build_dataset.py` 有 7 项检查；`ml/data/ml_dataset_v3.csv` 12,131 行 |
 | 特征工程 | Jingyu 和 Mingtong | 10/3 | 完成（团队报告） | 从约 40 个候选特征缩到 6 个：species、state、month、year、州人口 2020、森林保护区面积；`train_and_export.py` 禁止记录数、占比等作为特征 |
 | 模型训练（州模型） | Jingyu | 设计 10/2–3 | 完成 | `ml/output/` 里有模型、预测文件和评估报告；文件里记录的训练日期是 2026-10-01，以文件为准。2024 年 AUC 0.941 / Brier 0.094，与简单平均相当 |
-| 区域模型（网格位置） | Jingyu | 10/7 | 完成，**未部署** | `ml/train_grid_model.py`；2024 年 AUC 0.887 / Brier 0.116；`grid_predictions.json` 在本地，线上没有 |
+| 区域模型（网格位置） | Jingyu | 10/7 | 完成，已部署（10/7） | `ml/train_grid_model.py`；2024 年 AUC 0.887 / Brier 0.116；预测页“按区域（28 km 方格）”读取 `public/forecast_grid_predictions.json`（`ml/output/grid_predictions.json` 的副本） |
 | 前端开发 | Jingyu | 10/3–4 | 完成 | 线上页面可见：说明页、Plan、访问日记、Community、预测页、方法页、About the data |
 | 区级地图 | Jingyu | 10/7 | 完成，**未部署** | 本地可用；线上 `ecosystem-districts-data.js` 返回 404 |
 | 后端开发 | Maggie | 10/4–6 | 完成 | 线上接口能响应：`/api/community`、`/api/community/review/*`、`/api/i3/signal-thresholds`、`/api/i2/*` |

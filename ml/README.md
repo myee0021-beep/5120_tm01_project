@@ -181,6 +181,8 @@ What this means:
 
 To run: `python ml/train_grid_model.py` from the project root.
 
+**On the site.** The forecast page has a "By area (28 km squares)" view that reads `public/forecast_grid_predictions.json`, a copy of `output/grid_predictions.json`. After retraining, copy the file again and raise `GRID_FILE`'s `?v=` number in `public/ecosystem-forecast.js`.
+
 ## Known limits
 
 - GBIF records show where people reported animals, not where animals are. Busy places and easy-to-see species have more records.

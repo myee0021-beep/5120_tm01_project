@@ -40,6 +40,21 @@ a.fc-name:hover { text-decoration: underline; }
 .fc-btn { display: flex; align-items: center; justify-content: center; width: 100%; margin-top: .7rem; border-radius: 999px; padding: .85rem 1.2rem; font-size: .875rem; font-weight: 700; color: #fff; background: #1b4332; border: 1px solid #1b4332; text-decoration: none; cursor: pointer; }
 .fc-btn:focus-visible, .fc-link:focus-visible, .fc-name:focus-visible { outline: 3px solid rgba(33,82,64,.45); outline-offset: 2px; }
 
+/* Area view (grid model) */
+.fc-views { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; }
+.fc-pill { border-radius: 999px; padding: .5rem 1rem; font-size: .8125rem; font-weight: 700; background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.4); cursor: pointer; }
+.fc-pill--on { background: #fff; color: #0b130e; border-color: #fff; }
+.fc-pill:focus-visible { outline: 3px solid rgba(167,243,208,.8); outline-offset: 2px; }
+.fc-map { position: relative; z-index: 0; height: 340px; margin-top: .7rem; border-radius: .85rem; overflow: hidden; border: 1px solid #e2e8f0; }
+@media (max-width: 520px) { .fc-map { height: 280px; } }
+.fc-map .leaflet-interactive:focus { outline: none; }
+.fc-legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin-top: .6rem; font-size: .75rem; color: #64748b; }
+.fc-legend span { display: inline-flex; align-items: center; gap: .4rem; }
+.fc-sw { display: inline-block; width: .9rem; height: .9rem; border-radius: .2rem; }
+.fc-sw--ok { background: #3f8a5a; border: 1px solid #14532d; }
+.fc-sw--few { background: #e2e8f0; border: 1px dashed #94a3b8; }
+.fc-cellsel { margin-top: .7rem; }
+
 /* How this forecast was made and tested (AC 11.2.2) */
 .fm-kv { display: grid; gap: .6rem; margin-top: .8rem; }
 .fm-kv > div { display: grid; grid-template-columns: 11rem 1fr; gap: .75rem; align-items: baseline; padding: .4rem 0; border-top: 1px solid #f1f5f9; }
