@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS review_log;
+DROP TABLE IF EXISTS community_post;
+DROP TABLE IF EXISTS district;
+DROP TABLE IF EXISTS admin_key;
