@@ -226,11 +226,6 @@ metadata = {
     "training_periods": "2015-2023 and 2024",
     "date_trained": date.today().isoformat(),
     "library_versions": versions,
-    "evaluation_summary": {
-        "final_test_2024": {"model": final["model"], "baselines": final["baselines"]},
-        "status": "simple prediction; scores are reported beside simple baselines and carry no accuracy guarantee",
-        "limits": "no single years in the file, so no rolling test years; the 2024 test period is one year while the training period is nine",
-    },
 }
 
 # ---------------------------------------------------------------- file checks

@@ -27,8 +27,8 @@
   'use strict';
 
   var PAGE = 'ecosystem-forecast';
-  var FILE = 'forecast_predictions.json?v=20261003-1';
-  var GRID_FILE = 'forecast_grid_predictions.json?v=20261007-1';
+  var FILE = 'forecast_predictions.json?v=20261008-1';
+  var GRID_FILE = 'forecast_grid_predictions.json?v=20261008-1';
   var HALF = 0.125; // half the side of a square, in degrees
   var DEFAULT_MIN_RECORDS = 30; // only used if the threshold table cannot be read; AC 1.2.4 states thirty
   var BAND_CUTS = { veryLikely: 0.80, likely: 0.40 }; // AC 11.1.1(2), see header
@@ -344,8 +344,7 @@
     }
     h += '<div class="fc-card"><div class="fc-label">' + T('What this means', 'Maksudnya') + '</div>' +
       '<p class="fc-text">' + T('If anything is recorded in this square in ' + MONTHS.en[S.month - 1] + ', this is how likely each animal is to be among what is recorded. It comes from the area model, trained on records from 2015 to 2024 placed in squares of about 28 km.', 'Jika ada apa-apa direkodkan di petak ini pada ' + MONTHS.bm[S.month - 1] + ', ini betapa mungkinnya setiap haiwan termasuk dalam rekod itu. Ia daripada model kawasan, dilatih dengan rekod 2015 hingga 2024 yang diletakkan dalam petak kira-kira 28 km.') + '</p>' +
-      '<p class="fc-text">' + T('A record is one report by a person, not one animal. A square is a wide area, so this is not a chance for your home.', 'Satu rekod ialah satu laporan oleh seseorang, bukan satu haiwan. Satu petak ialah kawasan yang luas, jadi ini bukan kebarangkalian untuk rumah anda.') + '</p>' +
-      '<p class="fc-text">' + T('Tested on 2024 records, it does better than using the animal alone or the state average, and about as well as each square\'s own past average.', 'Diuji dengan rekod 2024, ia lebih baik daripada menggunakan haiwan sahaja atau purata negeri, dan lebih kurang sama dengan purata lalu setiap petak.') + '</p></div>';
+      '<p class="fc-text">' + T('A record is one report by a person, not one animal. A square is a wide area, so this is not a chance for your home.', 'Satu rekod ialah satu laporan oleh seseorang, bukan satu haiwan. Satu petak ialah kawasan yang luas, jadi ini bukan kebarangkalian untuk rumah anda.') + '</p></div>';
     root.innerHTML = h + actions();
     drawGridMap(cells, cell);
   }

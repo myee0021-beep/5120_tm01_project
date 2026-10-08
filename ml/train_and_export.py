@@ -215,11 +215,6 @@ metadata = {
     "date_trained": date.today().isoformat(),
     "library_versions": versions,
     "predictions_sha256": predictions_sha,
-    "evaluation_summary": {
-        "final_test_2024": {"model": final["model"], "baselines": final["baselines"]},
-        "rolling": [{"year": r["test_years"][0], "model": r["model"], "baselines": r["baselines"]} for r in rolling],
-        "status": "simple prediction; scores are reported beside simple baselines and carry no accuracy guarantee",
-    },
 }
 
 # ---------------------------------------------------------------- file checks (section 6.4)

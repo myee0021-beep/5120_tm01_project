@@ -72,7 +72,7 @@ Target: `present` (1 if the species has at least one record in that state and mo
 Two decisions the team made:
 
 1. **No features built from the history of the target** (for example the share of records over the previous twelve months). With a static file they gave no gain in AUC or Brier score, and they would let the output predict the output.
-2. **A release gate against the species-only baseline (D51, proposed).** The model is deployed only if, in each test year 2021, 2022, 2023 and 2024, its AUC is higher and its Brier score lower than the species-only baseline (B1). 2025 and 2026 are scored but are not part of the gate. It does not have to beat B2 or B3, which score about the same as the model. If a mark is missed, the page shows the counted fallback (each species' share of records in the state over the previous twelve months, computed by counting). The marks were written on 3 October, after the 1 October scores were known. The scores are reported next to the three baselines, and the model is described as a simple prediction with no accuracy guarantee. `train_and_export.py` does not yet check the gate: read `evaluation_report.json`, and the member who runs the official test is not the member who trained the model.
+2. **Release gate (D50, as in section 6.4 of the AI and ML Safeguards document).** The baseline is B2, the historical average for the same animal and state. The model is deployed only if: its Brier score on 2024 is no worse than B2; its Brier score is no worse than B2 in at least two of the three rolling years; its AUC on 2024 is within 0.01 of B2 or better; and in every calibration band with at least 50 rows the mean prediction is within 0.10 of the observed share. A species whose own AUC on 2024 is below 0.60 is shown with its record count only. 2025 and 2026 are scored but are not part of the gate. If a mark is missed, the page shows the counted fallback (each species' share of records in the state over the previous twelve months, computed by counting; not built as a separate feature at 8 October 2026). `train_and_export.py` does not yet check the gate: read `evaluation_report.json`, and the member who runs the official test is not the member who trained the model.
 
 ## Model
 
@@ -95,7 +95,9 @@ Baselines that need no training are scored beside the model:
 
 Measures: AUC (does it order correctly), Brier score (how close the numbers are), a calibration table, and a per-species table.
 
-## Results (run of 1 October 2026)
+## Results (development run of 1 October 2026)
+
+> These are the training script's own scores. They are **not** the recorded release-gate result (`run_by` is empty) and must not be quoted in a deck, report or on the site until the official run is recorded (D50).
 
 AUC / Brier score. Higher AUC and lower Brier are better.
 

@@ -22,7 +22,7 @@
 | A6 | 新 API | `GET /api/community/review/queue` | 审核队列（AC 5.6.1） | 未建 |
 | A7 | 新 API | `POST /api/community/review/:id` | 发布、保留、删除（AC 5.6.1） | 未建 |
 | A8 | 新 API | `GET /api/community/review/log` | 审核日志（AC 5.6.1） | 未建 |
-| A9 | 新 API | `POST /api/community/parse` **（路由名待定）** | 一句话填表（AC 5.4.1，AI 3） | 未建，前端有关键词替身 |
+| A9 | 新 API | `POST /api/community/parse` | 一句话填表（AC 5.4.1，AI 3） | 未建，前端有关键词替身 |
 | S1 | 静态文件 | `forecast_predictions.json` | 预测页（AC 11.1.1 到 11.2.1） | 已有，来自旧模型 |
 | S2 | 静态文件 | 评估报告文件 | "How this was made and tested"（AC 11.2.2） | 页面和文件都还没有 |
 | E1 | 已有 API | `GET /api/i2/complaints?state=` | Plan 的投诉数、档位 | 已有 |
@@ -187,7 +187,7 @@
 
 ## 4. A9：一句话填表（AI 3，AC 5.4.1）
 
-**路由名（待定）**：文档里有 `/api/community/fill`、`/api/share-fill` 两个说法，前端现在用 `/api/community/parse`。**开测前必须统一成一个**，测试脚本和结果记录都会写这个名字。
+**路由名（已定）**：`/api/community/parse`。前端调用的就是它，测试脚本和结果记录都写这个名字。旧别名 `/api/community/fill` 已于 2026-10-08 移除；`/api/share-fill` 不存在。
 
 **请求**：`POST`，`{ "text": "<一句话，最长 300 字符>" }`。
 
@@ -314,7 +314,7 @@ AC 11.2.2 的 "How this was made and tested" 页需要一份机器可读的评�
 
 ## 9. 待团队决定（影响接口形状）
 
-1. **A9 的路由名**：`/api/community/fill`、`/api/share-fill`、还是 `/api/community/parse`。
+1. **A9 的路由名**：已定为 `/api/community/parse`（旧别名 `/api/community/fill` 已移除）。
 2. **预测的档位词和切分点**：AC 和原型是 Very likely / Likely / Unlikely；Safeguards 原文是 recorded often / sometimes / rarely（我已在 v3 里改成与 AC 一致）。切分点现在是临时规则。
 3. **模型是否按 AC 重做成用前十二个月的记录**，还是修改 AC 11.2.2（2）、11.3.1（2）、11.3.2（1）。
 4. **发布门槛**：AC 11.3.1 和 D50 仍写着"对照门槛才部署"，而 Safeguards v3 改成了只记录、不设门槛。需要一个新的决定编号，同步改 AC 11.3.1。

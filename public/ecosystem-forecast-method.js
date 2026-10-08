@@ -19,7 +19,7 @@
   'use strict';
 
   var PAGE = 'ecosystem-forecast-method';
-  var PRED = 'forecast_predictions.json?v=20261003-1';
+  var PRED = 'forecast_predictions.json?v=20261008-1';
   var EVAL = 'forecast_evaluation.json?v=20261003-1';
 
   var S = { meta: null, evalRun: null, failed: false, loading: false };
@@ -200,6 +200,21 @@
     return '<td>' + (a && b ? a + ' / ' + b : '–') + '</td>';
   }
 
+  // ------------------------------------------------------------ the area model (By area view)
+  // Static text about the area model. It shows no test figure: those wait for the recorded test run (D50, Safeguards 6.8).
+  function areaCard() {
+    var items = [
+      ['What it predicts: if at least one record is made in a square in a month, how likely each animal is to be among the animals recorded. It only counts squares that have a record that month, so it says nothing about whether a place will have any record at all.', 'Apa yang diramalnya: jika sekurang-kurangnya satu rekod dibuat dalam satu petak pada sesuatu bulan, betapa mungkinnya setiap haiwan termasuk dalam haiwan yang direkodkan. Ia hanya mengira petak yang mempunyai rekod pada bulan itu, jadi ia tidak mengatakan sama ada sesuatu tempat akan mempunyai rekod langsung.'],
+      ['What it is given: the animal, the state, the position of the middle of the square (latitude and longitude), the month, and how many years the records cover. It is not given counts, totals or shares worked out from the records.', 'Apa yang diberikan kepadanya: haiwan, negeri, kedudukan tengah petak (latitud dan longitud), bulan, dan berapa tahun rekod itu meliputi. Ia tidak diberi bilangan, jumlah atau bahagian yang dikira daripada rekod.'],
+      ['What it learned from: GBIF records from 2015 to 2024, placed in squares of 0.25 degree, about 28 km on each side. Population and forest reserve area are not used by this model. It uses the same kind of model and settings as the state forecast.', 'Apa yang dipelajarinya: rekod GBIF dari 2015 hingga 2024, diletakkan dalam petak 0.25 darjah, kira-kira 28 km setiap sisi. Penduduk dan keluasan hutan simpan tidak digunakan oleh model ini. Ia menggunakan jenis model dan tetapan yang sama seperti ramalan negeri.'],
+      ['How it is tested: by time only. It learns from earlier years and is tested on a later one, with no random split. The source file has no single years, so there is one final test on 2024 and no earlier check years. 2025 and 2026 are not used because those years are incomplete. The result of this test is not shown here until it has been run and recorded.', 'Bagaimana ia diuji: mengikut masa sahaja. Ia belajar daripada tahun terdahulu dan diuji pada tahun kemudian, tanpa pembahagian rawak. Fail sumber tiada tahun tunggal, jadi ada satu ujian akhir pada 2024 dan tiada tahun semakan terdahulu. 2025 dan 2026 tidak digunakan kerana tahun itu tidak lengkap. Keputusan ujian ini tidak dipaparkan di sini sehingga ia dijalankan dan direkodkan.'],
+      ['What it cannot tell you: a square is a wide area, so this is not a chance for your home. A square with fewer than the minimum number of records (the same minimum as everywhere on the site) is shown without a forecast. Values for squares and months that never had a record are extrapolated. A square is counted in one state only, so a square on a border may sit in the state next door. Wild boar and the two snakes have few records, so their results are less stable.', 'Apa yang tidak dapat diberitahunya: satu petak ialah kawasan yang luas, jadi ini bukan kebarangkalian untuk rumah anda. Petak dengan rekod kurang daripada bilangan minimum (minimum yang sama seperti di seluruh laman) dipaparkan tanpa ramalan. Nilai bagi petak dan bulan yang tidak pernah mempunyai rekod adalah anggaran luar julat. Satu petak dikira dalam satu negeri sahaja, jadi petak di sempadan mungkin berada dalam negeri bersebelahan. Babi hutan dan dua ular mempunyai sedikit rekod, jadi keputusannya kurang stabil.']
+    ];
+    return card(T('The area model (By area view)', 'Model kawasan (paparan Mengikut kawasan)'),
+      p(T('The "By area" view on the forecast page uses a second model that works on squares of the map instead of whole states.', 'Paparan "Mengikut kawasan" pada halaman ramalan menggunakan model kedua yang bekerja pada petak peta dan bukan seluruh negeri.')) +
+      '<ul class="fm-list">' + items.map(function (i) { return '<li>' + T(esc(i[0]), esc(i[1])) + '</li>'; }).join('') + '</ul>');
+  }
+
   function limitsCard() {
     var items = [
       ['GBIF records show where people reported animals, not where animals are. Busy places and easy-to-see animals have more records.', 'Rekod GBIF menunjukkan di mana orang melaporkan haiwan, bukan di mana haiwan berada. Tempat sibuk dan haiwan yang mudah dilihat mempunyai lebih banyak rekod.'],
@@ -226,7 +241,7 @@
       return;
     }
     if (!S.meta) { root.innerHTML = h + '<div class="fc-card"><p class="fc-text">' + T('Loading…', 'Memuatkan…') + '</p></div>'; return; }
-    h += statusCard(S.meta) + dataCard(S.meta) + inputsCard(S.meta) + yearsCard(S.meta) + resultsCard() + limitsCard();
+    h += statusCard(S.meta) + dataCard(S.meta) + inputsCard(S.meta) + yearsCard(S.meta) + resultsCard() + areaCard() + limitsCard();
     h += '<a class="fc-btn" href="ecosystem-forecast.html">' + T('Back to the forecast', 'Kembali ke ramalan') + '</a><a class="fc-btn" href="about-the-data.html">' + T('About the data', 'Tentang data') + '</a>';
     root.innerHTML = h;
   }

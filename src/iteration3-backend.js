@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import { cleanText, detectPersonalDetail, slug, validateAi3Candidate, validateCommunitySubmission, validateReviewDecision } from './iteration3-validators.js';
+import { cleanText, containsSnakeTerm, detectPersonalDetail, slug, validateAi3Candidate, validateCommunitySubmission, validateReviewDecision } from './iteration3-validators.js';
 
 const AI3_PROMPT_VERSION='ai3-v2';
 const HOLD_DAYS=15;
@@ -227,57 +227,13 @@ Example output:
 
 Output JSON only.`}
 
-function mergeSafeLexicalFallback(value,text){
-  const out={...(value||{})};
-  const t=String(text||'').toLowerCase();
-
-  if(!out.species){
-    if(/\bmacaques?\b/.test(t))out.species='macaque';
-    else if(/\bwild\s+boars?\b/.test(t))out.species='wild-boar';
-    else if(/\bwater\s+monitors?\b|\bmonitor\s+lizards?\b/.test(t))out.species='water-monitor';
-    else if(/\bhouse\s+crows?\b/.test(t))out.species='house-crow';
-    else if(/\bcommon\s+mynas?\b/.test(t))out.species='common-myna';
-  }
-
-  if(!out.time){
-    if(/\bdawn\b|\bearly\s+morning\b/.test(t))out.time='early-morning';
-    else if(/\blate\s+morning\b/.test(t))out.time='late-morning';
-    else if(/\bmidday\b|\bnoon\b/.test(t))out.time='midday';
-    else if(/\bafternoon\b/.test(t))out.time='afternoon';
-    else if(/\bevening\b|\bdusk\b/.test(t))out.time='evening';
-    else if(/\bnight\b/.test(t))out.time='night';
-  }
-
-  const did=new Set(Array.isArray(out.did)?out.did:[]);
-  if(/\btook\s+(?:the\s+)?(?:food|fruit)\b/.test(t))did.add('took-food');
-  if(/\bcame\s+inside\b|\bentered\s+(?:the\s+)?(?:house|home)\b/.test(t))did.add('came-inside');
-  if(/\b(?:came\s+)?onto\s+the\s+roof\b|\bon\s+the\s+roof\b/.test(t))did.add('onto-roof');
-  if(/\bdamaged\b|\bbroke\b/.test(t))did.add('damaged');
-  if(/\bpassed\s+through\b/.test(t))did.add('passed-through');
-  if(/\bstayed\s+nearby\b|\bhung\s+around\b/.test(t))did.add('stayed-nearby');
-  if(did.size)out.did=[...did];
-
-  const worked=new Set(Array.isArray(out.worked)?out.worked:[]);
-  if(/\blatching\s+(?:bin\s+)?lid\b/.test(t))worked.add('latching-lid');
-  if(/\bpicked\s+(?:the\s+)?fruit\b/.test(t))worked.add('picked-fruit');
-  if(/\bscreens?\b/.test(t))worked.add('screens');
-  if(/\bcleared\s+(?:the\s+)?undergrowth\b/.test(t))worked.add('cleared-undergrowth');
-  if(/\bstopped\s+feeding\b/.test(t))worked.add('stopped-feeding');
-  if(/\bpet\s+food\s+indoors\b/.test(t))worked.add('pet-food-indoors');
-  if(worked.size)out.worked=[...worked];
-
-  if(!out.kind){
-    if(out.worked&&out.worked.length)out.kind='worked';
-    else if(out.did&&out.did.length)out.kind='turned-up';
-  }
-  return out;
-}
 async function parseCommunity(request,env){
   if(!(await rateLimit(request,env,'community-fill',20,60)))return json({ok:false,error:'Too many AI requests. Try again shortly.'},429);
   if(String(env.AI3_ENABLED??'true').toLowerCase()==='false')return json({ok:false,error:'AI form fill is disabled.'},503);
   if(!env.MINIMAX_API_KEY)return json({ok:false,error:'AI form fill is not configured.'},501);
   let body;try{body=await request.json()}catch{return json({ok:false,error:'Request body must be JSON.'},400)}
   const text=cleanText(body?.text||'',300);if(!text||text.length>300)return json({ok:false,error:'text must be 1 to 300 characters.'},400);
+  if(containsSnakeTerm(text))return json({ok:true,snake:true,prompt_version:AI3_PROMPT_VERSION});
   const started=Date.now();const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8000);
   try{
     const res=await fetch('https://api.minimax.io/v1/text/chatcompletion_v2',{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${env.MINIMAX_API_KEY}`},body:JSON.stringify({model:'MiniMax-Text-01',temperature:0,max_tokens:350,messages:[{role:'system',content:ai3Prompt()},{role:'user',content:`<resident_text>${text}</resident_text>`}]}),signal:controller.signal});
@@ -285,8 +241,7 @@ async function parseCommunity(request,env){
     const payload=await res.json();const content=String(payload?.choices?.[0]?.message?.content||'');const m=content.match(/\{[\s\S]*\}/);if(!m)return json({ok:false,error:'AI returned no usable result.'},502);
     let candidate;try{candidate=JSON.parse(m[0])}catch{return json({ok:false,error:'AI returned malformed JSON.'},502)}
     const validated=validateAi3Candidate(candidate,text);if(!validated.ok)return json({ok:false,error:validated.error},502);
-    const repaired=mergeSafeLexicalFallback(validated.value,text);
-    console.info('[ai3]',AI3_PROMPT_VERSION,'ok',Date.now()-started);return json({ok:true,...repaired,prompt_version:AI3_PROMPT_VERSION});
+        console.info('[ai3]',AI3_PROMPT_VERSION,'ok',Date.now()-started);return json({ok:true,...validated.value,prompt_version:AI3_PROMPT_VERSION});
   }catch(e){clearTimeout(timeout);console.warn('[ai3]',AI3_PROMPT_VERSION,'error',Date.now()-started,e?.name||'Error');return json({ok:false,error:'AI form fill failed.'},502)}
 }
 
@@ -298,7 +253,6 @@ export async function handleIteration3Request(request,env){
     // Canonical Iteration 3 Community routes from the final architecture.
     if(request.method==='GET'&&p==='/api/community')return await listPublished(request,env);
     if(request.method==='POST'&&p==='/api/community')return await submitReport(request,env);
-    if(request.method==='POST'&&p==='/api/community/fill')return await parseCommunity(request,env);
 
     // Backward-compatible aliases for the current frontend while it is being aligned.
     if(request.method==='GET'&&p==='/api/community/reports')return await listPublished(request,env);

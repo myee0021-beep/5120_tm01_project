@@ -31,7 +31,7 @@ export function cleanText(value, max=300){
 export function slug(value){return cleanText(value,160).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
 export function list(value){return Array.isArray(value)?value:[]}
 export function uniqueAllowed(values, allowed){return [...new Set(list(values).filter(v=>allowed.has(v)))]}
-export function containsSnakeTerm(text){const t=' '+cleanText(text,500).toLowerCase()+' ';return SNAKE_TERMS.some(term=>t.includes(' '+term+' ')||t.includes(term))}
+export function containsSnakeTerm(text){const t=cleanText(text,500).toLowerCase();return SNAKE_TERMS.some(term=>new RegExp('(^|[^a-z])'+term.replace(/s+/g,'\s+')+'([^a-z]|$)').test(t))}
 
 export function validateCommunitySubmission(input){
   const species=String(input?.species||'');

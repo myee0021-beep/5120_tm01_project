@@ -49,7 +49,7 @@ const STATE_PERSISTENCE_CLIENT = String.raw`
 <script src="/plan-print-sheet.js?v=20261007-4"></script>
 <script src="/print-ac-fixes.js?v=20260916-1"></script>
 <script src="/emergency-flow-ac.js?v=20261006-3"></script>
-<script src="/about-ai-routes.js?v=20260914-1"></script>
+<script src="/about-ai-routes.js?v=20261008-1"></script>
 <style id="ecosystem-native-arrow-style">
 #page-ecosystem a[href="ecosystem-forecast.html"] > svg,
 #page-ecosystem a[href="ecosystem-redlist.html"] > svg,
