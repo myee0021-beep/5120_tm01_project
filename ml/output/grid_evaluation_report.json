@@ -1,7 +1,7 @@
 {
-  "run_by": null,
-  "run_note": "to be filled in by the member who runs the test; the date is the training date",
-  "date": "2026-10-07",
+  "run_by": "Xingyu Ye (Maggie)",
+  "run_note": "Official release-gate run for AC 11.3.1 (gate D51: in the 2024 test (the grid file has no single years, so there are no rolling years) the model has a higher AUC and a lower Brier score than the species-only baseline B1). Run on 2026-10-10 by Xingyu Ye (Maggie), the checker; the area model was trained by Jingyu Zhen. Run with Claude Code on her machine, using the pinned versions in ml/requirements.txt (Python 3.12.8). The re-run predictions are identical to the deployed file (largest difference 0.0).",
+  "date": "2026-10-10",
   "dataset_sha256": "be20fae5bb56f06ee115a4d617f1d32d0450f759f0a6c0a72832beea2c38b03a",
   "hyperparameters": {
     "loss": "log_loss",
@@ -14,7 +14,7 @@
     "random_state": 42
   },
   "library_versions": {
-    "python": "3.12.7",
+    "python": "3.12.8",
     "numpy": "1.26.4",
     "pandas": "2.2.2",
     "scikit-learn": "1.5.1",
@@ -229,5 +229,23 @@
     },
     "top_species_recorded_share": 0.413,
     "note": "incomplete period (release lag), reported separately"
+  },
+  "gate": {
+    "rule": "D51 / AC 11.3.1(1), 2024 only",
+    "marks": [
+      {
+        "year": 2024,
+        "model": {
+          "auc": 0.8868,
+          "brier": 0.1155
+        },
+        "B1": {
+          "auc": 0.8177,
+          "brier": 0.1424
+        },
+        "met": true
+      }
+    ],
+    "result": "pass"
   }
 }

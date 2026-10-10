@@ -1,7 +1,387 @@
 {
-  "note": "The recorded test run for the wildlife forecast (AC 11.2.2, Safeguards 6.8). The page shows results ONLY when run_by names the person who ran the test, who must not be the person who trained the model. Replace this file with the evaluation report of that run; keep the same shape.",
-  "run_by": null,
-  "date": null,
-  "rolling": [],
-  "final_test_2024": null
+  "run_by": "Xingyu Ye (Maggie)",
+  "run_note": "Official release-gate run for AC 11.3.1 (gate D51: in every test year the model has a higher AUC and a lower Brier score than the species-only baseline B1). Run on 2026-10-10 by Xingyu Ye (Maggie), the checker; the state model was trained by Jingyu Zhen. Run with Claude Code on her machine, using the pinned versions in ml/requirements.txt (Python 3.12.8). The re-run predictions are identical to the deployed file (largest difference 0.0).",
+  "date": "2026-10-10",
+  "dataset_sha256": "be6b4388aca605f9fe6fb3cd6a752f8200ed19b27d0710cf4372363085645572",
+  "hyperparameters": {
+    "loss": "log_loss",
+    "learning_rate": 0.05,
+    "max_iter": 200,
+    "max_depth": 4,
+    "min_samples_leaf": 20,
+    "l2_regularization": 1.0,
+    "early_stopping": false,
+    "random_state": 42
+  },
+  "library_versions": {
+    "python": "3.12.8",
+    "numpy": "1.26.4",
+    "pandas": "2.2.2",
+    "scikit-learn": "1.5.1",
+    "joblib": "1.4.2"
+  },
+  "rolling": [
+    {
+      "label": "rolling 2021",
+      "test_years": [
+        2021
+      ],
+      "train_years": "2015-2020",
+      "rows": 945,
+      "model": {
+        "auc": 0.8843,
+        "brier": 0.1252
+      },
+      "baselines": {
+        "B1 species only": {
+          "auc": 0.862,
+          "brier": 0.137
+        },
+        "B2 species x state average": {
+          "auc": 0.8804,
+          "brier": 0.1321
+        },
+        "B3 species x state, last two years": {
+          "auc": 0.8824,
+          "brier": 0.128
+        }
+      }
+    },
+    {
+      "label": "rolling 2022",
+      "test_years": [
+        2022
+      ],
+      "train_years": "2015-2021",
+      "rows": 1099,
+      "model": {
+        "auc": 0.9216,
+        "brier": 0.1127
+      },
+      "baselines": {
+        "B1 species only": {
+          "auc": 0.8728,
+          "brier": 0.1371
+        },
+        "B2 species x state average": {
+          "auc": 0.9143,
+          "brier": 0.1156
+        },
+        "B3 species x state, last two years": {
+          "auc": 0.9101,
+          "brier": 0.1197
+        }
+      }
+    },
+    {
+      "label": "rolling 2023",
+      "test_years": [
+        2023
+      ],
+      "train_years": "2015-2022",
+      "rows": 1162,
+      "model": {
+        "auc": 0.9274,
+        "brier": 0.1137
+      },
+      "baselines": {
+        "B1 species only": {
+          "auc": 0.8664,
+          "brier": 0.157
+        },
+        "B2 species x state average": {
+          "auc": 0.9274,
+          "brier": 0.1271
+        },
+        "B3 species x state, last two years": {
+          "auc": 0.9235,
+          "brier": 0.12
+        }
+      }
+    }
+  ],
+  "final_test_2024": {
+    "label": "final test 2024",
+    "test_years": [
+      2024
+    ],
+    "train_years": "2015-2023",
+    "rows": 1190,
+    "model": {
+      "auc": 0.9413,
+      "brier": 0.0944
+    },
+    "baselines": {
+      "B1 species only": {
+        "auc": 0.864,
+        "brier": 0.1637
+      },
+      "B2 species x state average": {
+        "auc": 0.9468,
+        "brier": 0.1248
+      },
+      "B3 species x state, last two years": {
+        "auc": 0.942,
+        "brier": 0.093
+      }
+    },
+    "calibration": [
+      {
+        "band": "0.0-0.1",
+        "rows": 329,
+        "mean_prediction": 0.047,
+        "observed_share": 0.058
+      },
+      {
+        "band": "0.1-0.2",
+        "rows": 180,
+        "mean_prediction": 0.145,
+        "observed_share": 0.15
+      },
+      {
+        "band": "0.2-0.3",
+        "rows": 68,
+        "mean_prediction": 0.234,
+        "observed_share": 0.206
+      },
+      {
+        "band": "0.3-0.4",
+        "rows": 38,
+        "mean_prediction": 0.34,
+        "observed_share": 0.158
+      },
+      {
+        "band": "0.4-0.5",
+        "rows": 53,
+        "mean_prediction": 0.449,
+        "observed_share": 0.547
+      },
+      {
+        "band": "0.5-0.6",
+        "rows": 65,
+        "mean_prediction": 0.558,
+        "observed_share": 0.646
+      },
+      {
+        "band": "0.6-0.7",
+        "rows": 63,
+        "mean_prediction": 0.642,
+        "observed_share": 0.857
+      },
+      {
+        "band": "0.7-0.8",
+        "rows": 94,
+        "mean_prediction": 0.76,
+        "observed_share": 0.883
+      },
+      {
+        "band": "0.8-0.9",
+        "rows": 112,
+        "mean_prediction": 0.86,
+        "observed_share": 1.0
+      },
+      {
+        "band": "0.9-1.0",
+        "rows": 188,
+        "mean_prediction": 0.971,
+        "observed_share": 0.995
+      }
+    ],
+    "per_species": [
+      {
+        "species": "Acridotheres tristis",
+        "rows": 170,
+        "model": {
+          "auc": 0.9207,
+          "brier": 0.0356
+        },
+        "baseline_B2": {
+          "auc": 0.8536,
+          "brier": 0.0413
+        }
+      },
+      {
+        "species": "Corvus splendens",
+        "rows": 170,
+        "model": {
+          "auc": 0.9784,
+          "brier": 0.0654
+        },
+        "baseline_B2": {
+          "auc": 0.9793,
+          "brier": 0.0744
+        }
+      },
+      {
+        "species": "Macaca fascicularis",
+        "rows": 170,
+        "model": {
+          "auc": 0.911,
+          "brier": 0.1243
+        },
+        "baseline_B2": {
+          "auc": 0.9209,
+          "brier": 0.1979
+        }
+      },
+      {
+        "species": "Malayopython reticulatus",
+        "rows": 170,
+        "model": {
+          "auc": 0.7259,
+          "brier": 0.1288
+        },
+        "baseline_B2": {
+          "auc": 0.6825,
+          "brier": 0.1409
+        }
+      },
+      {
+        "species": "Naja sumatrana",
+        "rows": 170,
+        "model": {
+          "auc": 0.6962,
+          "brier": 0.0778
+        },
+        "baseline_B2": {
+          "auc": 0.7005,
+          "brier": 0.0814
+        }
+      },
+      {
+        "species": "Sus scrofa",
+        "rows": 170,
+        "model": {
+          "auc": 0.7065,
+          "brier": 0.0709
+        },
+        "baseline_B2": {
+          "auc": 0.8065,
+          "brier": 0.0701
+        }
+      },
+      {
+        "species": "Varanus salvator",
+        "rows": 170,
+        "model": {
+          "auc": 0.8851,
+          "brier": 0.158
+        },
+        "baseline_B2": {
+          "auc": 0.9176,
+          "brier": 0.2674
+        }
+      }
+    ]
+  },
+  "incomplete_years": [
+    {
+      "label": "2025 (incomplete year)",
+      "test_years": [
+        2025
+      ],
+      "train_years": "2015-2024",
+      "rows": 1008,
+      "model": {
+        "auc": 0.8463,
+        "brier": 0.1628
+      },
+      "baselines": {
+        "B1 species only": {
+          "auc": 0.7281,
+          "brier": 0.2429
+        },
+        "B2 species x state average": {
+          "auc": 0.8376,
+          "brier": 0.1944
+        },
+        "B3 species x state, last two years": {
+          "auc": 0.8526,
+          "brier": 0.1677
+        }
+      },
+      "note": "incomplete year (release lag), reported separately"
+    },
+    {
+      "label": "2026 (incomplete year)",
+      "test_years": [
+        2026
+      ],
+      "train_years": "2015-2025",
+      "rows": 686,
+      "model": {
+        "auc": 0.8837,
+        "brier": 0.1379
+      },
+      "baselines": {
+        "B1 species only": {
+          "auc": 0.7353,
+          "brier": 0.2262
+        },
+        "B2 species x state average": {
+          "auc": 0.8264,
+          "brier": 0.1889
+        },
+        "B3 species x state, last two years": {
+          "auc": 0.8823,
+          "brier": 0.1441
+        }
+      },
+      "note": "incomplete year (release lag), reported separately"
+    }
+  ],
+  "gate": {
+    "rule": "D51 / AC 11.3.1(1)",
+    "marks": [
+      {
+        "year": 2021,
+        "model": {
+          "auc": 0.8843,
+          "brier": 0.1252
+        },
+        "B1": {
+          "auc": 0.862,
+          "brier": 0.137
+        },
+        "met": true
+      },
+      {
+        "year": 2022,
+        "model": {
+          "auc": 0.9216,
+          "brier": 0.1127
+        },
+        "B1": {
+          "auc": 0.8728,
+          "brier": 0.1371
+        },
+        "met": true
+      },
+      {
+        "year": 2023,
+        "model": {
+          "auc": 0.9274,
+          "brier": 0.1137
+        },
+        "B1": {
+          "auc": 0.8664,
+          "brier": 0.157
+        },
+        "met": true
+      },
+      {
+        "year": 2024,
+        "model": {
+          "auc": 0.9413,
+          "brier": 0.0944
+        },
+        "B1": {
+          "auc": 0.864,
+          "brier": 0.1637
+        },
+        "met": true
+      }
+    ],
+    "result": "pass"
+  }
 }

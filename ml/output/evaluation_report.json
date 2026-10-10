@@ -1,8 +1,8 @@
 {
-  "run_by": null,
-  "run_note": "to be filled in by the member who runs the test; the date is the training date",
-  "date": "2026-10-01",
-  "dataset_sha256": "847d76d3ee20b57e068ee22a7e71eeb992d21fce50e426c18bf2e968f1b4a180",
+  "run_by": "Xingyu Ye (Maggie)",
+  "run_note": "Official release-gate run for AC 11.3.1 (gate D51: in every test year the model has a higher AUC and a lower Brier score than the species-only baseline B1). Run on 2026-10-10 by Xingyu Ye (Maggie), the checker; the state model was trained by Jingyu Zhen. Run with Claude Code on her machine, using the pinned versions in ml/requirements.txt (Python 3.12.8). The re-run predictions are identical to the deployed file (largest difference 0.0).",
+  "date": "2026-10-10",
+  "dataset_sha256": "be6b4388aca605f9fe6fb3cd6a752f8200ed19b27d0710cf4372363085645572",
   "hyperparameters": {
     "loss": "log_loss",
     "learning_rate": 0.05,
@@ -14,7 +14,7 @@
     "random_state": 42
   },
   "library_versions": {
-    "python": "3.12.7",
+    "python": "3.12.8",
     "numpy": "1.26.4",
     "pandas": "2.2.2",
     "scikit-learn": "1.5.1",
@@ -329,5 +329,59 @@
       },
       "note": "incomplete year (release lag), reported separately"
     }
-  ]
+  ],
+  "gate": {
+    "rule": "D51 / AC 11.3.1(1)",
+    "marks": [
+      {
+        "year": 2021,
+        "model": {
+          "auc": 0.8843,
+          "brier": 0.1252
+        },
+        "B1": {
+          "auc": 0.862,
+          "brier": 0.137
+        },
+        "met": true
+      },
+      {
+        "year": 2022,
+        "model": {
+          "auc": 0.9216,
+          "brier": 0.1127
+        },
+        "B1": {
+          "auc": 0.8728,
+          "brier": 0.1371
+        },
+        "met": true
+      },
+      {
+        "year": 2023,
+        "model": {
+          "auc": 0.9274,
+          "brier": 0.1137
+        },
+        "B1": {
+          "auc": 0.8664,
+          "brier": 0.157
+        },
+        "met": true
+      },
+      {
+        "year": 2024,
+        "model": {
+          "auc": 0.9413,
+          "brier": 0.0944
+        },
+        "B1": {
+          "auc": 0.864,
+          "brier": 0.1637
+        },
+        "met": true
+      }
+    ],
+    "result": "pass"
+  }
 }
