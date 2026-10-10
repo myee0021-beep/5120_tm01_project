@@ -20,7 +20,7 @@
 
   var PAGE = 'ecosystem-forecast-method';
   var PRED = 'forecast_predictions.json?v=20261008-1';
-  var EVAL = 'forecast_evaluation.json?v=20261010-1';
+  var EVAL = 'forecast_evaluation.json?v=20261010-2';
 
   var S = { meta: null, evalRun: null, failed: false, loading: false };
 
