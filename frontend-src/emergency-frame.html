@@ -335,6 +335,13 @@ body { padding-top:0 !important; background:#f8faf8 !important; }
     min-width:auto !important;
   }
 }
+
+/* Phones: no fixed label column; the five steps wrap onto two lines so all of them are visible. */
+@media(max-width:700px){
+  #iteration1FlowNav .flow-inner{flex-wrap:wrap !important;overflow-x:visible !important;padding:.6rem .9rem !important;gap:.4rem !important}
+  #iteration1FlowNav .flow-label{width:100% !important;flex:0 0 100% !important;margin:0 0 .1rem !important}
+  #iteration1FlowNav a{font-size:11px !important;padding:.4rem .6rem !important}
+}
 </style>
 
 
