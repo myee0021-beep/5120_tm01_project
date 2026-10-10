@@ -203,6 +203,8 @@ metadata = {
     "hyperparameters_note": "fixed before any score was computed; not tuned on the test years",
     "seed": SEED,
     "dataset": {"file": DATA.name, "sha256": dataset_sha, "rows": int(len(df_all)),
+                # date each raw file was saved in the project (Data Management Plan)
+                "retrieved": {"gbif": "2026-09-30", "population": "2026-09-30", "forest": "2026-09-30"},
                 "sources": ["GBIF records (iteration3_data_for_ML.csv)",
                             "DOSM population_state, data.gov.my, 2020 value",
                             "Area of Permanent Forest Reserves by State, Forestry Department of Peninsular Malaysia and DOSM, data.gov.my, CC BY 4.0, hectares; latest year 2022, later years reuse 2022"]},

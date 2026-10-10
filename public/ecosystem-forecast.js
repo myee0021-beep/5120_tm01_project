@@ -27,7 +27,7 @@
   'use strict';
 
   var PAGE = 'ecosystem-forecast';
-  var FILE = 'forecast_predictions.json?v=20261008-1';
+  var FILE = 'forecast_predictions.json?v=20261010-1';
   var GRID_FILE = 'forecast_grid_predictions.json?v=20261008-1';
   var HALF = 0.125; // half the side of a square, in degrees
   var DEFAULT_MIN_RECORDS = 30; // only used if the threshold table cannot be read; AC 1.2.4 states thirty
