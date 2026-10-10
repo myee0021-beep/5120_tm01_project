@@ -145,7 +145,8 @@
     if(t.hasSigned('combined'))parts.push(l==='bm'
       ?'Tahap ialah jumlah tiga markah ('+sumRangeText(l)+') dan hanya dipaparkan apabila setiap isyarat mempunyai kiraan.'
       :'The level is the sum of the three scores ('+sumRangeText(l)+') and is shown only when every signal has a count.');
-    parts.push(l==='bm'?'Keputusan pasukan (D34, D46), tidak ditentukur berdasarkan hasil.':'A team decision (D34, D46), not calibrated against outcomes.');
+    // The bands are team decisions D34 and D46; the decision numbers stay in the code, not on the page.
+    parts.push(l==='bm'?'Keputusan pasukan, tidak ditentukur berdasarkan hasil.':'A team decision, not calibrated against outcomes.');
     return parts.join(' ');
   }
   function howLink(l){return' <a class="underline underline-offset-2" href="plan-how-computed.html">'+esc(l==='bm'?'Cara ini dikira':'How this is computed')+'</a>';}
@@ -211,7 +212,7 @@
             :(l==='bm'?'Tiada tahap: jadual ambang tidak mempunyai nilai yang ditandatangani untuk setiap isyarat.':'No level: the threshold table does not hold a signed value for every signal.');
           html+='<div class="mt-3 text-xs text-slate-500">'+esc(why)+'</div>';
         }
-        html+='<div class="mt-2 text-xs text-slate-500">'+esc(l==='bm'?'Jalur dan tahap ialah keputusan pasukan (D34, D46), tidak ditentukur berdasarkan hasil, dan bukan kebarangkalian bagi alamat anda.':'Bands and the level are a team decision (D34, D46), not calibrated against outcomes, and not a probability for your address.')+howLink(l)+'</div>';
+        html+='<div class="mt-2 text-xs text-slate-500">'+esc(l==='bm'?'Jalur dan tahap ialah keputusan pasukan, tidak ditentukur berdasarkan hasil, dan bukan kebarangkalian bagi alamat anda.':'Bands and the level are a team decision, not calibrated against outcomes, and not a probability for your address.')+howLink(l)+'</div>';
       }else{
         html+='<div class="mt-3 text-xs text-slate-500">'+esc(l==='bm'?'Tahap gabungan tidak dipaparkan kerana jadual ambang tidak dapat dimuat. Isyarat di atas ialah rekod negeri dan panduan terdokumen, bukan kebarangkalian bagi alamat anda.':'No band or combined level is shown because the threshold table did not load. The signals above are state records and documented guidance, not a probability for your address.')+'</div>';
       }
@@ -222,7 +223,8 @@
     var sentence=thresholdSentence(l);
     if(desc&&sentence)desc.textContent=desc.textContent+' '+sentence;
     var badge=document.getElementById('plan-result__methodBadge');
-    if(badge&&TH())badge.textContent='D34 · D46';
+    // Decisions D34 and D46 set these bands; the badge says so in words.
+    if(badge&&TH())badge.textContent=l==='bm'?'Keputusan pasukan':'Team decision';
     var heading=document.getElementById('plan-result__stateHeading');if(heading)heading.textContent=stateLabel;
   }
   function storeSignals(v){try{sessionStorage.setItem('roomForBoth.planSignals',JSON.stringify(v));}catch(e){}}

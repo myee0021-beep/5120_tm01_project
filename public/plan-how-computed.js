@@ -271,9 +271,10 @@
       bandTable('attractants') + attractantExamples());
     h += card('Combined level', 'Tahap gabungan', combinedBlock() +
       '<div class="phc-review"><div class="phc-review__title">' + T('Open to review', 'Terbuka untuk semakan') + '</div><p>' +
-      T('These thresholds are recorded team decisions D34 and D46, held in one table (signal_threshold) and changeable without changing code, so a mentor can ask for a change. They are not calibrated against outcomes, and the page says so.',
-        'Ambang ini ialah keputusan pasukan yang direkodkan D34 dan D46, disimpan dalam satu jadual (signal_threshold) dan boleh diubah tanpa menukar kod, supaya mentor boleh meminta perubahan. Ia tidak ditentukur berdasarkan hasil, dan halaman ini menyatakannya.') +
-      (info.last ? ' ' + T('Values signed ', 'Nilai ditandatangani ') + dateText(info.last) + '.' : '') + ' ' + T('No value changes without a new decision number.', 'Tiada nilai berubah tanpa nombor keputusan baharu.') + '</p></div>');
+      // Team decisions D34 and D46 (the bands, signed 26 September 2026); the numbers are kept here, not on the page.
+      T('These thresholds are recorded team decisions, held in one table (signal_threshold) and changeable without changing code, so a mentor can ask for a change. They are not calibrated against outcomes, and the page says so.',
+        'Ambang ini ialah keputusan pasukan yang direkodkan, disimpan dalam satu jadual (signal_threshold) dan boleh diubah tanpa menukar kod, supaya mentor boleh meminta perubahan. Ia tidak ditentukur berdasarkan hasil, dan halaman ini menyatakannya.') +
+      (info.last ? ' ' + T('Values signed ', 'Nilai ditandatangani ') + dateText(info.last) + '.' : '') + ' ' + T('No value changes without a new recorded team decision.', 'Tiada nilai berubah tanpa keputusan pasukan baharu yang direkodkan.') + '</p></div>');
     h += card('Sources on this page', 'Sumber pada halaman ini',
       '<ul class="phc-list"><li>' + T('GBIF occurrence extract, 7 species, Malaysia (CC BY 4.0, CC BY-NC 4.0, CC0)', 'Ekstrak kejadian GBIF, 7 spesies, Malaysia (CC BY 4.0, CC BY-NC 4.0, CC0)') + '</li>' +
       '<li>' + T('PERHILITAN Laporan Tahunan 2020, Jadual 29 (transcribed, PDF)', 'PERHILITAN Laporan Tahunan 2020, Jadual 29 (disalin, PDF)') + '</li>' +
