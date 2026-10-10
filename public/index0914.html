@@ -646,7 +646,15 @@
   #page-about-the-data .hero-photo > .photo-credit { top:4.6rem; bottom:auto; }
 }
 /* the home hero lines up with the logo only where there is room for it; on phones and tablets it stays in the page */
-@media (min-width:1100px) { .home-hero-shift { transform: translateX(76px); } }
+/* the hero's final layout is set here, so nothing moves after the page loads (it used to be applied by home-live-data.js half a second later) */
+.home-hero-br { display:none; }
+@media (min-width:900px) {
+  body .home-hero-shift { box-sizing:border-box !important; width:calc(100% - 84px) !important; max-width:none !important; margin-left:42px !important; margin-right:42px !important; padding-left:0 !important; padding-right:0 !important; }
+  body .home-hero-shift h1 { width:100% !important; max-width:1180px !important; line-height:1.08 !important; }
+  body .home-hero-shift > p:last-child { width:100% !important; max-width:980px !important; line-height:1.35 !important; }
+  .home-hero-br { display:inline; }
+}
+@media (min-width:1100px) { body .home-hero-shift { transform: translateX(76px); } }
 @media (max-width:640px) {
   .app-page:not(#page-index):not(#page-emergency):not(#page-about-the-data) > main { background-size:100% 450px, auto 450px; }
   #ecosystem__speciesPills { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -954,7 +962,7 @@
     <span data-bm="">SDG 15 · Kehidupan di Darat · Perancangan kewujudan bersama</span>
   </p>
   <h1 class="reveal in-view font-display mt-6 text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1.08] max-w-4xl">
-    <span data-en="">Wild animals visit Malaysian homes. Which situation is yours?</span>
+    <span data-en="">Wild animals visit Malaysian<br class="home-hero-br"> homes. Which situation is yours?</span>
     <span data-bm="">Haiwan liar mengunjungi rumah di Malaysia. Situasi yang manakah milik anda?</span>
   </h1>
   <p class="reveal in-view mt-6 text-lg text-slate-200 max-w-2xl leading-relaxed">

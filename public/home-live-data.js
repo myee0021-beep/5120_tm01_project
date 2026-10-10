@@ -106,11 +106,12 @@
       else title.innerHTML='Wild animals visit Malaysian<br>homes. Which situation is yours?';
     }
   }
-  function scheduleHero(){setTimeout(alignD42Hero,650);setTimeout(alignD42Hero,1000);}
+  // The hero layout now lives in the page CSS (index0914.html), so it no longer jumps after load.
+  function scheduleHero(){}
 
   document.addEventListener('change',function(e){if(e.target&&e.target.id==='index__home_stateSelect')setTimeout(load,0);},true);
   document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#index__home_goBtn'))setTimeout(load,0);},true);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(load,120);scheduleHero();},{once:true});else{setTimeout(load,120);scheduleHero();}
   window.addEventListener('hashchange',function(){setTimeout(load,120);scheduleHero();});document.addEventListener('roomforboth:pageshow',function(){setTimeout(load,120);scheduleHero();});
-  window.addEventListener('resize',function(){setTimeout(alignD42Hero,80);});
+
 })();
