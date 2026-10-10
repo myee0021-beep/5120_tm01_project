@@ -633,6 +633,18 @@
 /* a clicked state or district otherwise gets the browser's rectangular focus box; the selected outline below follows the real border instead */
 #ecosystem__map .leaflet-interactive:focus { outline:none; }
 #ecosystem__map { height:520px !important; min-height:520px !important; width:100% !important; border-radius:.9rem; background:#dce7ea; }
+/* About the data: on phones each table row becomes a small card, with the column name above each value */
+@media (max-width:640px) {
+  .rfb-stack thead { display:none; }
+  .rfb-stack, .rfb-stack tbody, .rfb-stack tr, .rfb-stack td { display:block; width:100%; }
+  .rfb-stack tr { padding:.85rem 0; }
+  .rfb-stack td { padding:.2rem 0 !important; white-space:normal !important; }
+  .rfb-stack td::before { content:attr(data-label-en); display:block; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#94a3b8; margin-bottom:.1rem; }
+  html[lang="bm"] .rfb-stack td::before { content:attr(data-label-bm); }
+  .rfb-stack td:first-child::before { display:none; }
+  /* the first card overlaps the bottom of this hero, so the photo credit sits at the top instead */
+  #page-about-the-data .hero-photo > .photo-credit { top:4.6rem; bottom:auto; }
+}
 /* the home hero lines up with the logo only where there is room for it; on phones and tablets it stays in the page */
 @media (min-width:1100px) { .home-hero-shift { transform: translateX(76px); } }
 @media (max-width:640px) {
@@ -2396,7 +2408,7 @@
 <span data-bm="">Boleh dimuat turun dan disahkan setakat 9 September 2026. Ini menggerakkan peta, laman spesies, semakan spesies invasif dan halaman Komuniti.</span>
 </p>
 <div class="mt-7 overflow-x-auto">
-<table class="w-full text-sm border-collapse">
+<table class="w-full text-sm border-collapse rfb-stack">
 <thead>
 <tr class="text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-200">
 <th class="pb-3 pr-4"><span data-en="">Dataset</span><span data-bm="">Set Data</span></th>
@@ -2407,46 +2419,46 @@
 </thead>
 <tbody class="divide-y divide-slate-100">
 <tr>
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">GBIF occurrence records</td>
-<td class="py-4 pr-4 text-slate-600"><span data-en="">Where the seven species have been recorded, by state, year and month — 47,033 records nationwide, 1860 to 2026</span><span data-bm="">Di mana tujuh spesies direkodkan, mengikut negeri, tahun dan bulan — 47,033 rekod seluruh negara, 1860 hingga 2026</span></td>
-<td class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">CC BY 4.0 / CC0</span></td>
-<td class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://gbif.org" rel="noopener" target="_blank">gbif.org <svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="11"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg></a></td>
+<td data-label-en="Dataset" data-label-bm="Set Data" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">GBIF occurrence records</td>
+<td data-label-en="Gives us" data-label-bm="Memberi kita" class="py-4 pr-4 text-slate-600"><span data-en="">Where the seven species have been recorded, by state, year and month — 47,033 records nationwide, 1860 to 2026</span><span data-bm="">Di mana tujuh spesies direkodkan, mengikut negeri, tahun dan bulan — 47,033 rekod seluruh negara, 1860 hingga 2026</span></td>
+<td data-label-en="Licence" data-label-bm="Lesen" class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">CC BY 4.0 / CC0</span></td>
+<td data-label-en="Source" data-label-bm="Sumber" class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://gbif.org" rel="noopener" target="_blank">gbif.org <svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="11"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg></a></td>
 </tr>
 <tr>
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">IUCN Red List</td>
-<td class="py-4 pr-4 text-slate-600"><span data-en="">Global conservation status — Endangered, Least Concern — for each species</span><span data-bm="">Status pemuliharaan global — Terancam, Kurang Membimbangkan — bagi setiap spesies</span></td>
-<td class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap"><span data-en="">Free to use, cited</span><span data-bm="">Percuma digunakan, dipetik</span></span></td>
-<td class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://www.iucnredlist.org" rel="noopener" target="_blank">iucnredlist.org <svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="11"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg></a></td>
+<td data-label-en="Dataset" data-label-bm="Set Data" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">IUCN Red List</td>
+<td data-label-en="Gives us" data-label-bm="Memberi kita" class="py-4 pr-4 text-slate-600"><span data-en="">Global conservation status — Endangered, Least Concern — for each species</span><span data-bm="">Status pemuliharaan global — Terancam, Kurang Membimbangkan — bagi setiap spesies</span></td>
+<td data-label-en="Licence" data-label-bm="Lesen" class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap"><span data-en="">Free to use, cited</span><span data-bm="">Percuma digunakan, dipetik</span></span></td>
+<td data-label-en="Source" data-label-bm="Sumber" class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://www.iucnredlist.org" rel="noopener" target="_blank">iucnredlist.org <svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="11"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg></a></td>
 </tr>
 <tr>
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">GRIIS Malaysia</td>
-<td class="py-4 pr-4 text-slate-600"><span data-en="">Whether a species is introduced or native, for the invasive-species check</span><span data-bm="">Sama ada spesies diperkenalkan atau asli, untuk semakan spesies invasif</span></td>
-<td class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">CC BY 4.0</span></td>
-<td class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://www.gbif.org/dataset/search?q=GRIIS" rel="noopener" target="_blank">gbif.org (GRIIS dataset) <svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="11"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg></a></td>
+<td data-label-en="Dataset" data-label-bm="Set Data" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">GRIIS Malaysia</td>
+<td data-label-en="Gives us" data-label-bm="Memberi kita" class="py-4 pr-4 text-slate-600"><span data-en="">Whether a species is introduced or native, for the invasive-species check</span><span data-bm="">Sama ada spesies diperkenalkan atau asli, untuk semakan spesies invasif</span></td>
+<td data-label-en="Licence" data-label-bm="Lesen" class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">CC BY 4.0</span></td>
+<td data-label-en="Source" data-label-bm="Sumber" class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://www.gbif.org/dataset/search?q=GRIIS" rel="noopener" target="_blank">gbif.org (GRIIS dataset) <svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="11"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg></a></td>
 </tr>
 <tr>
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">PERHILITAN complaint tables</td>
-<td class="py-4 pr-4 text-slate-600"><span data-en="">Wildlife conflict complaint counts by state and species, and who to call</span><span data-bm="">Bilangan aduan konflik hidupan liar mengikut negeri dan spesies, dan siapa perlu dihubungi</span></td>
-<td class="py-4 pr-4"><span class="rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 border border-amber-200 whitespace-nowrap"><span data-en="">Cited, government published</span><span data-bm="">Dipetik, diterbitkan kerajaan</span></span></td>
-<td class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://www.wildlife.gov.my/" rel="noopener" target="_blank">wildlife.gov.my <svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="11"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg></a></td>
+<td data-label-en="Dataset" data-label-bm="Set Data" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">PERHILITAN complaint tables</td>
+<td data-label-en="Gives us" data-label-bm="Memberi kita" class="py-4 pr-4 text-slate-600"><span data-en="">Wildlife conflict complaint counts by state and species, and who to call</span><span data-bm="">Bilangan aduan konflik hidupan liar mengikut negeri dan spesies, dan siapa perlu dihubungi</span></td>
+<td data-label-en="Licence" data-label-bm="Lesen" class="py-4 pr-4"><span class="rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 border border-amber-200 whitespace-nowrap"><span data-en="">Cited, government published</span><span data-bm="">Dipetik, diterbitkan kerajaan</span></span></td>
+<td data-label-en="Source" data-label-bm="Sumber" class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://www.wildlife.gov.my/" rel="noopener" target="_blank">wildlife.gov.my <svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewbox="0 0 24 24" width="11"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg></a></td>
 </tr>
 <tr>
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">District list</td>
-<td class="py-4 pr-4 text-slate-600"><span data-en="">The states and districts offered in Community, so a post is placed by district only and never by street or coordinate. Source, licence and date checked are recorded when the list is loaded.</span><span data-bm="">Negeri dan daerah yang ditawarkan dalam Komuniti, supaya catatan diletakkan mengikut daerah sahaja dan tidak pernah mengikut jalan atau koordinat. Sumber, lesen dan tarikh semakan direkodkan apabila senarai dimuatkan.</span></td>
-<td class="py-4 pr-4"><span class="rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 border border-amber-200 whitespace-nowrap"><span data-en="">Recorded when loaded</span><span data-bm="">Direkod apabila dimuatkan</span></span></td>
-<td class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://data.gov.my" rel="noopener" target="_blank">DOSM, data.gov.my</a><br><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://www.geoboundaries.org" rel="noopener" target="_blank">geoBoundaries</a></td>
+<td data-label-en="Dataset" data-label-bm="Set Data" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">District list</td>
+<td data-label-en="Gives us" data-label-bm="Memberi kita" class="py-4 pr-4 text-slate-600"><span data-en="">The states and districts offered in Community, so a post is placed by district only and never by street or coordinate. Source, licence and date checked are recorded when the list is loaded.</span><span data-bm="">Negeri dan daerah yang ditawarkan dalam Komuniti, supaya catatan diletakkan mengikut daerah sahaja dan tidak pernah mengikut jalan atau koordinat. Sumber, lesen dan tarikh semakan direkodkan apabila senarai dimuatkan.</span></td>
+<td data-label-en="Licence" data-label-bm="Lesen" class="py-4 pr-4"><span class="rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 border border-amber-200 whitespace-nowrap"><span data-en="">Recorded when loaded</span><span data-bm="">Direkod apabila dimuatkan</span></span></td>
+<td data-label-en="Source" data-label-bm="Sumber" class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://data.gov.my" rel="noopener" target="_blank">DOSM, data.gov.my</a><br><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="https://www.geoboundaries.org" rel="noopener" target="_blank">geoBoundaries</a></td>
 </tr>
 <tr>
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Community posts</td>
-<td class="py-4 pr-4 text-slate-600"><span data-en="">What residents report in their own district: the animal, what happened, the week and what worked. Each post is anonymous, uses fixed choices and is read by a team member before it appears. No name, address, exact location or device address is stored, and held posts are deleted after 15 days.</span><span data-bm="">Apa yang dilaporkan penduduk di daerah mereka: haiwan, apa yang berlaku, minggu dan apa yang berkesan. Setiap catatan tanpa nama, menggunakan pilihan tetap dan dibaca oleh ahli pasukan sebelum dipaparkan. Tiada nama, alamat, lokasi tepat atau alamat peranti disimpan, dan catatan yang ditahan dipadam selepas 15 hari.</span></td>
-<td class="py-4 pr-4"><span class="rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold px-2.5 py-0.5 border border-slate-200 whitespace-nowrap"><span data-en="">Anonymous, reviewed</span><span data-bm="">Tanpa nama, disemak</span></span></td>
-<td class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="community-how-review-works.html"><span data-en="">How review works</span><span data-bm="">Cara semakan berfungsi</span></a></td>
+<td data-label-en="Dataset" data-label-bm="Set Data" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Community posts</td>
+<td data-label-en="Gives us" data-label-bm="Memberi kita" class="py-4 pr-4 text-slate-600"><span data-en="">What residents report in their own district: the animal, what happened, the week and what worked. Each post is anonymous, uses fixed choices and is read by a team member before it appears. No name, address, exact location or device address is stored, and held posts are deleted after 15 days.</span><span data-bm="">Apa yang dilaporkan penduduk di daerah mereka: haiwan, apa yang berlaku, minggu dan apa yang berkesan. Setiap catatan tanpa nama, menggunakan pilihan tetap dan dibaca oleh ahli pasukan sebelum dipaparkan. Tiada nama, alamat, lokasi tepat atau alamat peranti disimpan, dan catatan yang ditahan dipadam selepas 15 hari.</span></td>
+<td data-label-en="Licence" data-label-bm="Lesen" class="py-4 pr-4"><span class="rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold px-2.5 py-0.5 border border-slate-200 whitespace-nowrap"><span data-en="">Anonymous, reviewed</span><span data-bm="">Tanpa nama, disemak</span></span></td>
+<td data-label-en="Source" data-label-bm="Sumber" class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="community-how-review-works.html"><span data-en="">How review works</span><span data-bm="">Cara semakan berfungsi</span></a></td>
 </tr>
 <tr>
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Wildlife forecast (trained model)</td>
-<td class="py-4 pr-4 text-slate-600"><span data-en="">Which of the seven animals are most likely to be recorded in a state in a month. A simple prediction trained by the team on GBIF records, DOSM population and forest reserve area, shown beside simple counting. No accuracy figure is shown until the test has been run and recorded.</span><span data-bm="">Antara tujuh haiwan, yang manakah paling mungkin direkodkan di sesebuah negeri dalam sebulan. Ramalan ringkas yang dilatih pasukan menggunakan rekod GBIF, penduduk DOSM dan keluasan hutan simpan, dipaparkan bersebelahan pengiraan mudah. Tiada angka ketepatan dipaparkan sehingga ujian dijalankan dan direkodkan.</span></td>
-<td class="py-4 pr-4"><span class="rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold px-2.5 py-0.5 border border-slate-200 whitespace-nowrap"><span data-en="">Per source, see the page</span><span data-bm="">Mengikut sumber, lihat halaman</span></span></td>
-<td class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="ecosystem-forecast-method.html"><span data-en="">How it was made and tested</span><span data-bm="">Bagaimana ia dibuat dan diuji</span></a></td>
+<td data-label-en="Dataset" data-label-bm="Set Data" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Wildlife forecast (trained model)</td>
+<td data-label-en="Gives us" data-label-bm="Memberi kita" class="py-4 pr-4 text-slate-600"><span data-en="">Which of the seven animals are most likely to be recorded in a state in a month. A simple prediction trained by the team on GBIF records, DOSM population and forest reserve area, shown beside simple counting. No accuracy figure is shown until the test has been run and recorded.</span><span data-bm="">Antara tujuh haiwan, yang manakah paling mungkin direkodkan di sesebuah negeri dalam sebulan. Ramalan ringkas yang dilatih pasukan menggunakan rekod GBIF, penduduk DOSM dan keluasan hutan simpan, dipaparkan bersebelahan pengiraan mudah. Tiada angka ketepatan dipaparkan sehingga ujian dijalankan dan direkodkan.</span></td>
+<td data-label-en="Licence" data-label-bm="Lesen" class="py-4 pr-4"><span class="rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold px-2.5 py-0.5 border border-slate-200 whitespace-nowrap"><span data-en="">Per source, see the page</span><span data-bm="">Mengikut sumber, lihat halaman</span></span></td>
+<td data-label-en="Source" data-label-bm="Sumber" class="py-4"><a class="text-forest-600 hover:text-forest-800 font-semibold inline-flex items-center gap-1" href="ecosystem-forecast-method.html"><span data-en="">How it was made and tested</span><span data-bm="">Bagaimana ia dibuat dan diuji</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -2462,7 +2474,7 @@
 <span data-bm="">Cip status dan panduan pengendalian yang dipaparkan bagi setiap spesies di Ekosistem dan semakan spesies invasif berasal daripada sumber ini.</span>
 </p>
 <div class="mt-6 overflow-x-auto">
-<table class="w-full text-sm border-collapse">
+<table class="w-full text-sm border-collapse rfb-stack">
 <thead>
 <tr class="text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-200">
 <th class="pb-3 pr-4"><span data-en="">Species</span><span data-bm="">Spesies</span></th>
@@ -2472,34 +2484,34 @@
 </thead>
 <tbody class="divide-y divide-slate-100">
 <tr class="align-top">
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Long-tailed macaque</td>
-<td class="py-4 pr-4"><span class="rounded-full bg-rose-50 text-rose-700 text-[11px] font-bold px-2.5 py-0.5 border border-rose-200 whitespace-nowrap">IUCN: Endangered</span></td>
-<td class="py-4 text-slate-600">IUCN Red List; GRIIS Malaysia; GBIF occurrence extract; PERHILITAN wildlife disturbance FAQ (accessed 9 September 2026).</td>
+<td data-label-en="Species" data-label-bm="Spesies" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Long-tailed macaque</td>
+<td data-label-en="Status" data-label-bm="Status" class="py-4 pr-4"><span class="rounded-full bg-rose-50 text-rose-700 text-[11px] font-bold px-2.5 py-0.5 border border-rose-200 whitespace-nowrap">IUCN: Endangered</span></td>
+<td data-label-en="Sources" data-label-bm="Sumber" class="py-4 text-slate-600">IUCN Red List; GRIIS Malaysia; GBIF occurrence extract; PERHILITAN wildlife disturbance FAQ (accessed 9 September 2026).</td>
 </tr>
 <tr class="align-top">
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Water monitor</td>
-<td class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">IUCN: Least Concern</span></td>
-<td class="py-4 text-slate-600">IUCN Red List; GRIIS Malaysia; GBIF occurrence extract.</td>
+<td data-label-en="Species" data-label-bm="Spesies" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Water monitor</td>
+<td data-label-en="Status" data-label-bm="Status" class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">IUCN: Least Concern</span></td>
+<td data-label-en="Sources" data-label-bm="Sumber" class="py-4 text-slate-600">IUCN Red List; GRIIS Malaysia; GBIF occurrence extract.</td>
 </tr>
 <tr class="align-top">
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Wild boar</td>
-<td class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">IUCN: Least Concern</span></td>
-<td class="py-4 text-slate-600">IUCN Red List; GRIIS Malaysia; GBIF occurrence extract.</td>
+<td data-label-en="Species" data-label-bm="Spesies" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Wild boar</td>
+<td data-label-en="Status" data-label-bm="Status" class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">IUCN: Least Concern</span></td>
+<td data-label-en="Sources" data-label-bm="Sumber" class="py-4 text-slate-600">IUCN Red List; GRIIS Malaysia; GBIF occurrence extract.</td>
 </tr>
 <tr class="align-top">
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Reticulated python &amp; Sumatran cobra</td>
-<td class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">IUCN: Least Concern</span></td>
-<td class="py-4 text-slate-600">IUCN Red List; GRIIS Malaysia; GBIF occurrence extract; Bomba public safety advisory.</td>
+<td data-label-en="Species" data-label-bm="Spesies" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Reticulated python &amp; Sumatran cobra</td>
+<td data-label-en="Status" data-label-bm="Status" class="py-4 pr-4"><span class="rounded-full bg-emerald-50 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 border border-emerald-200 whitespace-nowrap">IUCN: Least Concern</span></td>
+<td data-label-en="Sources" data-label-bm="Sumber" class="py-4 text-slate-600">IUCN Red List; GRIIS Malaysia; GBIF occurrence extract; Bomba public safety advisory.</td>
 </tr>
 <tr class="align-top">
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">House crow</td>
-<td class="py-4 pr-4"><span class="rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 border border-amber-200 whitespace-nowrap">GRIIS: Introduced</span></td>
-<td class="py-4 text-slate-600">GRIIS Malaysia (GBIF dataset, CC BY 4.0); IUCN Red List; GBIF occurrence extract; The Star, 2026, for the Penang Island City Council cull figure.</td>
+<td data-label-en="Species" data-label-bm="Spesies" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">House crow</td>
+<td data-label-en="Status" data-label-bm="Status" class="py-4 pr-4"><span class="rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 border border-amber-200 whitespace-nowrap">GRIIS: Introduced</span></td>
+<td data-label-en="Sources" data-label-bm="Sumber" class="py-4 text-slate-600">GRIIS Malaysia (GBIF dataset, CC BY 4.0); IUCN Red List; GBIF occurrence extract; The Star, 2026, for the Penang Island City Council cull figure.</td>
 </tr>
 <tr class="align-top">
-<td class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Common myna</td>
-<td class="py-4 pr-4"><span class="rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 border border-amber-200 whitespace-nowrap">GRIIS: Introduced</span></td>
-<td class="py-4 text-slate-600">GRIIS Malaysia (GBIF dataset, CC BY 4.0); IUCN Red List; GBIF occurrence extract.</td>
+<td data-label-en="Species" data-label-bm="Spesies" class="py-4 pr-4 font-display font-bold text-forest-950 whitespace-nowrap">Common myna</td>
+<td data-label-en="Status" data-label-bm="Status" class="py-4 pr-4"><span class="rounded-full bg-amber-50 text-amber-700 text-[11px] font-bold px-2.5 py-0.5 border border-amber-200 whitespace-nowrap">GRIIS: Introduced</span></td>
+<td data-label-en="Sources" data-label-bm="Sumber" class="py-4 text-slate-600">GRIIS Malaysia (GBIF dataset, CC BY 4.0); IUCN Red List; GBIF occurrence extract.</td>
 </tr>
 </tbody>
 </table>
