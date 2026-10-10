@@ -1011,8 +1011,8 @@
     var h = hero({
       eyebrow: T('Community · Review queue · Team only', 'Komuniti · Baris semakan · Pasukan sahaja'),
       title: T('Review queue', 'Baris semakan'),
-      lead: T('A person reads every report before it appears. Publish, hold or delete, with a reason from the fixed list; the log keeps the reference, the decision, the reason and the time, and nothing that identifies the reporter (AC 5.6.1).',
-        'Seseorang membaca setiap laporan sebelum ia dipaparkan. Terbitkan, tahan atau padam, dengan sebab daripada senarai tetap; log menyimpan rujukan, keputusan, sebab dan masa, dan tiada apa yang mengenal pasti pelapor (AC 5.6.1).')
+      lead: T('A person reads every report before it appears. Publish, hold or delete, with a reason from the fixed list; the log keeps the reference, the decision, the reason and the time, and nothing that identifies the reporter.',
+        'Seseorang membaca setiap laporan sebelum ia dipaparkan. Terbitkan, tahan atau padam, dengan sebab daripada senarai tetap; log menyimpan rujukan, keputusan, sebab dan masa, dan tiada apa yang mengenal pasti pelapor.')
     });
     if (!R.key) {
       h += '<form class="cm-card cm-gate" style="margin-top:1.4rem" data-form="gate"><label class="cm-q__title" for="community-review__key" style="display:block;margin-bottom:.5rem">' + T('Reviewer key', 'Kunci penyemak') + '</label>' +
