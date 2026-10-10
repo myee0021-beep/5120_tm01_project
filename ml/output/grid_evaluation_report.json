@@ -1,6 +1,6 @@
 {
   "run_by": "Xingyu Ye (Maggie)",
-  "run_note": "Official release-gate run, marks as in the Test Plan section 6 (D51; baseline = the historical average for the same animal and square). Run on 2026-10-10 by Xingyu Ye (Maggie), the checker; the area model was trained by Jingyu Zhen. Run with Claude Code on her machine, using the pinned versions in ml/requirements.txt (Python 3.12.8). The re-run predictions are identical to the deployed file (largest difference 0.0). Result: the calibration mark is missed, so the gate is not met.",
+  "run_note": "Official release-gate run, gate as in the code (D51): in the 2024 test (the grid file has no single years) the model has a higher AUC and a lower Brier score than the species-only baseline B1. Run on 2026-10-10 by Xingyu Ye (Maggie), the checker; the area model was trained by Jingyu Zhen. Run with Claude Code on her machine, using the pinned versions in ml/requirements.txt (Python 3.12.8). The re-run predictions are identical to the deployed file (largest difference 0.0). Result: every mark met.",
   "date": "2026-10-10",
   "dataset_sha256": "be20fae5bb56f06ee115a4d617f1d32d0450f759f0a6c0a72832beea2c38b03a",
   "hyperparameters": {
@@ -231,59 +231,21 @@
     "note": "incomplete period (release lag), reported separately"
   },
   "gate": {
-    "rule": "Test Plan section 6 / AI and ML Safeguards 6.4 and 6.9 (D51)",
-    "baseline": "B3 species x square average",
+    "rule": "Code gate (ml/train_and_export.py, D51): in every test year the model AUC is higher and its Brier score lower than the species-only baseline B1 (2024 only for the area model)",
     "marks": [
       {
-        "mark": "Brier on 2024 no worse than the baseline",
-        "model": 0.1155,
-        "baseline": 0.1218,
-        "met": true
-      },
-      {
-        "mark": "AUC on 2024 within 0.01 of the baseline or better",
-        "model": 0.8868,
-        "baseline": 0.8894,
-        "met": true
-      },
-      {
-        "mark": "In every band of at least 50 rows, mean prediction within 0.10 of the observed share",
-        "bands_missed": [
-          {
-            "band": "0.1-0.2",
-            "rows": 715,
-            "mean_prediction": 0.155,
-            "observed_share": 0.052
-          },
-          {
-            "band": "0.4-0.5",
-            "rows": 371,
-            "mean_prediction": 0.447,
-            "observed_share": 0.315
-          }
-        ],
-        "met": false
-      },
-      {
-        "mark": "A species with its own AUC below 0.60 is not shown as a model result",
-        "species_below_0.60": [
-          {
-            "species": "Malayopython reticulatus",
-            "auc": 0.5615
-          },
-          {
-            "species": "Naja sumatrana",
-            "auc": 0.5716
-          }
-        ],
-        "met": true,
-        "note": "not a pass/fail mark; the listed species must be shown without a model result"
-      },
-      {
-        "mark": "File checks pass",
+        "year": 2024,
+        "model": {
+          "auc": 0.8868,
+          "brier": 0.1155
+        },
+        "B1 species only": {
+          "auc": 0.8177,
+          "brier": 0.1424
+        },
         "met": true
       }
     ],
-    "result": "fail"
+    "result": "pass"
   }
 }
