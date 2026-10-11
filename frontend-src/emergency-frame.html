@@ -11,6 +11,39 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
+/* U3-3: phone and print on iPhone.
+   In-app browsers (WeChat, Facebook, Instagram, LINE, Android WebView) cannot print: window.print() does nothing there.
+   Every print button calls window.print(), so it is wrapped once here: in those browsers it explains how to print instead. */
+(function(){
+  var ua=navigator.userAgent||'';
+  var inApp=/MicroMessenger|FBAN|FBAV|Instagram|Line\/|; wv\)/i.test(ua);
+  var nativePrint=window.print?window.print.bind(window):null;
+  function notice(){
+    var bm=document.documentElement.getAttribute('lang')==='bm';
+    var old=document.getElementById('rfb-print-notice');if(old)old.remove();
+    var d=document.createElement('div');d.id='rfb-print-notice';d.setAttribute('role','alert');
+    d.style.cssText='position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483647;max-width:520px;margin:0 auto;background:#0b130e;color:#fff;border-radius:14px;padding:14px 16px;font:14px/1.45 Inter,system-ui,sans-serif;box-shadow:0 12px 40px rgba(0,0,0,.35)';
+    d.textContent=bm?'Pelayar dalam aplikasi ini tidak boleh mencetak. Buka halaman ini dalam Safari atau Chrome (menu ⋯ → Buka dalam pelayar), kemudian tekan Cetak.':'This app’s built-in browser cannot print. Open this page in Safari or Chrome (menu ⋯ → Open in browser), then tap Print.';
+    d.addEventListener('click',function(){d.remove();});
+    (document.body||document.documentElement).appendChild(d);
+    setTimeout(function(){if(d.parentNode)d.remove();},9000);
+  }
+  window.print=function(){ if(inApp||!nativePrint){notice();return;} return nativePrint(); };
+})();
+</script>
+<script>
+/* U3-3: a phone link inside this frame (999, the authority's number) is opened from the top window,
+   because in-app browsers on iPhone ignore tel: links that are clicked inside a frame. */
+document.addEventListener('click',function(e){
+  var a=e.target&&e.target.closest?e.target.closest('a[href^="tel:"]'):null;
+  if(!a)return;
+  var h=a.getAttribute('href');
+  if(!h||h==='tel:'){e.preventDefault();return;}
+  e.preventDefault();
+  try{window.top.location.href=h;}catch(x){window.location.href=h;}
+},true);
+</script>
+<script>
   tailwind.config = {
     theme: {
       extend: {
