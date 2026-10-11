@@ -169,7 +169,8 @@ async function submitReport(request,env){
   const ref=`R-${new Date().getUTCFullYear()}-${String(id).padStart(4,'0')}`;
   await sql`UPDATE community_post SET reference=${ref} WHERE id=${id}`;
   if(pi)await sql`INSERT INTO review_log(community_post_id,decision,reason_code,reviewer_role,decided_at) VALUES(${id},'held','personal-detail','System',NOW())`;
-  return json({ok:true,ref,id},201);
+  // status says whether the note check held the report for review (U3-2); it is never published from here
+  return json({ok:true,ref,id,status},201);
 }
 async function verifySession(request,env){let body={};try{body=await request.json()}catch{}const ok=!!env.REVIEWER_KEY&&safeEq(body?.key,env.REVIEWER_KEY);return json({ok})}
 async function listQueue(request,env){
