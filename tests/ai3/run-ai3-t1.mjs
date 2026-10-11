@@ -1,7 +1,7 @@
 // AI3-T1: Report from your words. Sends each sentence in ai3-t1-sentences.json to POST /api/community/parse,
 // three runs, and scores each reply against the expected fill. Calls the language model (about 150 calls).
 // Paced at one call every 3.5 s to stay under the route's limit of 20 a minute; a full run takes about 10 minutes.
-//   node tests/ai3/run-ai3-t1.mjs "Your name" [base address]
+//   node tests/ai3/run-ai3-t1.mjs "Your name" [base address] [--delay 3300] [--label after-fix]
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,9 +9,13 @@ import { I3 } from '../../src/iteration3-validators.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const set = JSON.parse(fs.readFileSync(path.join(here, 'ai3-t1-sentences.json'), 'utf8'));
-const runBy = process.argv[2] || 'not named';
-const base = (process.argv[3] || 'https://roomforboth-final.myee0021.workers.dev').replace(/\/$/, '');
-const RUNS = 3, GAP_MS = 3500;
+// Options: --delay <ms> (gap between calls, default 3500), --label <text> (added to the result file name).
+const argv = process.argv.slice(2); const opt = (k, d) => { const i = argv.indexOf(k); if (i === -1) return d; const v = argv[i + 1]; argv.splice(i, 2); return v; };
+const GAP_MS = Number(opt('--delay', 3500)) || 3500;
+const label = opt('--label', '');
+const runBy = argv[0] || 'not named';
+const base = (argv[1] || 'https://roomforboth-final.myee0021.workers.dev').replace(/\/$/, '');
+const RUNS = 3;
 const FIELDS = ['species', 'kind', 'when', 'time', 'did', 'worked'];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const now = new Date();
@@ -85,6 +89,6 @@ md += `## Wrong fills, every run\n\n| Run | Id | Sentence | What was wrong |\n|-
 runs.forEach(r => r.rows.filter(x => x.notes.length).forEach(x => { md += `| ${r.run} | ${x.id} | ${x.text.replace(/\|/g, '/')} | ${x.notes.join('; ')} |\n`; }));
 const outDir = path.join(here, 'results');
 fs.mkdirSync(outDir, { recursive: true });
-fs.writeFileSync(path.join(outDir, `ai3-t1-${date}.md`), md);
-fs.writeFileSync(path.join(outDir, `ai3-t1-${date}.json`), JSON.stringify({ run_by: runBy, date, base, yesterday, recorded_run: lowest.run, pass: lowest.pass, runs }, null, 2));
+fs.writeFileSync(path.join(outDir, `ai3-t1-${date}${label ? '-' + label : ''}.md`), md);
+fs.writeFileSync(path.join(outDir, `ai3-t1-${date}${label ? '-' + label : ''}.json`), JSON.stringify({ run_by: runBy, date, base, yesterday, recorded_run: lowest.run, pass: lowest.pass, runs }, null, 2));
 console.log('\n' + md);

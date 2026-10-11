@@ -1,0 +1,220 @@
+{
+  "run_by": "preview by Claude Code (not the recorded run)",
+  "date": "2026-10-11",
+  "phoneHeld": 5,
+  "otherHeld": 10,
+  "cleanHeld": 0,
+  "pass": true,
+  "rows": [
+    {
+      "id": "P1",
+      "group": "phone",
+      "text": "Call me on 012-345 6789 if the monkeys come back",
+      "held": true,
+      "kind": "phone"
+    },
+    {
+      "id": "P2",
+      "group": "phone",
+      "text": "my number is +60 12 345 6789, happy to help",
+      "held": true,
+      "kind": "phone"
+    },
+    {
+      "id": "P3",
+      "group": "phone",
+      "text": "WhatsApp 0193334455 for photos",
+      "held": true,
+      "kind": "phone"
+    },
+    {
+      "id": "P4",
+      "group": "phone",
+      "text": "office line 03-7956 1234, ask for the guard",
+      "held": true,
+      "kind": "phone"
+    },
+    {
+      "id": "P5",
+      "group": "phone",
+      "text": "text 011 2345 6789 anytime",
+      "held": true,
+      "kind": "phone"
+    },
+    {
+      "id": "O1",
+      "group": "other",
+      "text": "No. 14, Jalan Bukit, the corner house",
+      "held": true,
+      "kind": "street"
+    },
+    {
+      "id": "O2",
+      "group": "other",
+      "text": "55/5 , mathew street",
+      "held": true,
+      "kind": "house-number"
+    },
+    {
+      "id": "O3",
+      "group": "other",
+      "text": "14 Mathew Road, blue gate",
+      "held": true,
+      "kind": "house-number"
+    },
+    {
+      "id": "O4",
+      "group": "other",
+      "text": "my neighbour Ahmad saw it first",
+      "held": true,
+      "kind": "named-person"
+    },
+    {
+      "id": "O5",
+      "group": "other",
+      "text": "it was at Puan Aminah's house",
+      "held": true,
+      "kind": "named-person"
+    },
+    {
+      "id": "O6",
+      "group": "other",
+      "text": "email me at sara.lim@gmail.com",
+      "held": true,
+      "kind": "email"
+    },
+    {
+      "id": "O7",
+      "group": "other",
+      "text": "postcode 43000, near the mosque",
+      "held": true,
+      "kind": "postal"
+    },
+    {
+      "id": "O8",
+      "group": "other",
+      "text": "Lot 23 Kampung Baru, behind the shop",
+      "held": true,
+      "kind": "house-number"
+    },
+    {
+      "id": "O9",
+      "group": "other",
+      "text": "Mr Tan from the next house chased it",
+      "held": true,
+      "kind": "named-person"
+    },
+    {
+      "id": "O10",
+      "group": "other",
+      "text": "Blok C unit 12, Taman Melawati",
+      "held": true,
+      "kind": "house-number"
+    },
+    {
+      "id": "C1",
+      "group": "clean",
+      "text": "Troop of about eight on the roof line at breakfast time",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C2",
+      "group": "clean",
+      "text": "The road near the shop floods and the monitor comes out",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C3",
+      "group": "clean",
+      "text": "saw 4 on the lane behind us",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C4",
+      "group": "clean",
+      "text": "Came at 7 am and left by 8",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C5",
+      "group": "clean",
+      "text": "Bins knocked over twice this week",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C6",
+      "group": "clean",
+      "text": "About 20 crows roosting in the roadside trees from 6 pm",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C7",
+      "group": "clean",
+      "text": "Big one, maybe 1.5 m long, near the monsoon drain",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C8",
+      "group": "clean",
+      "text": "3 monkeys at 6.30pm took the rambutans",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C9",
+      "group": "clean",
+      "text": "Section of the back fence was pushed down",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C10",
+      "group": "clean",
+      "text": "Pair nesting in the roof vent, second year running",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C11",
+      "group": "clean",
+      "text": "Kera ambil buah di belakang rumah",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C12",
+      "group": "clean",
+      "text": "It came through the one lane road by the river",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C13",
+      "group": "clean",
+      "text": "PERHILITAN said they would come on Monday",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C14",
+      "group": "clean",
+      "text": "Latching lid on the bin since August, no more mess",
+      "held": false,
+      "kind": ""
+    },
+    {
+      "id": "C15",
+      "group": "clean",
+      "text": "The boar crossed the main road at night",
+      "held": false,
+      "kind": ""
+    }
+  ]
+}

@@ -127,6 +127,20 @@ const SPECIES_WORDS={
   'house-crow':/\b(?:house\s+)?crows?\b|\bgagak\b/i,
   'common-myna':/\b(?:common\s+)?mynah?s?\b|\btiong\b|\bgembala\s+kerbau\b/i
 };
+// AI3-T1 (11 Oct): an action is kept only if its quote holds a word for that action, as for came-inside.
+const DID_WORDS={
+  'took-food':/\b(?:take|takes|took|taken|taking|ate|eat|eats|eaten|eating|steal|steals|stole|stolen|stealing|raid|raids|raided|raiding|grab|grabs|grabbed|curi|mencuri|ambil|mengambil|makan)\b/i,
+  'stayed-nearby':/\b(?:stay|stays|stayed|staying|sat|sit|sits|sitting|perch|perched|perches|perching|roost|roosts|roosted|roosting|nest|nests|nesting|hang(?:s|ing)?\s+around|hung\s+around|bertenggek|berkeliaran|duduk|tinggal)\b/i,
+  'passed-through':/\b(?:pass|passes|passed|passing|walk(?:s|ed|ing)?\s+(?:past|through|by|across)|crossed|crossing|went\s+(?:past|through)|flew\s+(?:past|over|by)|ran\s+(?:past|through)|came\s+through|lalu|melintas|melalui)\b/i,
+  'damaged':/\b(?:dug|dig|digs|digging|broke|break|breaks|broken|damage|damages|damaged|damaging|tore|torn|wrecked|knocked\s+(?:over|down)|pushed\s+down|gali|menggali|rosak|rosakkan|merosakkan|pecah|pecahkan)\b/i,
+  'onto-roof':/\b(?:roof|roofs|rooftop|bumbung|atap)\b/i
+};
+// A sentence that corrects itself leaves when and time blank: the first words may be the wrong ones.
+const SELF_CORRECT_RE=/\b(?:no\s+wait|eh\s+no|eh\s+bukan|no,?\s+it\s+was|actually\s+no|i\s+mean|sorry,?\s+i\s+meant?)\b/i;
+// Another animal named and none of the seven: nothing is filled ("Out of scope returns no match").
+const OTHER_ANIMAL_RE=/\b(?:cats?|kittens?|dogs?|pupp(?:y|ies)|tigers?|hornbills?|elephants?|rats?|mice|squirrels?|civets?|bears?|deer|otters?|owls?|eagles?|chickens?|ducks?|cows?|goats?|kucing|anjing|harimau|enggang|gajah|tikus|tupai|musang|beruang|rusa|burung\s+hantu|ayam|itik|lembu|kambing)\b/i;
+// Text that talks to the system instead of reporting a visit: nothing is filled.
+const INJECTION_RE=/\b(?:ignore\s+(?:all\s+)?(?:the\s+)?(?:previous|prior|above)|system\s+(?:message|prompt)|you\s+(?:must|are)\s+now|output\s+(?:species|kind|json)|fill\s+every\s+field)\b/i;
 // Weeks run Monday to Sunday (as in the form). Date is read in Malaysia time (UTC+8).
 function isMondayMY(now){return new Date(now.getTime()+8*3600*1000).getUTCDay()===1}
 
@@ -141,6 +155,7 @@ export function validateAi3Candidate(candidate, sentence, now=new Date()){
     const q=cleanText(quote||'',120).toLowerCase();
     return !!q&&sourceNorm.includes(q);
   };
+  if(INJECTION_RE.test(source))return {ok:true,value:{}};
   const out={};
   const copyScalar=(field,allowed,extraReject)=>{
     const v=candidate[field]; if(v==null)return;
@@ -160,10 +175,12 @@ export function validateAi3Candidate(candidate, sentence, now=new Date()){
   };
   copyArray('did',I3.did); copyArray('worked',I3.worked);
   if(out.time&&!TIME_EVIDENCE_RE.test(String(evidence.time||'')))delete out.time;
-  if(out.did?.includes('came-inside')){
-    const q=evidence.did&&typeof evidence.did==='object'?evidence.did['came-inside']:'';
-    if(!CAME_INSIDE_RE.test(String(q||''))){out.did=out.did.filter(v=>v!=='came-inside');if(!out.did.length)delete out.did}
+  if(out.did){
+    const quotes=evidence.did&&typeof evidence.did==='object'?evidence.did:{};
+    out.did=out.did.filter(v=>(v==='came-inside'?CAME_INSIDE_RE:DID_WORDS[v]).test(String(quotes[v]||'')));
+    if(!out.did.length)delete out.did;
   }
+  if(out.species==='not-sure')delete out.species; // never pre-filled: the resident taps it if it is true
   // Whatever the model answered (blank, not an option, "not sure", or an option with a quote that is not in the
   // sentence), the animal is taken from the sentence only when the sentence itself names exactly one of the seven.
   if(!out.species){
@@ -177,6 +194,8 @@ export function validateAi3Candidate(candidate, sentence, now=new Date()){
     if(TODAY_RE.test(source)&&!YESTERDAY_RE.test(source))out.when='this-week';
     else if(YESTERDAY_RE.test(source)&&!TODAY_RE.test(source))out.when=isMondayMY(now)?'last-week':'this-week';
   }
+  if(SELF_CORRECT_RE.test(source)){delete out.when;delete out.time}
+  if(!out.species&&OTHER_ANIMAL_RE.test(source)&&!Object.values(SPECIES_WORDS).some(re=>re.test(source)))return {ok:true,value:{}};
   if(out.kind==='invasive'&&!['house-crow','common-myna'].includes(out.species||''))delete out.kind;
   if(out.worked?.includes('nothing-yet')&&out.worked.length>1)out.worked=['nothing-yet'];
   if(candidate.blank_reasons&&typeof candidate.blank_reasons==='object'&&!Array.isArray(candidate.blank_reasons))out.blank_reasons=candidate.blank_reasons;
