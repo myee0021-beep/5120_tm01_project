@@ -62,6 +62,24 @@ const STREET_SKIP_RE=new RegExp('^(?:'+STREET_SKIP+')$','i');
 const HOUSE_NUMBER_STREET_RE=new RegExp('\\b\\d{1,4}[a-z]?(?:/\\d{1,4}[a-z]?)?\\s*,?\\s+(?:(?!(?:'+STREET_SKIP+')\\b)[a-z][a-z\'-]*\\s+)?(?:street|st|road|rd|lane|ln|avenue|ave)\\b','i');
 const NAMED_STREET_RE={test(text){const re=/\b([A-Z][A-Za-z'-]{2,})\s+(?:street|road|lane|avenue|st|rd|ave|ln)\b/gi;let m;while((m=re.exec(text)))if(/^[A-Z]/.test(m[1])&&!STREET_SKIP_RE.test(m[1]))return true;return false}};
 
+// AI3-T2: the Worker check mirrors noteIssues() in public/community.js, so a note the page warns about is also held
+// when it reaches the Worker directly.
+const PHONE_LOOSE_RE=/(?:\+?\d[\s-]?){8,}/;
+const HOUSE_WORD_RE=/\b(?:no|nombor|lot|unit|blok|block)\.?\s*#?\s*\d+[a-z]?\b|\b\d{1,4}[a-z]?,?\s+(?:jalan|jln|lorong|lrg|persiaran|lebuh|taman)\b/i;
+const PLACE_NAME_RE=/\b(?:Taman|Kampung|Kg\.?|Bandar|Seksyen|Section|Pangsapuri|Apartment|Condo|Residensi|Flat)\s+[A-Z0-9][A-Za-z0-9]+/;
+const NAME_STOP_WORDS=new Set(['malaysia','perhilitan','bomba','polis','police','jabatan','majlis','council','facebook','whatsapp','google','grab','monday','tuesday','wednesday','thursday','friday','saturday','sunday','macaque','monkey','boar','crow','myna','monitor','python','cobra']);
+const NAME_RES=[
+  /\b(?:Mr|Mrs|Ms|Miss|Encik|En|Puan|Pn|Cik|Datuk|Dato|Datin|Dr|Tuan|Haji|Hajjah|Pak|Abang|Kak|Kakak|Cikgu|Ustaz|Ustazah|Pakcik|Makcik)\.?\s+([A-Z][a-z]{2,})/g,
+  /\b(?:neighbou?r|friend|uncle|auntie|aunty|brother|sister|mother|father|mum|mom|dad|wife|husband|son|daughter|landlord|boss|jiran(?: saya)?|kawan|abang|kakak|ayah|ibu|suami|isteri|anak|pakcik|makcik|cikgu)\s+(?:(?:is|called|named|bernama)\s+)?([A-Z][a-z]{2,})/gi,
+  /\b([A-Z][a-z]{2,})'s\s+(?:house|home|shop|car|dog|cat|garden|yard|farm|stall|store|place|fence|gate|flat|unit)\b/g,
+  /\b(?:my name is|nama saya|nama aku|named|called|bernama|dipanggil)\s+([A-Z][a-z]{2,})/g
+];
+function looksLikeName(text){
+  if(/\b[A-Z][a-z]{2,}\s+(?:bin|binti|a\/l|a\/p)\s+[A-Z][a-z]+/.test(text))return true;
+  for(const re of NAME_RES){re.lastIndex=0;let m;while((m=re.exec(text)))if(/^[A-Z]/.test(m[1])&&!NAME_STOP_WORDS.has(m[1].toLowerCase()))return true}
+  return false;
+}
+
 export function detectPersonalDetail(note){
   const text=cleanText(note,500);
   if(!text)return null;
@@ -77,7 +95,11 @@ export function detectPersonalDetail(note){
     ['house-number',/\b(?:no\.?|number|house)\s*#?\s*\d+[A-Za-z]?\b/i],
     ['house-number',HOUSE_NUMBER_STREET_RE],
     ['street',NAMED_STREET_RE],
-    ['named-person',/\b(?:mr|mrs|ms|miss|dr|encik|puan|cik)\.?\s+[A-Z][A-Za-z'-]{1,30}\b/]
+    ['named-person',/\b(?:mr|mrs|ms|miss|dr|encik|puan|cik)\.?\s+[A-Z][A-Za-z'-]{1,30}\b/],
+    ['phone',PHONE_LOOSE_RE],
+    ['house-number',HOUSE_WORD_RE],
+    ['street',PLACE_NAME_RE],
+    ['named-person',{test:looksLikeName}]
   ];
   for(const [kind,re] of checks)if(re.test(text))return kind;
   return null;

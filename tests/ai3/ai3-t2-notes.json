@@ -1,0 +1,40 @@
+{
+  "set": "AI3-T2",
+  "what": "The note check on submit (detectPersonalDetail in src/iteration3-validators.js; a match holds the report for review).",
+  "pass_mark": "Every note with a telephone number held (5 of 5). Other identifying notes held in at least 9 of 10. Clean notes held by mistake are recorded, with no mark.",
+  "written": "2026-10-11",
+  "notes": [
+    { "id": "P1", "group": "phone", "text": "Call me on 012-345 6789 if the monkeys come back" },
+    { "id": "P2", "group": "phone", "text": "my number is +60 12 345 6789, happy to help" },
+    { "id": "P3", "group": "phone", "text": "WhatsApp 0193334455 for photos" },
+    { "id": "P4", "group": "phone", "text": "office line 03-7956 1234, ask for the guard" },
+    { "id": "P5", "group": "phone", "text": "text 011 2345 6789 anytime" },
+
+    { "id": "O1", "group": "other", "text": "No. 14, Jalan Bukit, the corner house" },
+    { "id": "O2", "group": "other", "text": "55/5 , mathew street" },
+    { "id": "O3", "group": "other", "text": "14 Mathew Road, blue gate" },
+    { "id": "O4", "group": "other", "text": "my neighbour Ahmad saw it first" },
+    { "id": "O5", "group": "other", "text": "it was at Puan Aminah's house" },
+    { "id": "O6", "group": "other", "text": "email me at sara.lim@gmail.com" },
+    { "id": "O7", "group": "other", "text": "postcode 43000, near the mosque" },
+    { "id": "O8", "group": "other", "text": "Lot 23 Kampung Baru, behind the shop" },
+    { "id": "O9", "group": "other", "text": "Mr Tan from the next house chased it" },
+    { "id": "O10", "group": "other", "text": "Blok C unit 12, Taman Melawati" },
+
+    { "id": "C1", "group": "clean", "text": "Troop of about eight on the roof line at breakfast time" },
+    { "id": "C2", "group": "clean", "text": "The road near the shop floods and the monitor comes out" },
+    { "id": "C3", "group": "clean", "text": "saw 4 on the lane behind us" },
+    { "id": "C4", "group": "clean", "text": "Came at 7 am and left by 8" },
+    { "id": "C5", "group": "clean", "text": "Bins knocked over twice this week" },
+    { "id": "C6", "group": "clean", "text": "About 20 crows roosting in the roadside trees from 6 pm" },
+    { "id": "C7", "group": "clean", "text": "Big one, maybe 1.5 m long, near the monsoon drain" },
+    { "id": "C8", "group": "clean", "text": "3 monkeys at 6.30pm took the rambutans" },
+    { "id": "C9", "group": "clean", "text": "Section of the back fence was pushed down" },
+    { "id": "C10", "group": "clean", "text": "Pair nesting in the roof vent, second year running" },
+    { "id": "C11", "group": "clean", "text": "Kera ambil buah di belakang rumah" },
+    { "id": "C12", "group": "clean", "text": "It came through the one lane road by the river" },
+    { "id": "C13", "group": "clean", "text": "PERHILITAN said they would come on Monday" },
+    { "id": "C14", "group": "clean", "text": "Latching lid on the bin since August, no more mess" },
+    { "id": "C15", "group": "clean", "text": "The boar crossed the main road at night" }
+  ]
+}
