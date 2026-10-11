@@ -43,14 +43,26 @@ function mentionsAnimal(text,term){
   return new RegExp('(^|[^a-z])'+t+'(e?s)?([^a-z]|$)','i').test(String(text||''));
 }
 
+// Sentence count follows the number of rows: 1 to 3 rows get one sentence per row
+// (or one more); 4 or more rows keep the original 4 to 6 (U3-1).
+function sentenceBounds(rowCount){
+  var n=Math.max(1,rowCount|0);
+  return n>=4?{min:4,max:6}:{min:n,max:n+1};
+}
+function sentenceRange(rowCount){
+  var b=sentenceBounds(rowCount);
+  return{text:b.min===b.max?String(b.min):b.min+' to '+b.max,plural:b.max!==1};
+}
+
 function validate(summary,rows){
   var text=clean(summary);
   if(!text)return{ok:false,reason:'api_error',detail:'empty_summary'};
   if(text.length>900)return{ok:false,reason:'too_long',detail:{length:text.length,max:900}};
 
   var sentences=text.split(/(?<=[.!?])\s+/).map(clean).filter(Boolean);
-  if(sentences.length<4||sentences.length>6){
-    return{ok:false,reason:'sentence_count',detail:{count:sentences.length,min:4,max:6}};
+  var bounds=sentenceBounds(rows.length);
+  if(sentences.length<bounds.min||sentences.length>bounds.max){
+    return{ok:false,reason:'sentence_count',detail:{count:sentences.length,min:bounds.min,max:bounds.max}};
   }
 
   var source=clean(flatten(rows).join(' ')).toLowerCase();
@@ -79,14 +91,16 @@ function validate(summary,rows){
   return{ok:true,reason:null,detail:null};
 }
 
-function validationRetryNote(result){
+function validationRetryNote(result,rowCount){
   if(!result||result.ok)return'';
-  if(result.reason==='sentence_count')return'\nPrevious output had the wrong sentence count. Return exactly 4 to 6 complete sentences.';
+  var range=sentenceRange(rowCount);
+  var unit=range.text+' complete sentence'+(range.plural?'s':'');
+  if(result.reason==='sentence_count')return'\nPrevious output had the wrong sentence count. Return exactly '+unit+'.';
   if(result.reason==='new_number')return'\nPrevious output introduced a number that was not present in the supplied rows. Do not introduce any new numbers.';
   if(result.reason==='new_species')return'\nPrevious output introduced an animal/species term that was not present in the supplied rows. Do not name any animal/species unless that exact term is present in the rows.';
   if(result.reason==='unbound_sentence')return'\nEvery sentence must clearly rephrase one supplied prevention row. Do not add an opening, closing, general advice or summary sentence.';
   if(result.reason==='too_long')return'\nKeep the complete paragraph under 900 characters.';
-  return'\nPrevious output could not be used. Stay strictly within the supplied rows and keep exactly 4 to 6 sentences.';
+  return'\nPrevious output could not be used. Stay strictly within the supplied rows and keep exactly '+unit+'.';
 }
 
 function stableRows(rows){
@@ -116,7 +130,8 @@ async function writeCachedSummary(rows,language,payload){try{await caches.defaul
 async function askMiniMax(env,rows,language,retryNote=''){
   if(!env.MINIMAX_API_KEY)throw new Error('MINIMAX_API_KEY is not configured');
   var langName=language==='bm'?'Bahasa Melayu':'English';
-  var prompt=`You write the "Plan in plain words" summary for Room for Both.\n- Write exactly 4 to 6 short sentences in ${langName}.\n- The prevention rows supplied below are the ONLY source of truth.\n- Use ONLY facts, species, numbers and actions explicitly present in those rows.\n- Do not add any risk, place, date, cause, action, recommendation, prediction or safety advice that is not present.\n- Do not imply probability for the resident's home.\n- Each sentence must clearly rephrase one supplied prevention row; do not add an opening, closing or general-summary sentence.\n- Lightly rephrase the row while keeping its action and meaning traceable.\n- Return only the paragraph text. No heading, bullets, markdown, disclaimer or explanation.${retryNote}`;
+  var range=sentenceRange(rows.length);
+  var prompt=`You write the "Plan in plain words" summary for Room for Both.\n- Write exactly ${range.text} short sentence${range.plural?'s':''} in ${langName}.\n- The prevention rows supplied below are the ONLY source of truth.\n- Use ONLY facts, species, numbers and actions explicitly present in those rows.\n- Do not add any risk, place, date, cause, action, recommendation, prediction or safety advice that is not present.\n- Do not imply probability for the resident's home.\n- Each sentence must clearly rephrase one supplied prevention row; do not add an opening, closing or general-summary sentence.\n- Lightly rephrase the row while keeping its action and meaning traceable.\n- Return only the paragraph text. No heading, bullets, markdown, disclaimer or explanation.${retryNote}`;
   var res=await fetch('https://api.minimax.io/v1/text/chatcompletion_v2',{
     method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${env.MINIMAX_API_KEY}`},
     body:JSON.stringify({model:'MiniMax-Text-01',temperature:0.1,max_tokens:300,messages:[{role:'system',content:prompt},{role:'user',content:'Rows already displayed on the page:\n'+JSON.stringify(rows,null,2)}]})
@@ -152,7 +167,7 @@ async function handlePlanSummary(request,env,ctx){
       }
 
       lastFailure=validation;
-      retryNote=validationRetryNote(validation);
+      retryNote=validationRetryNote(validation,rows.length);
       console.warn('[plan-summary] validation_failed',{attempt:attempt,reason:validation.reason,detail:validation.detail});
     }catch(e){
       lastFailure={ok:false,reason:'api_error',detail:{message:e?.message||String(e)}};

@@ -1,6 +1,6 @@
 # Iteration 3：可用性问题卡（U2-x）完成情况
 
-首次写于 2026-10-03，**2026-10-07 按代码重新核对**。来源：ver.5 Epics 报告第 7 节（"Usability findings carried as cards"）和 D45。每张卡对应 Iteration 2 可用性测试里的一个发现，**这些卡都不改任何 AC 的文字**，只是缺陷或改进。
+首次写于 2026-10-03，**2026-10-07 按代码重新核对**；2026-10-11 增加第六节（U3-1、U3-2、U3-5）。来源：ver.5 Epics 报告第 7 节（"Usability findings carried as cards"）和 D45。每张卡对应 Iteration 2 可用性测试里的一个发现，**这些卡都不改任何 AC 的文字**，只是缺陷或改进。
 
 ## 先读这一段
 
@@ -96,3 +96,27 @@
 | U2-13 | 找机构开放时间的数据，补进 70 行表 | Nisuri | 待定 |
 | U2-7 | 给陌生人看首页的测试 | Nisuri | 待定 |
 | 全部 | 在干净浏览器上走一遍验收 | 写代码以外的人 | 10/9–10/10 |
+
+---
+
+## 六、Iteration 3 可用性测试（U3-x）：2026-10-11 的修复
+
+来源：Iteration 3 可用性测试报告（5 次测试），提交前三张属于 Jingyu 的卡。顺序按卡：U3-1、U3-2、U3-5。**以下三项已改代码并在本地用模拟数据验证，尚未部署，也没有在线上地址验证。每张卡要由 Maggie 在线上确认后才能移动。**
+
+| 卡 | 严重度 | 问题 | 原因 | 改动 | 文件 | 本地验证 | 状态 |
+|---|---|---|---|---|---|---|---|
+| **U3-1** | High | Plan in plain words 被隐藏（5 次测试中 4 次）：1 行计划每次都返回 `hidden: true`、`sentence_count` | 校验写死 4–6 句，1–3 行的计划不可能达到；2 行计划靠凑数句子，常被判 `unbound_sentence`，所以时好时坏 | 句数随行数变化：1 行 1–2 句，2 行 2–3 句，3 行 3–4 句，4 行及以上保持 4–6 句；提示词和重试提示同步。数字、物种、句子绑定检查不变 | `src/worker-plan-summary.js` | 1 行、2 行正常输出显示；凑数输出仍被拦；4 行不足 4 句仍被拦 | 待线上验证 |
+| **U3-2** | High | `55/5 , mathew street`、`14 Mathew Road` 通过备注检查，进到 Review and send | 街名只匹配"类型词 + 名字"，门牌只匹配紧贴类型词的数字；Worker 端同样 | 数字（含斜杠）+ 可选一个名字 + street/road/lane/avenue 算门牌；首字母大写的"名字 + 类型词"算街名，常见词和路况形容词不算。前后端同步 | `public/community.js`、`src/iteration3-validators.js` | 目标用例前后端都被拦；`24/7 noise`、`3 monkeys on the road`、`Two crows on our street` 不误伤 | 待线上验证 |
+| **U3-5** | Medium | `yesterday around 8 house crows came to the window…` 被填成 time early-morning、did came-inside，when 不返回 | 校验只检查模型给的证据是不是原文子串，`8`、`came to the window` 都是子串 | 只做后过滤，不改提示词和模型：time 的证据必须含时间表达；came-inside 的证据必须含 came in/inside/enter/masuk 等；模型没给 when 时，today 一类映射 This week，yesterday 映射 This week（周一映射 Last week，按马来西亚时间） | `src/iteration3-validators.js` | 复现句不再带 time 和 came-inside，when 为 This week（周一为 Last week）；合法的 7am、dawn、`masuk dapur` 保留 | 待线上验证 |
+
+### 已知问题（未改，需要决定）
+
+1. **单独的小写街名不拦**：`mathew street` 前面没有门牌号时不会被拦。小写的"名字 + street"会误伤 `forest road`、`farm road` 这类普通说法，这么晚改动不值得。带门牌号的情况已拦。
+2. **已有的误拦**：原有街名规则只要 `road/street/lane/avenue` 后面跟任意一个词就判定为街名，所以 `The road near the shop`、`The lane behind the row`、`one lane road` 会被判含街名。前端表现是无法发送，Worker 端是 hold 进审核。这不是这次改动引入的，也不在 U3-2 范围内。
+3. **U3-5 的 when 规则是改规格**：提示词里原来写的是"不要从 yesterday/today 推算日期"，现在由后过滤补 when，提示词没改。
+4. **U3-1 的 myna 计划为什么时好时坏**：成功结果缓存 7 天、失败不缓存，昨天那次很可能是某次生成碰巧通过并被缓存；今天在别的节点缓存未命中，重新生成就失败。这是推测，没有日志可证实。
+
+### 不在本轮范围
+
+- U3-3（电话、打印和 999 按钮）在 Maggie 的卡上，需要先在 iPhone 上测试。
+- 前端 `community.js` 里 mock 版 `parse`（"MOCK ONLY"）没有改，线上走的是 Worker 的 LLM 路径。

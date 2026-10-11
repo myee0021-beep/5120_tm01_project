@@ -55,6 +55,13 @@ export function validateCommunitySubmission(input){
   return {ok:true,value:{species,kind,state,district,week,time,did,worked,note}};
 }
 
+// Name then street type ("Mathew Street"). The name must be capitalised and not a common word.
+// Keep in step with noteIssues() in public/community.js (U3-2).
+const STREET_SKIP='the|our|this|that|these|those|my|your|his|her|their|its|a|an|and|or|of|on|in|at|by|to|from|near|onto|into|over|under|across|along|past|down|up|main|back|front|side|busy|quiet|same|every|each|next|other|small|big|long|short|dark|wet|old|new|wide|narrow|dirt|country|private|public|rural|cross|one|two|three|four|five|six|seven|eight|nine|ten|only|some|any|no|all|both|many|few|several|about|around|another';
+const STREET_SKIP_RE=new RegExp('^(?:'+STREET_SKIP+')$','i');
+const HOUSE_NUMBER_STREET_RE=new RegExp('\\b\\d{1,4}[a-z]?(?:/\\d{1,4}[a-z]?)?\\s*,?\\s+(?:(?!(?:'+STREET_SKIP+')\\b)[a-z][a-z\'-]*\\s+)?(?:street|st|road|rd|lane|ln|avenue|ave)\\b','i');
+const NAMED_STREET_RE={test(text){const re=/\b([A-Z][A-Za-z'-]{2,})\s+(?:street|road|lane|avenue|st|rd|ave|ln)\b/gi;let m;while((m=re.exec(text)))if(/^[A-Z]/.test(m[1])&&!STREET_SKIP_RE.test(m[1]))return true;return false}};
+
 export function detectPersonalDetail(note){
   const text=cleanText(note,500);
   if(!text)return null;
@@ -65,6 +72,8 @@ export function detectPersonalDetail(note){
     ['postal',/\b\d{5}\b/],
     ['street',/\b(?:jalan|jln|lorong|lor|persiaran|street|st\.?|road|rd\.?|avenue|ave\.?|lane|ln\.?)\s+[A-Za-z0-9][A-Za-z0-9 .'-]{1,40}/i],
     ['house-number',/\b(?:no\.?|number|house)\s*#?\s*\d+[A-Za-z]?\b/i],
+    ['house-number',HOUSE_NUMBER_STREET_RE],
+    ['street',NAMED_STREET_RE],
     ['named-person',/\b(?:mr|mrs|ms|miss|dr|encik|puan|cik)\.?\s+[A-Z][A-Za-z'-]{1,30}\b/]
   ];
   for(const [kind,re] of checks)if(re.test(text))return kind;
@@ -78,7 +87,16 @@ export function validateReviewDecision(decision,reason){
   return {ok:true};
 }
 
-export function validateAi3Candidate(candidate, sentence){
+// U3-5: deterministic post-filters on top of the evidence-substring check, so a bare number before an
+// animal ("8 house crows") is never taken as a time and "came to the window" is never "came inside".
+const TIME_EVIDENCE_RE=/\b(?:dawn|sunrise|sunset|dusk|morning|breakfast|midday|noon|lunch|afternoon|evening|night|midnight|tonight|subuh|pagi|tengah\s?hari|tengahari|petang|senja|maghrib|malam|dinihari)\b|\b\d{1,2}(?:[.:]\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)(?![a-z])|\b\d{1,2}:\d{2}\b|\bo'?clock\b|\bjam\s+\d{1,2}\b/i;
+const CAME_INSIDE_RE=/\b(?:came|come|comes|coming|got|get|gets|getting|went|go|walked|ran|climbed|broke|barged|slipped|sneaked|snuck|let)\s+(?:right\s+|straight\s+|all\s+the\s+way\s+)?(?:in|inside|into)\b|\binside\b|\benter(?:s|ed|ing)?\b|\bmasuk\b|\bdalam\s+(?:rumah|dapur|bilik)\b/i;
+const TODAY_RE=/\b(?:today|this\s+morning|this\s+afternoon|this\s+evening|tonight|hari\s+ini|tadi)\b/i;
+const YESTERDAY_RE=/\b(?:yesterday|last\s+night|semalam)\b/i;
+// Weeks run Monday to Sunday (as in the form). Date is read in Malaysia time (UTC+8).
+function isMondayMY(now){return new Date(now.getTime()+8*3600*1000).getUTCDay()===1}
+
+export function validateAi3Candidate(candidate, sentence, now=new Date()){
   if(!candidate||typeof candidate!=='object'||Array.isArray(candidate))return {ok:false,error:'AI result must be an object.'};
   const allowedKeys=new Set(['species','kind','when','time','did','worked','blank_reasons','evidence']);
   if(Object.keys(candidate).some(k=>!allowedKeys.has(k)))return {ok:false,error:'AI result has unexpected fields.'};
@@ -107,6 +125,16 @@ export function validateAi3Candidate(candidate, sentence){
     if(kept.length)out[field]=kept;
   };
   copyArray('did',I3.did); copyArray('worked',I3.worked);
+  if(out.time&&!TIME_EVIDENCE_RE.test(String(evidence.time||'')))delete out.time;
+  if(out.did?.includes('came-inside')){
+    const q=evidence.did&&typeof evidence.did==='object'?evidence.did['came-inside']:'';
+    if(!CAME_INSIDE_RE.test(String(q||''))){out.did=out.did.filter(v=>v!=='came-inside');if(!out.did.length)delete out.did}
+  }
+  if(!out.when){
+    // "today" is always this week; "yesterday" is this week except on a Monday, when it was last week.
+    if(TODAY_RE.test(source)&&!YESTERDAY_RE.test(source))out.when='this-week';
+    else if(YESTERDAY_RE.test(source)&&!TODAY_RE.test(source))out.when=isMondayMY(now)?'last-week':'this-week';
+  }
   if(out.kind==='invasive'&&!['house-crow','common-myna'].includes(out.species||''))delete out.kind;
   if(out.worked?.includes('nothing-yet')&&out.worked.length>1)out.worked=['nothing-yet'];
   if(candidate.blank_reasons&&typeof candidate.blank_reasons==='object'&&!Array.isArray(candidate.blank_reasons))out.blank_reasons=candidate.blank_reasons;

@@ -217,6 +217,16 @@
     }
     return false;
   }
+  // Name then street type ("Mathew Street", "Ampang lane"). The name must be capitalised and not a
+  // common word, so "the road" or "Busy road near us" are left alone. Keep in step with the Worker
+  // check in src/iteration3-validators.js (U3-2).
+  var STREET_SKIP = 'the|our|this|that|these|those|my|your|his|her|their|its|a|an|and|or|of|on|in|at|by|to|from|near|onto|into|over|under|across|along|past|down|up|main|back|front|side|busy|quiet|same|every|each|next|other|small|big|long|short|dark|wet|old|new|wide|narrow|dirt|country|private|public|rural|cross|one|two|three|four|five|six|seven|eight|nine|ten|only|some|any|no|all|both|many|few|several|about|around|another';
+  function namedStreet(n) {
+    var re = /\b([A-Z][A-Za-z'-]{2,})\s+(?:street|road|lane|avenue|st|rd|ave|ln)\b/gi, m;
+    var skip = new RegExp('^(?:' + STREET_SKIP + ')$', 'i');
+    while ((m = re.exec(n))) if (/^[A-Z]/.test(m[1]) && !skip.test(m[1])) return true;
+    return false;
+  }
   function noteIssues(note) {
     var n = String(note || '');
     var found = [];
@@ -224,9 +234,11 @@
     if (phone) found.push('phone');
     if (/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.test(n) || /https?:\/\/|www\./i.test(n) || /(?:^|\s)@[A-Za-z0-9_]{3,}/.test(n)) found.push('contact');
     if (!phone && /\b\d{5}\b/.test(n)) found.push('postcode');
-    if (/\b(?:no|nombor|lot|unit|blok|block)\.?\s*#?\s*\d+[a-z]?\b/i.test(n) || /\b\d{1,4}[a-z]?,?\s+(?:jalan|jln|lorong|lrg|persiaran|lebuh|taman|street|st|road|rd|lane|avenue|ave)\b/i.test(n)) found.push('house');
+    // house numbers: "No. 14", "12 Jalan Bukit", and (U3-2) "55/5 , mathew street", "14 Mathew Road"
+    if (/\b(?:no|nombor|lot|unit|blok|block)\.?\s*#?\s*\d+[a-z]?\b/i.test(n) || /\b\d{1,4}[a-z]?,?\s+(?:jalan|jln|lorong|lrg|persiaran|lebuh|taman|street|st|road|rd|lane|avenue|ave)\b/i.test(n) ||
+        new RegExp('\\b\\d{1,4}[a-z]?(?:/\\d{1,4}[a-z]?)?\\s*,?\\s+(?:(?!(?:' + STREET_SKIP + ')\\b)[a-z][a-z\'-]*\\s+)?(?:street|st|road|rd|lane|ln|avenue|ave)\\b', 'i').test(n)) found.push('house');
     if (/\b(?:jalan|jln|lorong|lrg|persiaran|lebuhraya|lebuh|street|road|lane|avenue)\s+[a-z0-9]{2,}/i.test(n) ||
-        /\b(?:Taman|Kampung|Kg\.?|Bandar|Seksyen|Section|Pangsapuri|Apartment|Condo|Residensi|Flat)\s+[A-Z0-9][A-Za-z0-9]+/.test(n)) found.push('street');
+        /\b(?:Taman|Kampung|Kg\.?|Bandar|Seksyen|Section|Pangsapuri|Apartment|Condo|Residensi|Flat)\s+[A-Z0-9][A-Za-z0-9]+/.test(n) || namedStreet(n)) found.push('street');
     if (looksLikeName(n)) found.push('name');
     return found;
   }
