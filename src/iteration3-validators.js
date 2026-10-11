@@ -70,7 +70,10 @@ export function detectPersonalDetail(note){
     ['email',/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i],
     ['url',/\b(?:https?:\/\/|www\.)\S+/i],
     ['postal',/\b\d{5}\b/],
-    ['street',/\b(?:jalan|jln|lorong|lor|persiaran|street|st\.?|road|rd\.?|avenue|ave\.?|lane|ln\.?)\s+[A-Za-z0-9][A-Za-z0-9 .'-]{1,40}/i],
+    // Malay street words take any next word ("jalan bukit"); English ones only a capitalised name or a number,
+    // so "the road near the shop" and "the lane behind us" are not taken as a street (U3-2).
+    ['street',/\b(?:jalan|jln|lorong|lor|persiaran)\s+[A-Za-z0-9][A-Za-z0-9 .'-]{1,40}/i],
+    ['street',/\b(?:[Ss]treet|[Ss]t\.?|[Rr]oad|[Rr]d\.?|[Aa]venue|[Aa]ve\.?|[Ll]ane|[Ll]n\.?)\s+[A-Z0-9][A-Za-z0-9 .'-]{1,40}/],
     ['house-number',/\b(?:no\.?|number|house)\s*#?\s*\d+[A-Za-z]?\b/i],
     ['house-number',HOUSE_NUMBER_STREET_RE],
     ['street',NAMED_STREET_RE],
@@ -93,6 +96,15 @@ const TIME_EVIDENCE_RE=/\b(?:dawn|sunrise|sunset|dusk|morning|breakfast|midday|n
 const CAME_INSIDE_RE=/\b(?:came|come|comes|coming|got|get|gets|getting|went|go|walked|ran|climbed|broke|barged|slipped|sneaked|snuck|let)\s+(?:right\s+|straight\s+|all\s+the\s+way\s+)?(?:in|inside|into)\b|\binside\b|\benter(?:s|ed|ing)?\b|\bmasuk\b|\bdalam\s+(?:rumah|dapur|bilik)\b/i;
 const TODAY_RE=/\b(?:today|this\s+morning|this\s+afternoon|this\s+evening|tonight|hari\s+ini|tadi)\b/i;
 const YESTERDAY_RE=/\b(?:yesterday|last\s+night|semalam)\b/i;
+// U3-5: the animal named in the sentence, used when the model leaves it blank. Filled only when exactly one
+// of the seven is named, so a sentence about another animal ("a tiger") fills nothing.
+const SPECIES_WORDS={
+  'macaque':/\b(?:long[-\s]tailed\s+)?macaques?\b|\bmonkeys?\b|\bmonyet\b|\bkera\b/i,
+  'wild-boar':/\bwild\s+(?:boars?|pigs?)\b|\bboars?\b|\bbabi\s+hutan\b/i,
+  'water-monitor':/\b(?:water\s+)?monitors?(?:\s+lizards?)?\b|\bbiawak\b/i,
+  'house-crow':/\b(?:house\s+)?crows?\b|\bgagak\b/i,
+  'common-myna':/\b(?:common\s+)?mynah?s?\b|\btiong\b|\bgembala\s+kerbau\b/i
+};
 // Weeks run Monday to Sunday (as in the form). Date is read in Malaysia time (UTC+8).
 function isMondayMY(now){return new Date(now.getTime()+8*3600*1000).getUTCDay()===1}
 
@@ -130,7 +142,13 @@ export function validateAi3Candidate(candidate, sentence, now=new Date()){
     const q=evidence.did&&typeof evidence.did==='object'?evidence.did['came-inside']:'';
     if(!CAME_INSIDE_RE.test(String(q||''))){out.did=out.did.filter(v=>v!=='came-inside');if(!out.did.length)delete out.did}
   }
-  if(!out.when){
+  if(!out.species&&candidate.species==null){
+    const named=Object.keys(SPECIES_WORDS).filter(k=>SPECIES_WORDS[k].test(source));
+    if(named.length===1)out.species=named[0];
+  }
+  // When is filled from today/yesterday only when the sentence is about one of the seven or says what happened,
+  // so "I saw a tiger yesterday" fills nothing (U3-5).
+  if(!out.when&&(out.species||out.did||out.worked)){
     // "today" is always this week; "yesterday" is this week except on a Monday, when it was last week.
     if(TODAY_RE.test(source)&&!YESTERDAY_RE.test(source))out.when='this-week';
     else if(YESTERDAY_RE.test(source)&&!TODAY_RE.test(source))out.when=isMondayMY(now)?'last-week':'this-week';
