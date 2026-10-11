@@ -142,9 +142,9 @@ export function validateAi3Candidate(candidate, sentence, now=new Date()){
     const q=evidence.did&&typeof evidence.did==='object'?evidence.did['came-inside']:'';
     if(!CAME_INSIDE_RE.test(String(q||''))){out.did=out.did.filter(v=>v!=='came-inside');if(!out.did.length)delete out.did}
   }
-  // Also when the model's answer is not one of the option values or is "not sure"; a valid answer whose quote
-  // is not in the sentence stays rejected.
-  if(!out.species&&(candidate.species==null||!I3.species.has(candidate.species)||candidate.species==='not-sure')){
+  // Whatever the model answered (blank, not an option, "not sure", or an option with a quote that is not in the
+  // sentence), the animal is taken from the sentence only when the sentence itself names exactly one of the seven.
+  if(!out.species){
     const named=Object.keys(SPECIES_WORDS).filter(k=>SPECIES_WORDS[k].test(source));
     if(named.length===1)out.species=named[0];
   }
