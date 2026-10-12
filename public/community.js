@@ -239,7 +239,7 @@
         new RegExp('\\b\\d{1,4}[a-z]?(?:/\\d{1,4}[a-z]?)?\\s*,?\\s+(?:(?!(?:' + STREET_SKIP + ')\\b)[a-z][a-z\'-]*\\s+)?(?:street|st|road|rd|lane|ln|avenue|ave)\\b', 'i').test(n)) found.push('house');
     // Malay street words take any next word ("jalan bukit"); English ones only a capitalised name or a number,
     // so "the road near the shop" and "the lane behind us" pass (U3-2). Same rule in src/iteration3-validators.js.
-    if (/\b(?:jalan|jln|lorong|lrg|persiaran|lebuhraya|lebuh)\s+[a-z0-9]{2,}/i.test(n) || /\b(?:[Ss]treet|[Rr]oad|[Ll]ane|[Aa]venue)\s+[A-Z0-9][A-Za-z0-9]+/.test(n) ||
+    if (/\b(?:jalan|jln|lorong|lrg|persiaran|lebuhraya|lebuh)\s+(?:[a-z0-9]{2,}|\d)/i.test(n) || /\b(?:[Ss]treet|[Rr]oad|[Ll]ane|[Aa]venue)\s+[A-Z0-9][A-Za-z0-9]*/.test(n) ||
         /\b(?:Taman|Kampung|Kg\.?|Bandar|Seksyen|Section|Pangsapuri|Apartment|Condo|Residensi|Flat)\s+[A-Z0-9][A-Za-z0-9]+/.test(n) || namedStreet(n)) found.push('street');
     if (looksLikeName(n)) found.push('name');
     return found;

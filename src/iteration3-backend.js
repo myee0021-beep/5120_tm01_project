@@ -1,7 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import { cleanText, containsSnakeTerm, detectPersonalDetail, slug, validateAi3Candidate, validateCommunitySubmission, validateReviewDecision } from './iteration3-validators.js';
 
-const AI3_PROMPT_VERSION='ai3-v2';
+const AI3_PROMPT_VERSION='ai3-v3';
 const HOLD_DAYS=15;
 const SPECIES_NAME={
   macaque:'Long-tailed Macaque',

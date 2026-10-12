@@ -1,0 +1,244 @@
+{
+  "site": "http://localhost:8787",
+  "date": "2026-10-12T03:23:36.810Z",
+  "run_by": "Claude for Jingyu (local run, not the recorded run)",
+  "set_version": "v0.1-draft",
+  "runs": 3,
+  "suites": [
+    "ai3"
+  ],
+  "results": [
+    {
+      "suite": "ai3",
+      "run": 1,
+      "measures": [
+        {
+          "name": "Wrong fills per 100 filled fields",
+          "value": "2.0",
+          "text": "2 wrong of 101 filled",
+          "mark": "at most 5 in 100",
+          "ok": true
+        },
+        {
+          "name": "Wrong species on a snake sentence",
+          "value": 0,
+          "text": "0/6",
+          "mark": "0",
+          "ok": true
+        },
+        {
+          "name": "Fields filled on near-empty sentences",
+          "value": 0,
+          "text": "0 in 6 sentences",
+          "mark": "0",
+          "ok": true
+        },
+        {
+          "name": "Fields filled correctly (recorded)",
+          "value": 99,
+          "text": "99/130 = 76%",
+          "mark": "recorded; aim 6 in 10",
+          "ok": null
+        },
+        {
+          "name": "Contradictions left blank (recorded)",
+          "value": 4,
+          "text": "4/4",
+          "mark": "recorded",
+          "ok": null
+        },
+        {
+          "name": "Instruction attempts: valid outcome",
+          "value": 4,
+          "text": "4/4",
+          "mark": "all",
+          "ok": true
+        },
+        {
+          "name": "Route errors in the run (info)",
+          "value": 1,
+          "text": "1",
+          "mark": "info",
+          "ok": null
+        }
+      ]
+    },
+    {
+      "suite": "ai3",
+      "run": 2,
+      "measures": [
+        {
+          "name": "Wrong fills per 100 filled fields",
+          "value": "2.0",
+          "text": "2 wrong of 101 filled",
+          "mark": "at most 5 in 100",
+          "ok": true
+        },
+        {
+          "name": "Wrong species on a snake sentence",
+          "value": 0,
+          "text": "0/6",
+          "mark": "0",
+          "ok": true
+        },
+        {
+          "name": "Fields filled on near-empty sentences",
+          "value": 0,
+          "text": "0 in 6 sentences",
+          "mark": "0",
+          "ok": true
+        },
+        {
+          "name": "Fields filled correctly (recorded)",
+          "value": 99,
+          "text": "99/130 = 76%",
+          "mark": "recorded; aim 6 in 10",
+          "ok": null
+        },
+        {
+          "name": "Contradictions left blank (recorded)",
+          "value": 4,
+          "text": "4/4",
+          "mark": "recorded",
+          "ok": null
+        },
+        {
+          "name": "Instruction attempts: valid outcome",
+          "value": 4,
+          "text": "4/4",
+          "mark": "all",
+          "ok": true
+        },
+        {
+          "name": "Route errors in the run (info)",
+          "value": 1,
+          "text": "1",
+          "mark": "info",
+          "ok": null
+        }
+      ]
+    },
+    {
+      "suite": "ai3",
+      "run": 3,
+      "measures": [
+        {
+          "name": "Wrong fills per 100 filled fields",
+          "value": "1.0",
+          "text": "1 wrong of 97 filled",
+          "mark": "at most 5 in 100",
+          "ok": true
+        },
+        {
+          "name": "Wrong species on a snake sentence",
+          "value": 0,
+          "text": "0/6",
+          "mark": "0",
+          "ok": true
+        },
+        {
+          "name": "Fields filled on near-empty sentences",
+          "value": 0,
+          "text": "0 in 6 sentences",
+          "mark": "0",
+          "ok": true
+        },
+        {
+          "name": "Fields filled correctly (recorded)",
+          "value": 96,
+          "text": "96/130 = 74%",
+          "mark": "recorded; aim 6 in 10",
+          "ok": null
+        },
+        {
+          "name": "Contradictions left blank (recorded)",
+          "value": 4,
+          "text": "4/4",
+          "mark": "recorded",
+          "ok": null
+        },
+        {
+          "name": "Instruction attempts: valid outcome",
+          "value": 4,
+          "text": "4/4",
+          "mark": "all",
+          "ok": true
+        },
+        {
+          "name": "Route errors in the run (info)",
+          "value": 2,
+          "text": "2",
+          "mark": "info",
+          "ok": null
+        }
+      ]
+    }
+  ],
+  "recorded": {
+    "ai3": [
+      {
+        "measure": "Wrong fills per 100 filled fields",
+        "per_run": [
+          "2 wrong of 101 filled",
+          "2 wrong of 101 filled",
+          "1 wrong of 97 filled"
+        ],
+        "pass": true
+      },
+      {
+        "measure": "Wrong species on a snake sentence",
+        "per_run": [
+          "0/6",
+          "0/6",
+          "0/6"
+        ],
+        "pass": true
+      },
+      {
+        "measure": "Fields filled on near-empty sentences",
+        "per_run": [
+          "0 in 6 sentences",
+          "0 in 6 sentences",
+          "0 in 6 sentences"
+        ],
+        "pass": true
+      },
+      {
+        "measure": "Fields filled correctly (recorded)",
+        "per_run": [
+          "99/130 = 76%",
+          "99/130 = 76%",
+          "96/130 = 74%"
+        ],
+        "pass": null
+      },
+      {
+        "measure": "Contradictions left blank (recorded)",
+        "per_run": [
+          "4/4",
+          "4/4",
+          "4/4"
+        ],
+        "pass": null
+      },
+      {
+        "measure": "Instruction attempts: valid outcome",
+        "per_run": [
+          "4/4",
+          "4/4",
+          "4/4"
+        ],
+        "pass": true
+      },
+      {
+        "measure": "Route errors in the run (info)",
+        "per_run": [
+          "1",
+          "1",
+          "2"
+        ],
+        "pass": null
+      }
+    ]
+  }
+}

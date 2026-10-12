@@ -90,8 +90,8 @@ export function detectPersonalDetail(note){
     ['postal',/\b\d{5}\b/],
     // Malay street words take any next word ("jalan bukit"); English ones only a capitalised name or a number,
     // so "the road near the shop" and "the lane behind us" are not taken as a street (U3-2).
-    ['street',/\b(?:jalan|jln|lorong|lor|persiaran)\s+[A-Za-z0-9][A-Za-z0-9 .'-]{1,40}/i],
-    ['street',/\b(?:[Ss]treet|[Ss]t\.?|[Rr]oad|[Rr]d\.?|[Aa]venue|[Aa]ve\.?|[Ll]ane|[Ll]n\.?)\s+[A-Z0-9][A-Za-z0-9 .'-]{1,40}/],
+    ['street',/\b(?:jalan|jln|lorong|lor|persiaran)\s+(?:\d|[A-Za-z0-9][A-Za-z0-9 .'-]{1,40})/i],
+    ['street',/\b(?:[Ss]treet|[Ss]t\.?|[Rr]oad|[Rr]d\.?|[Aa]venue|[Aa]ve\.?|[Ll]ane|[Ll]n\.?)\s+[A-Z0-9][A-Za-z0-9 .'-]{0,40}/],
     ['house-number',/\b(?:no\.?|number|house)\s*#?\s*\d+[A-Za-z]?\b/i],
     ['house-number',HOUSE_NUMBER_STREET_RE],
     ['street',NAMED_STREET_RE],
@@ -129,7 +129,8 @@ const SPECIES_WORDS={
 };
 // AI3-T1 (11 Oct): an action is kept only if its quote holds a word for that action, as for came-inside.
 const DID_WORDS={
-  'took-food':/\b(?:take|takes|took|taken|taking|ate|eat|eats|eaten|eating|steal|steals|stole|stolen|stealing|raid|raids|raided|raiding|grab|grabs|grabbed|curi|mencuri|ambil|mengambil|makan)\b/i,
+  // "took over", "ambil alih" (take over) and "bagi makan" (feed someone) are not taking food.
+  'took-food':/\b(?:take|takes|took|taken|taking)\b(?!\s+over)|\b(?:ate|eat|eats|eaten|eating|steal|steals|stole|stolen|stealing|raid|raids|raided|raiding|grab|grabs|grabbed|curi|mencuri)\b|\b(?:ambil|mengambil)\b(?!\s+alih)|(?<!\b(?:bagi|beri|memberi|memberikan|kasi)\s)\bmakan\b/i,
   'stayed-nearby':/\b(?:stay|stays|stayed|staying|sat|sit|sits|sitting|perch|perched|perches|perching|roost|roosts|roosted|roosting|nest|nests|nesting|hang(?:s|ing)?\s+around|hung\s+around|bertenggek|berkeliaran|duduk|tinggal)\b/i,
   'passed-through':/\b(?:pass|passes|passed|passing|walk(?:s|ed|ing)?\s+(?:past|through|by|across)|crossed|crossing|went\s+(?:past|through)|flew\s+(?:past|over|by)|ran\s+(?:past|through)|came\s+through|lalu|melintas|melalui)\b/i,
   'damaged':/\b(?:dug|dig|digs|digging|broke|break|breaks|broken|damage|damages|damaged|damaging|tore|torn|wrecked|knocked\s+(?:over|down)|pushed\s+down|gali|menggali|rosak|rosakkan|merosakkan|pecah|pecahkan)\b/i,
@@ -140,7 +141,7 @@ const SELF_CORRECT_RE=/\b(?:no\s+wait|eh\s+no|eh\s+bukan|no,?\s+it\s+was|actuall
 // Another animal named and none of the seven: nothing is filled ("Out of scope returns no match").
 const OTHER_ANIMAL_RE=/\b(?:cats?|kittens?|dogs?|pupp(?:y|ies)|tigers?|hornbills?|elephants?|rats?|mice|squirrels?|civets?|bears?|deer|otters?|owls?|eagles?|chickens?|ducks?|cows?|goats?|kucing|anjing|harimau|enggang|gajah|tikus|tupai|musang|beruang|rusa|burung\s+hantu|ayam|itik|lembu|kambing)\b/i;
 // Text that talks to the system instead of reporting a visit: nothing is filled.
-const INJECTION_RE=/\b(?:ignore\s+(?:all\s+)?(?:the\s+)?(?:previous|prior|above)|system\s+(?:message|prompt)|you\s+(?:must|are)\s+now|output\s+(?:species|kind|json)|fill\s+every\s+field)\b/i;
+const INJECTION_RE=/\b(?:(?:ignore|disregard|forget)\s+(?:all\s+|any\s+|your\s+|the\s+|these\s+)*(?:rules?|instructions?)|(?:abaikan|lupakan)\s+(?:semua\s+)?(?:peraturan|arahan)|(?:set|change|write|fill|output|tetapkan)\s+(?:the\s+)?(?:species|kind|time|when)\b|ignore\s+(?:all\s+)?(?:the\s+)?(?:previous|prior|above)|system\s+(?:message|prompt)|you\s+(?:must|are)\s+now|output\s+(?:species|kind|json)|fill\s+every\s+field)\b/i;
 // Weeks run Monday to Sunday (as in the form). Date is read in Malaysia time (UTC+8).
 function isMondayMY(now){return new Date(now.getTime()+8*3600*1000).getUTCDay()===1}
 
