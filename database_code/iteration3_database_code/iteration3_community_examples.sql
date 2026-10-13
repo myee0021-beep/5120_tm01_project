@@ -42,8 +42,8 @@ WITH ex(ref, state_slug, district_slug, species, kind, week, tm, did, worked, no
  ('EX-26','kedah','kota-setar','snake','turned-up','2026-10-05','night','["passed-through"]','[]','Seen near the back steps after heavy rain. We stayed inside and it moved on by itself.'),
  ('EX-27','perak','kinta','common-myna','worked','2026-09-21','early-morning','[]','["screens"]','Fitted mesh over the roof vent where they were nesting. No new nest this season.'),
  ('EX-28','selangor','kuala-selangor','wild-boar','turned-up','2026-09-28','night','["damaged","passed-through"]','[]','A sow with four piglets crossed near the plantation edge and dug up the roadside verge.'),
- ('EX-29','w-p-kuala-lumpur','kuala-lumpur','house-crow','worked','2026-10-05','midday','[]','["stopped-feeding"]','A neighbour stopped scattering leftovers on the balcony. Far fewer crows gather there now.'),
- ('EX-30','w-p-labuan','labuan','macaque','turned-up','2026-09-14','early-morning','["onto-roof"]','[]','Three on the roof of the shed behind the house, gone within the hour.')
+ ('EX-29','kuala-lumpur','kuala-lumpur','house-crow','worked','2026-10-05','midday','[]','["stopped-feeding"]','A neighbour stopped scattering leftovers on the balcony. Far fewer crows gather there now.'),
+ ('EX-30','labuan','labuan','macaque','turned-up','2026-09-14','early-morning','["onto-roof"]','[]','Three on the roof of the shed behind the house, gone within the hour.')
 ),
 sp(slug, english_name) AS (VALUES
  ('macaque','Long-tailed Macaque'),('wild-boar','Wild Boar'),('common-myna','Common Myna'),

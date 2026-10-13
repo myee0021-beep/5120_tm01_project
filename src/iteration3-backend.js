@@ -12,8 +12,8 @@ const SPECIES_NAME={
 };
 const STATE_ALIASES={
   penang:'pulau-pinang',
-  kl:'w-p-kuala-lumpur',
-  labuan:'w-p-labuan',
+  kl:'kuala-lumpur', // the state table calls it 'Kuala Lumpur' (state_code 14)
+  labuan:'labuan', // 'Labuan' (state_code 16)
   putrajaya:'w-p-putrajaya'
 };
 const DISTRICT_ALIASES={
