@@ -61,16 +61,21 @@ function speciesSlugFromName(name){
   if(s==='common-water-monitor')return 'water-monitor';
   return 'not-sure';
 }
+// The database names (Pulau Pinang, Ulu Langat) come back as the site's own keys (penang, hulu-langat).
+const STATE_KEY_FROM_SLUG=Object.fromEntries(Object.entries(STATE_ALIASES).map(([k,v])=>[v,k]));
+const DISTRICT_KEY_FROM_SLUG=Object.fromEntries(Object.entries(DISTRICT_ALIASES).map(([k,v])=>[v,k]));
 function reportRow(r){
   if(!r)return null;
   const meta=decodeDid(r.animal_did);
+  const stateSlug=slug(r.state_name||''),districtSlug=slug(r.name_dosm||'');
   return {
     id:r.reference||String(r.id),
     internalId:Number(r.id),
     species:meta.species||speciesSlugFromName(r.english_name),
     kind:r.post_kind||'turned-up',
-    state:slug(r.state_name||''),
-    district:slug(r.name_dosm||''),
+    state:STATE_KEY_FROM_SLUG[stateSlug]||stateSlug,
+    district:DISTRICT_KEY_FROM_SLUG[districtSlug]||districtSlug,
+    example:r.is_example===true,
     week:r.week_of||null,
     time:meta.time||null,
     did:meta.did,

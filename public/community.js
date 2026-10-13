@@ -510,13 +510,14 @@
     if (kind === 'invasive') return '<span class="cm-tag cm-tag--invasive">' + label(KINDS, 'invasive') + '</span>';
     return '<span class="cm-tag">' + label(KINDS, kind) + '</span>';
   }
+  function exampleTag(r) { return r && r.example ? '<span class="cm-tag cm-tag--example">' + T('Example', 'Contoh') + '</span>' : ''; }
   function reportCard(r) {
     var fix = r.worked.length && r.worked.join() !== 'nothing-yet'
       ? '<div class="cm-report__fix">' + ICON_TICK + '<span>' + joinLabels(WORKED, r.worked.filter(function (w) { return w !== 'nothing-yet'; })) + '</span></div>' : '';
     return '<article class="cm-report">' +
-      '<div class="cm-report__top"><div class="cm-report__tags">' + speciesTag(r.species) + kindTag(r.kind) + '</div><span class="cm-report__week">' + weekOf(r.week) + '</span></div>' +
+      '<div class="cm-report__top"><div class="cm-report__tags">' + exampleTag(r) + speciesTag(r.species) + kindTag(r.kind) + '</div><span class="cm-report__week">' + weekOf(r.week) + '</span></div>' +
       '<p class="cm-report__text">' + reportCardText(r) + '</p>' + fix +
-      '<div class="cm-report__foot"><span>' + esc(districtName(r.state, r.district)) + ' · ' + T('reviewed', 'disemak') + '</span>' +
+      '<div class="cm-report__foot"><span>' + esc(districtName(r.state, r.district)) + ' · ' + (r.example ? T('example', 'contoh') : T('reviewed', 'disemak')) + '</span>' +
       '<button type="button" class="cm-link" data-act="open-report" data-id="' + esc(r.id) + '">' + T('Open', 'Buka') + '</button></div></article>';
   }
 
@@ -625,6 +626,10 @@
       h += '<div class="cm-card" style="margin-top:1rem"><p class="cm-muted" style="font-size:.875rem">' + T('No reviewed reports of this kind for ' + esc(dn) + '.', 'Tiada laporan jenis ini yang disemak untuk ' + esc(dn) + '.') + '</p></div>';
       return h;
     }
+    // Example reports are not real submissions: say so once, above the list.
+    if (list.some(function (r) { return r.example; })) {
+      h += '<p class="cm-note cm-note--panel">' + T('Example reports to show how this page works. Not real submissions.', 'Laporan contoh untuk menunjukkan cara halaman ini berfungsi. Bukan penghantaran sebenar.') + '</p>';
+    }
     list.slice(0, L.limit).forEach(function (r) { h += reportCard(r); });
     var more = list.length - L.limit;
     if (more > 0) {
@@ -661,26 +666,28 @@
       var invCode = INVASIVE_CHECK_CODE[r.species];
       // U2-14: a report names an animal, so it links to the "Is it invasive?" check.
       var invLink = invCode ? '<a class="cm-tag" style="text-decoration:underline;text-underline-offset:2px" href="invasive.html?species=' + invCode + '">' + T('Is it invasive? Check', 'Adakah ia invasif? Semak') + ' →</a>' : '';
-      h += '<div class="cm-report__tags" style="margin-top:.9rem">' + speciesTag(r.species) + kindTag(r.kind) + invLink + '<span class="cm-tag cm-tag--ok">' + T('Reviewed ' + esc(fmtDayEn(r.decidedAt || r.week) + ' ' + new Date((r.decidedAt || r.week) + 'T00:00:00').getFullYear()), 'Disemak ' + esc(fmtDayBm(r.decidedAt || r.week) + ' ' + new Date((r.decidedAt || r.week) + 'T00:00:00').getFullYear())) + '</span></div>';
-      h += '<div class="cm-card" style="margin-top:1rem"><dl style="margin:0">' +
+      h += '<div class="cm-report__tags" style="margin-top:.9rem">' + exampleTag(r) + speciesTag(r.species) + kindTag(r.kind) + invLink + (r.example ? '' : '<span class="cm-tag cm-tag--ok">' + T('Reviewed ' + esc(fmtDayEn(r.decidedAt || r.week) + ' ' + new Date((r.decidedAt || r.week) + 'T00:00:00').getFullYear()), 'Disemak ' + esc(fmtDayBm(r.decidedAt || r.week) + ' ' + new Date((r.decidedAt || r.week) + 'T00:00:00').getFullYear())) + '</span>') + '</div>';
+      var photo = SPECIES_PHOTO[r.species]
+        ? '<figure class="cm-detail__photo"><img src="' + SPECIES_PHOTO[r.species] + '" alt="' + esc(sp ? sp.en : r.species) + '" loading="lazy"><figcaption>' + T('Photo via iNaturalist', 'Foto melalui iNaturalist') + '</figcaption></figure>' : '';
+      h += '<div class="cm-card cm-detail" style="margin-top:1rem">' + photo + '<dl class="cm-detail__body" style="margin:0">' +
         kv(T('Where', 'Di mana'), esc(place) + ' · ' + T('District only; the form never asks for more.', 'Daerah sahaja; borang tidak pernah meminta lebih.')) +
         kv(T('When', 'Bila'), weekOf(r.week) + (r.time ? ', ' + label(TIME, r.time).toLowerCase() : '')) +
         (r.did.length ? kv(T('What happened', 'Apa yang berlaku'), joinLabels(DID, r.did)) : '') +
         (worked.length ? kv(T('What worked', 'Apa yang berkesan'), joinLabels(WORKED, worked)) : '') +
         (r.note ? kv(T('Note', 'Nota'), esc(r.note)) : '') + '</dl></div>';
-      var planRows = worked.map(function (w) { return opt(WORKED, w); }).filter(function (o) { return o && o.plan; });
-      if (planRows.length) {
-        h += '<div class="cm-card"><div class="cm-label cm-label--green">' + T('Matches your plan', 'Sepadan dengan pelan anda') + '</div>' +
-          '<p class="cm-muted" style="margin-top:.5rem;font-size:.875rem;color:#334155">' +
-          T(planRows.map(function (o) { return '"' + esc(o.plan[0]) + '"'; }).join(' and ') + (planRows.length > 1 ? ' are' : ' is') + ' in the sourced plan. This report is one neighbour saying it worked; the plan rows carry the source.',
-            planRows.map(function (o) { return '"' + esc(o.plan[1]) + '"'; }).join(' dan ') + ' ada dalam pelan bersumber. Laporan ini ialah seorang jiran yang mengatakan ia berkesan; baris pelan membawa sumbernya.') + '</p>' +
-          '<a class="cm-btn cm-btn--ghost" style="margin-top:.75rem" href="plan.html">' + T('Open my plan', 'Buka pelan saya') + '</a></div>';
-      }
+      h += '<div class="cm-card cm-detail__actions">' +
+        '<a class="cm-btn cm-btn--primary" href="plan.html">' + T('Open my plan', 'Buka pelan saya') + '</a>' +
+        '<button type="button" class="cm-btn cm-btn--ghost" data-act="share-here" data-state="' + esc(r.state) + '" data-district="' + esc(r.district) + '">' + T('Share what you saw', 'Kongsi apa yang anda lihat') + '</button></div>';
       h += '<div class="cm-report__foot cm-float" style="margin-top:.9rem"><button type="button" class="cm-link cm-link--muted" data-act="flag" data-id="' + esc(r.id) + '">' + T('Report a problem with this report', 'Laporkan masalah dengan laporan ini') + '</button>' +
         '<span>' + T(r.photo ? 'Photo: attached' : 'Photo: none', r.photo ? 'Foto: dilampirkan' : 'Foto: tiada') + '</span></div>';
       root.innerHTML = h;
     });
   }
+  // Photographs of the animals, the same ones the Emergency section shows. Snakes have none: the site never shows a snake photograph here.
+  var SPECIES_PHOTO = {
+    'macaque': 'assets/species/macaque.jpg', 'wild-boar': 'assets/species/wild-boar.jpg', 'water-monitor': 'assets/species/water-monitor.jpg',
+    'house-crow': 'assets/species/house-crow.jpg', 'common-myna': 'assets/species/common-myna.jpg'
+  };
   function kv(k, v) { return '<div class="cm-kv"><dt>' + k + '</dt><dd>' + v + '</dd></div>'; }
 
   // ================================================================== SHARE
@@ -1132,6 +1139,7 @@
     if (act === 'chip') return onChip(el);
     switch (act) {
       case 'share': go('community-share', { state: L.state, district: L.district }); break;
+      case 'share-here': go('community-share', { state: el.getAttribute('data-state') || L.state, district: el.getAttribute('data-district') || L.district }); break;
       case 'kind': L.kind = el.getAttribute('data-val'); L.limit = PAGE_SIZE; syncListUrl(); renderList(); break;
       case 'more': L.limit += PAGE_SIZE * 2; renderList(); break;
       case 'reload-list': renderList(); break;

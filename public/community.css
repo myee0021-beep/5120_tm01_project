@@ -60,6 +60,7 @@
 .cm-tag { display: inline-flex; align-items: center; border-radius: 999px; font-size: .6875rem; font-weight: 700; padding: .2rem .65rem; white-space: nowrap; background: #f1f5f9; color: #475569; }
 .cm-tag--species { background: #0b130e; color: #fff; }
 .cm-tag--invasive { background: #fef3c7; color: #92400e; }
+.cm-tag--example { background: #e0f2fe; color: #075985; border: 1px dashed #7dd3fc; }
 .cm-tag--ok { background: #d1fae5; color: #065f46; }
 .cm-tag--held { background: #ffe4e6; color: #be123c; }
 
@@ -176,3 +177,17 @@
 .cm-ai-msg--warn { color: #92400e; background: #fffbeb; border-color: #fde68a; }
 
 .cm-ai-mark { margin-left: .5rem; font-size: .6875rem; font-weight: 700; color: #14532d; background: #dcfce7; border-radius: 999px; padding: .15rem .55rem; vertical-align: middle; white-space: nowrap; }
+
+/* Report page: animal photo beside the details, and the two actions below */
+.cm-detail { display: flex; flex-direction: row-reverse; gap: 1.25rem; align-items: flex-start; }
+.cm-detail__body { flex: 1; min-width: 0; }
+.cm-detail__photo { margin: 0; flex: 0 0 auto; width: 11rem; }
+.cm-detail__photo img { display: block; width: 11rem; height: 11rem; object-fit: cover; border-radius: 1rem; background: #f1f5f9; }
+.cm-detail__photo figcaption { margin-top: .35rem; font-size: .6875rem; color: #64748b; }
+@media (max-width: 560px) {
+  .cm-detail { flex-direction: column; }
+  .cm-detail__photo, .cm-detail__photo img { width: 100%; }
+  .cm-detail__photo img { height: 12rem; }
+}
+.cm-detail__actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.cm-detail__actions .cm-btn { margin-top: 0; width: auto; flex: 1 1 11rem; text-align: center; justify-content: center; text-decoration: none; }
