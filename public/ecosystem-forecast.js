@@ -1,7 +1,7 @@
 /* Wildlife forecast — Epic 11 (Iteration 3). Figma: Ecosystem 12 (result), Ecosystem 13 (not enough records).
  *
  * AC 11.1.1  state and month, seven animals in order, a word band each, no percentages, snakes as one group
- * AC 11.1.2  too few records: no band, the count is shown, the animal is not ranked last
+ * AC 11.1.2  too few records: no cut-off line; the animal is named "Less likely", the count is shown, it is not ranked
  * AC 11.2.1  what the forecast is and is not, beside the result
  * AC 11.3.2  reads one static file shipped with the site; nothing is run online and nothing chosen is stored
  *
@@ -60,7 +60,8 @@
   var BAND = {
     very: { en: 'Very likely', bm: 'Sangat mungkin' },
     likely: { en: 'Likely', bm: 'Mungkin' },
-    unlikely: { en: 'Unlikely', bm: 'Tidak mungkin' }
+    unlikely: { en: 'Unlikely', bm: 'Tidak mungkin' },
+    less: { en: 'Less likely', bm: 'Kurang mungkin' } // fewer than the minimum records: no cut-off line, just this word
   };
 
   var S = { data: null, failed: false, loading: false, state: '', month: new Date().getMonth() + 1, snakesOpen: false, built: false,
@@ -189,7 +190,13 @@
       (name ? '<a class="fc-btn" href="plan.html' + q + '">' + T('Plan for a home in ' + esc(name), 'Rancang untuk rumah di ' + esc(name)) + '</a>' : '');
   }
   function chip(band) { return '<span class="fc-chip fc-chip--' + band + '">' + T(BAND[band].en, BAND[band].bm) + '</span>'; }
-  function notEnough(rec) { return '<span class="fc-chip fc-chip--none">' + T('Not enough records', 'Rekod tidak mencukupi') + '</span><span class="fc-count">' + fmt(rec) + ' ' + T(rec === 1 ? 'record' : 'records', 'rekod') + '</span>'; }
+  function lessLikely() { return '<span class="fc-chip fc-chip--less">' + T(BAND.less.en, BAND.less.bm) + '</span>'; }
+  // The one place the minimum is explained; shown under every forecast.
+  function lessLikelyNote(where) {
+    var min = minRecords();
+    return '<p class="fc-text">' + T('<b>Less likely</b> means fewer than ' + min + ' records of that animal ' + where.en + ' from 2015 to 2024. With so few records the model has little to learn from, so the animal is listed after the others, without a place in the order. It does not mean the animal is absent. Few records can simply mean few people have reported it.',
+      '<b>Kurang mungkin</b> bermaksud kurang daripada ' + min + ' rekod haiwan itu ' + where.bm + ' dari 2015 hingga 2024. Dengan rekod yang begitu sedikit, model kurang bahan untuk belajar, jadi haiwan itu disenaraikan selepas yang lain, tanpa kedudukan dalam susunan. Ia tidak bermakna haiwan itu tiada. Rekod yang sedikit mungkin hanya bermakna sedikit orang melaporkannya.') + '</p>';
+  }
   // U2-14: every named animal also links to the "Is it invasive?" check.
   function invasiveLink(code) {
     return ' <a class="fc-inv" style="font-size:11px;font-weight:600;color:#047857;text-decoration:underline;text-underline-offset:2px;margin-left:6px;white-space:nowrap" href="invasive.html?species=' + (code === 'snakes' ? 'snake' : code) + '">' + T('Invasive?', 'Invasif?') + '</a>';
@@ -219,13 +226,13 @@
     }
     var f = forecastFor(S.state, S.month);
     var yrs = yearsText();
-    // The whole state is below the minimum (AC 11.1.2): no list at all, the count, and ways forward.
-    if (!f.items.length || !enough(f.stateRecords)) {
+    // Nothing in the file for this state and month: no list, the count, and ways forward.
+    if (!f.items.length) {
       var near = NEARBY_FIRST[S.state] || NEARBY[S.state];
-      if (near && !enough(forecastFor(near, S.month).stateRecords)) near = null;
+      if (near && !forecastFor(near, S.month).items.length) near = null;
       h += '<div class="fc-card"><div class="fc-label">' + T('Not enough records to forecast', 'Rekod tidak mencukupi untuk meramal') + '</div>' +
         '<p class="fc-big">' + T(esc(st[1]) + ' has ' + fmt(f.stateRecords) + ' ' + (f.stateRecords === 1 ? 'record' : 'records') + ' of the seven animals' + (yrs ? ' from ' + yrs[0] + ' to ' + yrs[1] : '') + '.', esc(st[2]) + ' mempunyai ' + fmt(f.stateRecords) + ' rekod tujuh haiwan' + (yrs ? ' dari ' + yrs[0] + ' hingga ' + yrs[1] : '') + '.') + '</p>' +
-        '<p class="fc-text">' + T('That is fewer than we need to make a forecast, so none is shown (at least ' + minRecords() + ' records are needed). The same minimum is used on every page of the site.', 'Itu kurang daripada yang kami perlukan untuk membuat ramalan, jadi tiada dipaparkan (sekurang-kurangnya ' + minRecords() + ' rekod diperlukan). Minimum yang sama digunakan pada setiap halaman tapak.') + '</p>' +
+        '<p class="fc-text">' + T('That is too little for a forecast, so none is shown.', 'Itu terlalu sedikit untuk ramalan, jadi tiada dipaparkan.') + '</p>' +
         '<p class="fc-text">' + T('Few records does not mean few animals. It means few people have reported them here.', 'Rekod yang sedikit tidak bermakna haiwan yang sedikit. Ia bermakna sedikit orang melaporkannya di sini.') + '</p></div>';
       h += '<div class="fc-card"><div class="fc-label">' + T('What you can do instead', 'Apa yang boleh anda lakukan') + '</div><div class="fc-list-links">' +
         (near ? '<button type="button" class="fc-link" data-act="state" data-val="' + near + '">' + T('See the forecast for a nearby state, ' + esc(stateRow(near)[1]) + '.', 'Lihat ramalan untuk negeri berdekatan, ' + esc(stateRow(near)[2]) + '.') + '</button>' : '') +
@@ -248,18 +255,18 @@
     thin.forEach(function (it) {
       var isSnakes = it.code === 'snakes';
       list += '<li class="fc-row fc-row--thin"><span class="fc-n">·</span><span class="fc-who">' +
-        (isSnakes ? '<button type="button" class="fc-name fc-name--btn" data-act="snakes" aria-expanded="' + S.snakesOpen + '">' + nameLink(it) + '</button>' : nameLink(it)) + '</span><span class="fc-thin">' + notEnough(it.records) + '</span></li>';
+        (isSnakes ? '<button type="button" class="fc-name fc-name--btn" data-act="snakes" aria-expanded="' + S.snakesOpen + '">' + nameLink(it) + '</button>' : nameLink(it)) + '</span><span class="fc-thin">' + lessLikely(it.records) + '</span></li>';
       if (isSnakes && S.snakesOpen) list += snakeRows(it);
     });
     list += '</ol>';
     var hasSnakes = f.items.some(function (i) { return i.code === 'snakes'; });
-    if (thin.length) list += '<p class="fc-note">' + T('Animals with fewer than ' + minRecords() + ' records here are listed without a place in the order, because few records does not mean the animal is rarely present.', 'Haiwan dengan kurang daripada ' + minRecords() + ' rekod di sini disenaraikan tanpa kedudukan dalam susunan, kerana rekod yang sedikit tidak bermakna haiwan itu jarang ada.') + '</p>';
     if (hasSnakes) list += '<p class="fc-note">' + T('Snakes are shown as one group. Tap to open it.', 'Ular dipaparkan sebagai satu kumpulan. Ketik untuk membukanya.') + '</p>';
     list += '<p class="fc-note">' + T('Built from records up to ' + lastMonthText() + '. The order changes little from month to month.', 'Dibina daripada rekod sehingga ' + lastMonthText() + '. Susunan berubah sedikit dari bulan ke bulan.') + '</p>';
     h += '<div class="fc-card">' + list + '</div>';
     h += '<div class="fc-card"><div class="fc-label">' + T('What this means', 'Maksudnya') + '</div>' +
       '<p class="fc-text">' + T('This predicts how likely each animal is to be recorded by people in ' + esc(st[1]) + ' in ' + MONTHS.en[S.month - 1] + ', from records of earlier months and years' + (yrs ? ' (' + yrs[0] + ' to ' + yrs[1] + ')' : '') + '.', 'Ini meramal betapa mungkinnya setiap haiwan direkodkan oleh orang ramai di ' + esc(st[2]) + ' pada ' + MONTHS.bm[S.month - 1] + ', daripada rekod bulan dan tahun terdahulu' + (yrs ? ' (' + yrs[0] + ' hingga ' + yrs[1] + ')' : '') + '.') + '</p>' +
       '<p class="fc-text">' + T('A record is one report by a person, not one animal. Unlikely to be recorded does not mean the animal is absent.', 'Satu rekod ialah satu laporan oleh seseorang, bukan satu haiwan. Tidak mungkin direkodkan tidak bermakna haiwan itu tiada.') + '</p>' +
+      lessLikelyNote({ en: 'in this state', bm: 'di negeri ini' }) +
       '<p class="fc-text">' + T('It is a prediction for the state. It is not a chance for your home.', 'Ia ramalan untuk negeri. Ia bukan kebarangkalian untuk rumah anda.') + '</p></div>';
     root.innerHTML = h + actions();
   }
@@ -319,23 +326,19 @@
     }).join('');
     h += '<div class="fc-card"><div class="fc-label">' + T('Choose a square in ' + esc(st[1]), 'Pilih satu petak di ' + esc(st[2])) + '</div>' +
       '<div class="fc-map" id="' + PAGE + '__gridMap"></div>' +
-      '<div class="fc-legend"><span><i class="fc-sw fc-sw--ok"></i>' + T('Enough records (darker = more)', 'Rekod mencukupi (lebih gelap = lebih banyak)') + '</span><span><i class="fc-sw fc-sw--few"></i>' + T('Fewer than ' + min + ' records', 'Kurang daripada ' + min + ' rekod') + '</span></div>' +
+      '<div class="fc-legend"><span><i class="fc-sw fc-sw--ok"></i>' + T('Enough records (darker = more)', 'Rekod mencukupi (lebih gelap = lebih banyak)') + '</span><span><i class="fc-sw fc-sw--few"></i>' + T('Less likely (fewer than ' + min + ' records)', 'Kurang mungkin (kurang daripada ' + min + ' rekod)') + '</span></div>' +
       '<select class="fc-select fc-cellsel" data-sel="cell" aria-label="' + esc(lang() === 'bm' ? 'Petak' : 'Square') + '">' + opts + '</select></div>';
     var where = T('Square ' + esc(cellName(cell)) + ' · ' + MONTHS.en[S.month - 1], 'Petak ' + esc(cellName(cell)) + ' · ' + MONTHS.bm[S.month - 1]);
-    if (cell.records < min) {
-      h += '<div class="fc-card"><div class="fc-label">' + where + '</div>' +
-        '<p class="fc-big">' + T('This square has ' + fmt(cell.records) + ' ' + (cell.records === 1 ? 'record' : 'records') + ' of the seven animals from 2015 to 2024.', 'Petak ini mempunyai ' + fmt(cell.records) + ' rekod tujuh haiwan dari 2015 hingga 2024.') + '</p>' +
-        '<p class="fc-text">' + T('That is fewer than we need, so no forecast is shown (at least ' + min + ' records are needed, the same minimum as everywhere on the site). Few records does not mean few animals.', 'Itu kurang daripada yang diperlukan, jadi tiada ramalan dipaparkan (sekurang-kurangnya ' + min + ' rekod diperlukan, minimum yang sama di seluruh tapak). Rekod yang sedikit tidak bermakna haiwan yang sedikit.') + '</p>' +
-        '<div class="fc-list-links"><button type="button" class="fc-link" data-act="view" data-val="state">' + T('See the whole-state forecast for ' + esc(st[1]) + '.', 'Lihat ramalan seluruh negeri untuk ' + esc(st[2]) + '.') + '</button></div></div>';
-    } else {
+    {
+      var few = cell.records < min;
       var items = areaItems(cell, S.month);
       var list = '<div class="fc-label">' + T('Most likely to be recorded · ', 'Paling mungkin direkodkan · ') + where + '</div><ol class="fc-rank">';
       items.forEach(function (it, i) {
         var isSnakes = it.code === 'snakes';
-        list += '<li class="fc-row"><span class="fc-n">' + (i + 1) + '</span><span class="fc-who">' +
-          (isSnakes ? '<button type="button" class="fc-name fc-name--btn" data-act="snakes" aria-expanded="' + S.snakesOpen + '">' + nameLink(it) + '</button>' : nameLink(it)) + '</span>' + chip(bandFor(it.p)) + '</li>';
+        list += '<li class="fc-row' + (few ? ' fc-row--thin' : '') + '"><span class="fc-n">' + (few ? '·' : i + 1) + '</span><span class="fc-who">' +
+          (isSnakes ? '<button type="button" class="fc-name fc-name--btn" data-act="snakes" aria-expanded="' + S.snakesOpen + '">' + nameLink(it) + '</button>' : nameLink(it)) + '</span>' + (few ? '<span class="fc-thin">' + lessLikely(cell.records) + '</span>' : chip(bandFor(it.p))) + '</li>';
         if (isSnakes && S.snakesOpen) it.group.slice().sort(function (a, b) { return b.p - a.p; }).forEach(function (s) {
-          list += '<li class="fc-row fc-row--sub"><span class="fc-n"></span><span class="fc-who">' + nameLink(s) + '</span>' + chip(bandFor(s.p)) + '</li>';
+          list += '<li class="fc-row fc-row--sub"><span class="fc-n"></span><span class="fc-who">' + nameLink(s) + '</span>' + (few ? '<span class="fc-thin">' + lessLikely(cell.records) + '</span>' : chip(bandFor(s.p))) + '</li>';
         });
       });
       list += '</ol><p class="fc-note">' + T('Snakes are shown as one group. Tap to open it.', 'Ular dipaparkan sebagai satu kumpulan. Ketik untuk membukanya.') + '</p>' +
@@ -344,7 +347,8 @@
     }
     h += '<div class="fc-card"><div class="fc-label">' + T('What this means', 'Maksudnya') + '</div>' +
       '<p class="fc-text">' + T('If anything is recorded in this square in ' + MONTHS.en[S.month - 1] + ', this is how likely each animal is to be among what is recorded. It comes from the area model, trained on records from 2015 to 2024 placed in squares of about 28 km.', 'Jika ada apa-apa direkodkan di petak ini pada ' + MONTHS.bm[S.month - 1] + ', ini betapa mungkinnya setiap haiwan termasuk dalam rekod itu. Ia daripada model kawasan, dilatih dengan rekod 2015 hingga 2024 yang diletakkan dalam petak kira-kira 28 km.') + '</p>' +
-      '<p class="fc-text">' + T('A record is one report by a person, not one animal. A square is a wide area, so this is not a chance for your home.', 'Satu rekod ialah satu laporan oleh seseorang, bukan satu haiwan. Satu petak ialah kawasan yang luas, jadi ini bukan kebarangkalian untuk rumah anda.') + '</p></div>';
+      '<p class="fc-text">' + T('A record is one report by a person, not one animal. A square is a wide area, so this is not a chance for your home.', 'Satu rekod ialah satu laporan oleh seseorang, bukan satu haiwan. Satu petak ialah kawasan yang luas, jadi ini bukan kebarangkalian untuk rumah anda.') + '</p>' +
+      lessLikelyNote({ en: 'in a square', bm: 'dalam satu petak' }) + '</div>';
     root.innerHTML = h + actions();
     drawGridMap(cells, cell);
   }
@@ -394,7 +398,7 @@
     var out = '';
     group.group.slice().sort(function (a, b) { return b.records - a.records; }).forEach(function (s) {
       var ok = enough(s.records);
-      out += '<li class="fc-row fc-row--sub"><span class="fc-n"></span><span class="fc-who">' + nameLink(s) + '</span>' + (ok ? chip(bandFor(s.p)) : '<span class="fc-thin">' + notEnough(s.records) + '</span>') + '</li>';
+      out += '<li class="fc-row fc-row--sub"><span class="fc-n"></span><span class="fc-who">' + nameLink(s) + '</span>' + (ok ? chip(bandFor(s.p)) : '<span class="fc-thin">' + lessLikely(s.records) + '</span>') + '</li>';
     });
     return out;
   }

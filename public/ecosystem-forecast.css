@@ -31,6 +31,7 @@ a.fc-name:hover { text-decoration: underline; }
 .fc-chip--very { background: #1b4332; color: #fff; }
 .fc-chip--likely { background: #d1fae5; color: #065f46; }
 .fc-chip--unlikely { background: #f1f5f9; color: #475569; }
+.fc-chip--less { background: #fef3c7; color: #92400e; }
 .fc-chip--none { background: #fff; color: #475569; border: 1px solid #cbd5e1; }
 .fc-thin { display: inline-flex; align-items: center; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
 .fc-count { font-size: .75rem; color: #64748b; }
