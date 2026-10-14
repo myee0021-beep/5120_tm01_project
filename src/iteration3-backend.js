@@ -118,7 +118,8 @@ async function joinedPostById(sql,id){
 async function resolvePostId(sql,idOrRef){
   const raw=String(idOrRef||'');
   if(/^\d+$/.test(raw))return Number(raw);
-  const rows=await sql`SELECT id FROM community_post WHERE reference=${raw} LIMIT 1`;
+  // TRIM: a fixed-width reference column pads short references such as EX-01. A published row is preferred if a reference repeats.
+  const rows=await sql`SELECT id FROM community_post WHERE TRIM(reference)=${raw.trim()} ORDER BY (status='published') DESC, id DESC LIMIT 1`;
   return rows.length?Number(rows[0].id):null;
 }
 
