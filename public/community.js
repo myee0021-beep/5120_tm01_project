@@ -1063,7 +1063,20 @@
       'Baris contoh untuk prototaip. Laporan ditunjukkan tepat seperti dihantar. Tiada apa tentang pelapor kerana tiada apa tentang pelapor diterima.') + '</p>';
     var items = R.queue.filter(function (r) { return r.status === R.tab && (R.district === 'all' || (r.state + '/' + r.district) === R.district); });
     if (!items.length) h += '<div class="cm-card" style="margin-top:1rem"><p class="cm-muted" style="font-size:.875rem">' + T('Nothing here.', 'Tiada apa di sini.') + '</p></div>';
-    items.forEach(function (r) { h += reviewCard(r); });
+    items.forEach(function (r) {
+      // One bad row must not blank the whole tab: draw a plain card with the reference and a delete button instead
+      try { h += reviewCard(r); }
+      catch (err) {
+        if (window.console) console.error('[community] review card', r && r.id, err);
+        h += '<article class="cm-report" data-id="' + esc(r.id) + '"><p class="cm-report__text">' + esc(r.id) + ' · ' + esc(r.status) + '</p>' +
+          (R.open && R.open.id === r.id
+            ? '<div class="cm-reason">' + REASONS.filter(function (x) { return x.for.indexOf(R.open.decision) !== -1; }).map(function (x) {
+                return '<label><input type="radio" name="reason-' + esc(r.id) + '" data-act="reason" data-val="' + x.id + '"' + (R.open.reason === x.id ? ' checked' : '') + '>' + TE(x.en, x.bm) + '</label>';
+              }).join('') + '</div><div class="cm-actions"><button type="button" class="cm-btn cm-btn--sm cm-btn--danger" data-act="record">' + T('Record the delete', 'Rekod pemadaman') + '</button>' +
+              '<button type="button" class="cm-btn cm-btn--sm cm-btn--outline" data-act="cancel-decision">' + T('Cancel', 'Batal') + '</button></div>'
+            : (r.status === 'deleted' ? '' : '<div class="cm-actions"><button type="button" class="cm-btn cm-btn--sm cm-btn--outline-danger" data-act="decide" data-decision="delete" data-id="' + esc(r.id) + '">' + T('Delete', 'Padam') + '</button></div>')) + '</article>';
+      }
+    });
     h += '<div style="text-align:center;margin-top:1.1rem"><button type="button" class="cm-link cm-link--float" data-act="toggle-log">' + (R.showLog ? T('Hide the review log', 'Sembunyikan log semakan') : T('Open the review log', 'Buka log semakan')) + '</button></div>';
     if (R.showLog) h += logHtml();
     root.innerHTML = h;
