@@ -1086,7 +1086,8 @@
     h += '<div class="cm-report__foot" style="' + (r.status === 'held' ? 'color:#e11d48' : '') + '"><span>' + meta + '</span></div>';
     if (r.status === 'published' || r.status === 'deleted') {
       if (r.reason) h += '<p class="cm-note" style="margin-top:.3rem">' + T('Reason: ', 'Sebab: ') + reasonLabel(r.reason) + '</p>';
-      return h + '</article>';
+      // A published report can still be taken down (for example a team test report), with a reason, through the same log
+      if (r.status === 'deleted') return h + '</article>';
     }
     if (open) {
       var pickFor = REASONS.filter(function (x) { return x.for.indexOf(open.decision) !== -1; });
@@ -1102,7 +1103,9 @@
         '<button type="button" class="cm-btn cm-btn--sm cm-btn--outline" data-act="cancel-decision">' + T('Cancel', 'Batal') + '</button></div>';
     } else {
       h += '<div class="cm-actions">';
-      if (r.status === 'held') {
+      if (r.status === 'published') {
+        // published: only a delete, with a reason (test, duplicate, ...)
+      } else if (r.status === 'held') {
         h += '<span class="cm-btn cm-btn--sm cm-btn--outline-danger" style="cursor:default">' + T('Held: ', 'Ditahan: ') + reasonLabel(r.reason) + '</span>';
       } else {
         h += '<button type="button" class="cm-btn cm-btn--sm cm-btn--primary" data-act="decide" data-decision="publish" data-id="' + esc(r.id) + '">' + T('Publish', 'Terbitkan') + '</button>' +
