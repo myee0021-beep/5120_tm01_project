@@ -154,9 +154,10 @@
   function districtList(state) { return (DISTRICTS[state] || []).map(function (n) { return [slug(n), n]; }); }
   function districtName(state, key) { var l = districtList(state); for (var i = 0; i < l.length; i++) if (l[i][0] === key) return l[i][1]; return ''; }
   function placeText(state, district) { var d = districtName(state, district), s = stateName(state); return d && s ? d + ', ' + s : (s || ''); }
-  function weekOf(iso) { return T('Week of ' + esc(fmtDayEn(iso)), 'Minggu ' + esc(fmtDayBm(iso))); }
-  function fmtDayEn(iso) { var d = new Date(iso + 'T00:00:00'); return d.getDate() + ' ' + MONTHS[d.getMonth()][0]; }
-  function fmtDayBm(iso) { var d = new Date(iso + 'T00:00:00'); return d.getDate() + ' ' + MONTHS[d.getMonth()][1]; }
+  function weekOf(iso) { return iso ? T('Week of ' + esc(fmtDayEn(iso)), 'Minggu ' + esc(fmtDayBm(iso))) : ''; }
+  // A missing date (a deleted report keeps no week; the queue does not send a decision date) shows as a dash, never an error
+  function fmtDayEn(iso) { var d = new Date(String(iso || '').slice(0, 10) + 'T00:00:00'); return isNaN(d) ? '–' : d.getDate() + ' ' + MONTHS[d.getMonth()][0]; }
+  function fmtDayBm(iso) { var d = new Date(String(iso || '').slice(0, 10) + 'T00:00:00'); return isNaN(d) ? '–' : d.getDate() + ' ' + MONTHS[d.getMonth()][1]; }
   function isoDate(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function addDays(iso, n) { var d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return isoDate(d); }
   function mondayOf(d) { var x = new Date(d); var day = (x.getDay() + 6) % 7; x.setDate(x.getDate() - day); return isoDate(x); }
@@ -1079,7 +1080,9 @@
       if (r.worked.length && r.worked.join() !== 'nothing-yet') h += '<div class="cm-report__fix">' + ICON_TICK + '<span>' + joinLabels(WORKED, r.worked.filter(function (w) { return w !== 'nothing-yet'; })) + '</span></div>';
       if (r.photo) h += '<p class="cm-note" style="margin-top:.4rem">' + T('A photo is attached.', 'Foto dilampirkan.') + '</p>';
     }
-    var meta = esc(r.id) + ' · ' + esc(districtName(r.state, r.district)) + ' · ';
+    var meta = esc(r.id) + ' · ' + (r.district ? esc(districtName(r.state, r.district)) + ' · ' : '');
+    if (r.status === 'held' && !r.decidedAt) r.decidedAt = r.submitted; // the note check holds a report when it is submitted
+    if (r.status === 'held' && !r.holdUntil && r.decidedAt) r.holdUntil = addDays(String(r.decidedAt).slice(0, 10), HOLD_DAYS);
     if (r.status === 'held') meta += T('held ' + esc(fmtDayEn(r.decidedAt)) + ' · deleted ' + esc(fmtDayEn(r.holdUntil)) + ' unless published', 'ditahan ' + esc(fmtDayBm(r.decidedAt)) + ' · dipadam ' + esc(fmtDayBm(r.holdUntil)) + ' kecuali diterbitkan');
     else if (r.status === 'submitted') meta += T('submitted ' + esc(fmtDayEn(r.submitted)), 'dihantar ' + esc(fmtDayBm(r.submitted)));
     else meta += T(r.status + ' ' + esc(fmtDayEn(r.decidedAt || r.submitted)), (r.status === 'published' ? 'diterbitkan ' : 'dipadam ') + esc(fmtDayBm(r.decidedAt || r.submitted)));
@@ -1106,7 +1109,7 @@
       if (r.status === 'published') {
         // published: only a delete, with a reason (test, duplicate, ...)
       } else if (r.status === 'held') {
-        h += '<span class="cm-btn cm-btn--sm cm-btn--outline-danger" style="cursor:default">' + T('Held: ', 'Ditahan: ') + reasonLabel(r.reason) + '</span>';
+        h += '<span class="cm-btn cm-btn--sm cm-btn--outline-danger" style="cursor:default">' + (r.reason ? T('Held: ', 'Ditahan: ') + reasonLabel(r.reason) : T('Held', 'Ditahan')) + '</span>';
       } else {
         h += '<button type="button" class="cm-btn cm-btn--sm cm-btn--primary" data-act="decide" data-decision="publish" data-id="' + esc(r.id) + '">' + T('Publish', 'Terbitkan') + '</button>' +
           '<button type="button" class="cm-btn cm-btn--sm cm-btn--outline" data-act="decide" data-decision="hold" data-id="' + esc(r.id) + '">' + T('Hold', 'Tahan') + '</button>';
