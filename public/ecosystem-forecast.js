@@ -376,10 +376,15 @@
       group.addLayer(r);
     });
     group.addTo(map);
-    if (S.mapView && S.mapView.state === S.state) map.setView(S.mapView.center, S.mapView.zoom);
-    else map.fitBounds(group.getBounds(), { padding: [12, 12], maxZoom: 10 });
+    var keepView = S.mapView && S.mapView.state === S.state;
+    function place() {
+      if (keepView) map.setView(S.mapView.center, S.mapView.zoom, { animate: false });
+      else map.fitBounds(group.getBounds(), { padding: [12, 12], maxZoom: 10, animate: false });
+    }
+    place();
     S.gridMap = map;
-    setTimeout(function () { if (S.gridMap === map) map.invalidateSize(); }, 0);
+    // the container gets its final size only after this render; refit then, or the squares sit off centre on a phone
+    setTimeout(function () { if (S.gridMap === map) { map.invalidateSize(); place(); } }, 0);
   }
   function loadGrid() {
     if (S.gridLoading) return;

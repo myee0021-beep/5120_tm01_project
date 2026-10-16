@@ -681,7 +681,11 @@
 @media (max-width:640px) {
   .app-page:not(#page-index):not(#page-emergency):not(#page-about-the-data) > main { background-size:100% 450px, auto 450px; }
   #ecosystem__speciesPills { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  #ecosystem__map { height:340px !important; min-height:340px !important; }
+  #ecosystem__map { height:380px !important; min-height:380px !important; }
+  /* iOS Safari zooms the whole page into any form field under 16px and does not zoom back out */
+  select, input:not([type=checkbox]):not([type=radio]), textarea { font-size:16px !important; }
+  /* on a phone the merged-circles note covered half the map; it sits under the map instead */
+  #ecosystem__clusterNote { position:static !important; margin-top:.5rem; box-shadow:none; }
 }
 #page-emergency { min-height:100vh; background:#07130d; }
 #page-emergency { padding-top:4rem; background:#07130d; min-height:100vh; }
@@ -4050,7 +4054,9 @@ function initMap(statesGeoJson) {
   // shown in the map's bottom-left corner (see #mapWrap in ecosystem.html)
   // covers attribution instead. If this map is ever used somewhere Esri's
   // terms require the full on-map credit, re-enable attributionControl.
-  map = L.map('ecosystem__map', { scrollWheelZoom: true, attributionControl: false }).setView([4.2, 108.5], 5);
+  // zoomSnap 0.25: whole zoom levels are too coarse on a phone, where the
+  // national fit would otherwise drop a full level and leave the country tiny
+  map = L.map('ecosystem__map', { scrollWheelZoom: true, attributionControl: false, zoomSnap: 0.25 }).setView([4.2, 108.5], 5);
   // Esri's free basemap, not OSM's own tile.openstreetmap.org — the raw OSM
   // tile server explicitly disallows this kind of repeated/scripted access
   // outside a single lightweight browsing session (see osm.wiki/Blocked)
@@ -4084,6 +4090,49 @@ function initMap(statesGeoJson) {
   // against the cluster grouping it was armed on, so any zoom/drag clears it.
   map.on('zoomend', function () { if (viewMode === 'state') drawBubbles(lastByState); syncNationalBtn(); });
   map.on('zoomstart dragstart', function () { lastClickedClusterKey = null; });
+  map.on('dragstart', function () { map.__userMoved = true; });
+  map.getContainer().addEventListener('wheel', function () { map.__userMoved = true; }, { passive: true });
+  map.getContainer().addEventListener('touchstart', function (e) { if (e.touches.length > 1) map.__userMoved = true; }, { passive: true });
+
+  // The Ecosystem page is often still hidden (display:none) when this runs,
+  // and phones resize the map (380px CSS, rotation, address bar). Leaflet then
+  // fits against a zero or stale size and keeps the wrong view, so the
+  // country or the opened state ends up off screen. Refit whenever the
+  // container gets a real, different size, unless the resident has moved the map.
+  var lastSize = '';
+  function onContainerSize() {
+    var el = map.getContainer();
+    if (!el.clientWidth || !el.clientHeight) return;
+    var size = el.clientWidth + 'x' + el.clientHeight;
+    if (size === lastSize) return;
+    lastSize = size;
+    map.invalidateSize();
+    if (!map.__userMoved) fitCurrentView();
+  }
+  if (window.ResizeObserver) new ResizeObserver(onContainerSize).observe(map.getContainer());
+  window.addEventListener('resize', onContainerSize);
+  window.addEventListener('hashchange', function () { setTimeout(onContainerSize, 60); });
+  document.addEventListener('roomforboth:pageshow', function () { setTimeout(onContainerSize, 60); });
+}
+
+// fit to the open state, or to the whole country; only when the map has a size,
+// otherwise Leaflet computes the zoom against 0x0 and over-zooms
+function fitCurrentView() {
+  if (!map || !statesLayer) return false;
+  var el = map.getContainer();
+  if (!el.clientWidth || !el.clientHeight) return false;
+  map.invalidateSize();
+  var target = null;
+  if (selectedState) {
+    statesLayer.eachLayer(function (layer) {
+      if (layer.feature.properties.stateKey === selectedState) target = layer.getBounds();
+    });
+  }
+  // animate:false: an animated zoom waits for a frame and a CSS transition,
+  // which a hidden page or a background tab never delivers, so the fit was lost
+  if (target) map.fitBounds(target, { padding: [12, 12], maxZoom: 10, animate: false });
+  else map.fitBounds(statesLayer.getBounds(), { padding: [8, 8], animate: false });
+  return true;
 }
 
 // Area-proportional bubble size (sqrt of count) so bubble AREA, not radius,
@@ -4092,7 +4141,10 @@ function initMap(statesGeoJson) {
 // beyond scaleMax are allowed to keep growing (clamped at maxS) rather than
 // clipped flat, so a big cluster still visibly outgrows its members.
 function bubbleSizeForCount(count, scaleMax) {
-  var minS = 28, maxS = 84;
+  // smaller circles on a phone-width map, so the peninsula states are not all
+  // merged into one circle at the national zoom
+  var narrow = map && map.getSize().x < 480;
+  var minS = narrow ? 22 : 28, maxS = narrow ? 54 : 84;
   if (!scaleMax || !count) return minS;
   var t = Math.sqrt(count / scaleMax);
   return Math.max(minS, Math.min(maxS, Math.round(minS + t * (maxS - minS))));
@@ -4294,7 +4346,8 @@ function selectState(stateKey) {
 function backToNational() {
   selectedState = null;
   renderAll();
-  map.fitBounds(statesLayer.getBounds(), { padding: [8, 8] });
+  map.__userMoved = false;
+  fitCurrentView();
 }
 // U2-4: the way back to the national map sits on the map itself, shown
 // whenever a state is open or the map is zoomed in past the national view.
@@ -4420,18 +4473,14 @@ function renderMapLayer(filtered) {
     layer.setStyle({ fillOpacity: isSelected ? 0.22 : 0.06, weight: isSelected ? 3 : 1, color: isSelected ? '#0b130e' : '#215240' });
   });
 
+  // a state was opened: show it. First render: fit the country. Both wait for
+  // a real container size (see fitCurrentView); the ResizeObserver in initMap
+  // repeats the fit once the hidden page is shown.
   if (selectedState) {
-    map.invalidateSize(); // the container can still be mid-layout, or resized since the last fit
-    statesLayer.eachLayer(function (layer) {
-      if (layer.feature.properties.stateKey === selectedState) map.fitBounds(layer.getBounds(), { padding: [12, 12] });
-    });
+    map.__userMoved = false;
+    fitCurrentView();
   } else if (!map.__fittedNational) {
-    // invalidateSize first: on first render the #map container can still be
-    // mid-layout (e.g. web fonts/CSS not yet settled), so Leaflet may read
-    // a stale near-zero size and fitBounds over-zooms as a result
-    map.invalidateSize();
-    map.fitBounds(statesLayer.getBounds(), { padding: [8, 8] });
-    map.__fittedNational = true;
+    map.__fittedNational = fitCurrentView();
   }
 }
 
@@ -6093,7 +6142,7 @@ document.addEventListener('click', function(e){
 <script src="community.js?v=20261015-3"></script>
 <script src="signal-thresholds.js?v=20261007-1"></script>
 <script src="plan-how-computed.js?v=20261010-1"></script>
-<script src="ecosystem-forecast.js?v=20261013-2"></script>
+<script src="ecosystem-forecast.js?v=20261016-1"></script>
 <script src="ecosystem-forecast-method.js?v=20261013-1"></script>
 <script src="encounter-log.js?v=20261003-1"></script>
 
